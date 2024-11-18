@@ -1,9 +1,10 @@
 import pyxel
+from typing import Callable
 from scenes.scene import Scene
 
 class Game(Scene):
-    def __init__(self):
-        pass
+    def __init__(self, switch_scene : Callable[[Scene], None]):
+        super().__init__(switch_scene)
 
     def update(self):
         pass

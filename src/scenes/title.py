@@ -5,12 +5,12 @@ from scenes.game import Game
 
 class Title(Scene):
     def __init__(self, switch_scene : Callable[[Scene], None]):
-        self.switch_scene = switch_scene
+        super().__init__(switch_scene)
         self.name = "Title"
 
     def update(self):
         if pyxel.btnp(pyxel.KEY_SPACE):
-            self.switch_scene(Game())
+            self.switch_scene(Game(self.switch_scene))
     
     def draw(self):
         pyxel.cls(0)

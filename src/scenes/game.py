@@ -10,5 +10,5 @@ class Game(Scene):
         pass
     
     def draw(self):
-        pyxel.cls(1)
+        pyxel.cls(0)
         pyxel.text(55, 41, "In the Game!", pyxel.frame_count % 16)

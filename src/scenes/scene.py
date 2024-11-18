@@ -1,0 +1,14 @@
+from abc import ABC, abstractmethod
+
+class Scene(ABC):
+    @abstractmethod
+    def __init__(self):
+        pass
+
+    @abstractmethod
+    def update(self):
+        pass
+
+    @abstractmethod
+    def draw(self):
+        pass

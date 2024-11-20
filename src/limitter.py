@@ -1,3 +1,4 @@
+from typing import Union
 from view import ViewArea
 import pyxel
 
@@ -47,3 +48,28 @@ class LimitedDrawer:
             (min(p.x + p.w, x + w) - max(p.x, x)), 
             (min(p.y + p.h, y + h) - max(p.y, y)), 
         col)
+    
+    def blt(
+        self,
+        x: float,
+        y: float,
+        img: Union[int, pyxel.Image],
+        u: float,
+        v: float,
+        w: float,
+        h: float,
+        colkey: int = None,
+        *,
+        rotate: float = None,
+        scale: float = None,
+    ) -> None:
+        p = self.parent
+        pyxel.blt(
+            max(p.x, x),
+            max(p.y, y),
+            img,
+            0,
+            ,
+            (min(p.x + p.w, x + w) - max(p.x, x)), 
+            (min(p.y + p.h, y + h) - max(p.y, y)), 
+        )

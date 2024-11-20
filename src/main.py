@@ -1,5 +1,5 @@
 import pyxel
-from view import BoardView
+from board import BoardView
 
 class App:
     def __init__(self):

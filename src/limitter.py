@@ -7,7 +7,7 @@ class LimitedMouseInput:
     def __init__(self, parent:ViewArea):
         self.parent = parent
     
-    def enabled(self, key:int):
+    def __enabled(self, key:int):
         mbs = (
             pyxel.MOUSE_BUTTON_LEFT,
             pyxel.MOUSE_BUTTON_RIGHT,
@@ -28,19 +28,21 @@ class LimitedMouseInput:
         )
     
     def btn(self, key:int):
-        return pyxel.btn(key) and self.enabled(key)
+        return pyxel.btn(key) and self.__enabled(key)
     
     def btnp(
         self, key: int, *, hold: int = None, repeat: int = None
     ) -> bool:
-        return pyxel.btnp(key, hold=hold, repeat=repeat) and self.enabled(key)
+        return pyxel.btnp(key, hold=hold, repeat=repeat) and self.__enabled(key)
     
     def btnr(self, key:int):
-        return pyxel.btnr(key) and self.enabled(key)
+        return pyxel.btnr(key) and self.__enabled(key)
 
 class LimitedDrawer:
     def __init__(self, parent:ViewArea):
         self.parent = parent
+
+        self.lblt = pyxel.blt
 
     def rect(self, x:float, y:float, w:float, h:float, col:int):
         p = self.parent
@@ -48,28 +50,3 @@ class LimitedDrawer:
             (min(p.x + p.w, x + w) - max(p.x, x)), 
             (min(p.y + p.h, y + h) - max(p.y, y)), 
         col)
-    
-    def blt(
-        self,
-        x: float,
-        y: float,
-        img: Union[int, pyxel.Image],
-        u: float,
-        v: float,
-        w: float,
-        h: float,
-        colkey: int = None,
-        *,
-        rotate: float = None,
-        scale: float = None,
-    ) -> None:
-        p = self.parent
-        pyxel.blt(
-            max(p.x, x),
-            max(p.y, y),
-            img,
-            0,
-            ,
-            (min(p.x + p.w, x + w) - max(p.x, x)), 
-            (min(p.y + p.h, y + h) - max(p.y, y)), 
-        )

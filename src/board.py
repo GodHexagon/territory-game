@@ -1,5 +1,6 @@
 from view import ViewArea
 from limitter import LimitedDrawer, LimitedMouseInput
+from typing import Tuple, List
 import pyxel
 
 class BoardView(ViewArea):
@@ -7,7 +8,7 @@ class BoardView(ViewArea):
         super().__init__(x, y, w, h)
         self.drawer = LimitedDrawer(self)
         self.input = LimitedMouseInput(self)
-        self.board = ZoomableBoard(self.x + self.w // 2, self.y + self.h // 2, self.drawer)
+        self.board = DraggableBoard(self.x + self.w // 2, self.y + self.h // 2, self.drawer)
     
     def update(self):
         if self.input.btnr(pyxel.MOUSE_BUTTON_RIGHT):
@@ -28,13 +29,19 @@ class BoardView(ViewArea):
         self.board.draw()
 
 # Game board for display
-class ZoomableBoard:
+class DraggableBoard:
+    TILES_ZERO_ADDITION = 10
+    TILE_SIZE_PX = 8
+
+    BOARD_SIZE_TILES = 20
+
     def __init__(self, cx:float, cy:float, drawer:LimitedDrawer):
         self.x = 0.0
         self.y = 0.0
-        self.w = 200.0
-        self.h = 200.0
+        self.w = self.BOARD_SIZE_TILES * self.TILE_SIZE_PX + self.TILES_ZERO_ADDITION * 2
+        self.h = self.BOARD_SIZE_TILES * self.TILE_SIZE_PX + self.TILES_ZERO_ADDITION * 2
         self.drawer = drawer
+        self.tiles = self.__draw_tiles( [[0 for _ in range(self.BOARD_SIZE_TILES)] for _ in range(self.BOARD_SIZE_TILES)] )
         self.to_center_coordinates(cx, cy)
     
     def to_center_coordinates(self, cx:float, cy:float):
@@ -48,3 +55,57 @@ class ZoomableBoard:
         self.drawer.rect(self.x + 2, self.y + 2, self.w, self.h, 3)
         self.drawer.rect(self.x - 2, self.y - 2, self.w, self.h, 2)
         self.drawer.rect(self.x, self.y, self.w, self.h, 1)
+
+        self.drawer.lblt(
+            self.x + self.TILES_ZERO_ADDITION,
+            self.y + self.TILES_ZERO_ADDITION,
+            self.tiles,
+            0,
+            0,
+            self.BOARD_SIZE_TILES * self.TILE_SIZE_PX,
+            self.BOARD_SIZE_TILES * self.TILE_SIZE_PX
+        )
+    
+    def __draw_tiles(self, data:List[List[int]]) -> pyxel.Image:
+        EMPTY_TILE_COOR = (0, 0)
+        BLOCK_TILE_COOR = (8, 0)
+        image = pyxel.Image(self.BOARD_SIZE_TILES * self.TILE_SIZE_PX, self.BOARD_SIZE_TILES * self.TILE_SIZE_PX)
+        x = 0
+        y = 0
+        for column in data:
+            y = 0
+            for t in column:
+                if t == 0: tile_coor = EMPTY_TILE_COOR
+                image.blt(
+                    x,
+                    y,
+                    pyxel.images[0],
+                    tile_coor[0],
+                    tile_coor[1],
+                    self.TILE_SIZE_PX,
+                    self.TILE_SIZE_PX
+                )
+
+                y += self.TILE_SIZE_PX
+            x += self.TILE_SIZE_PX
+        return image
+
+    def __set_block_tile_color(color: int):
+        pass
+    
+    def __adjust_brightness(color: int, factor: float) -> int:
+        """
+        指定された16進数の色の明度を調整する。
+        """
+        # RGB成分に分解
+        r = (color >> 16) & 0xFF  # 赤成分
+        g = (color >> 8) & 0xFF   # 緑成分
+        b = color & 0xFF          # 青成分
+
+        # 明度を調整（0～255に収まるようにクリップ）
+        r = max(0, min(255, int(r * factor)))
+        g = max(0, min(255, int(g * factor)))
+        b = max(0, min(255, int(b * factor)))
+
+        # RGB成分を再び1つの整数にまとめる
+        return (r << 16) | (g << 8) | b

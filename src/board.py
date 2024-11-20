@@ -41,7 +41,7 @@ class DraggableBoard:
         self.w = self.BOARD_SIZE_TILES * self.TILE_SIZE_PX + self.TILES_ZERO_ADDITION * 2
         self.h = self.BOARD_SIZE_TILES * self.TILE_SIZE_PX + self.TILES_ZERO_ADDITION * 2
         self.drawer = drawer
-        self.tiles = self.__draw_tiles( [[0 for _ in range(self.BOARD_SIZE_TILES)] for _ in range(self.BOARD_SIZE_TILES)] )
+        self.tiles = self.__draw_tiles( [[1 for _ in range(self.BOARD_SIZE_TILES)] for _ in range(self.BOARD_SIZE_TILES)] )
         self.to_center_coordinates(cx, cy)
     
     def to_center_coordinates(self, cx:float, cy:float):
@@ -69,6 +69,10 @@ class DraggableBoard:
     def __draw_tiles(self, data:List[List[int]]) -> pyxel.Image:
         EMPTY_TILE_COOR = (0, 0)
         BLOCK_TILE_COOR = (8, 0)
+        TILE_COLOR_PALLET_NUMBER = 4
+        DEFAULT_COLOR_S = 1
+        RED_COLOR_S = 4
+
         image = pyxel.Image(self.BOARD_SIZE_TILES * self.TILE_SIZE_PX, self.BOARD_SIZE_TILES * self.TILE_SIZE_PX)
         x = 0
         y = 0
@@ -76,6 +80,10 @@ class DraggableBoard:
             y = 0
             for t in column:
                 if t == 0: tile_coor = EMPTY_TILE_COOR
+                else:
+                    tile_coor = BLOCK_TILE_COOR
+                    if t == 1:
+                        for i in range(TILE_COLOR_PALLET_NUMBER): image.pal(i + DEFAULT_COLOR_S, i + RED_COLOR_S)
                 image.blt(
                     x,
                     y,
@@ -85,27 +93,8 @@ class DraggableBoard:
                     self.TILE_SIZE_PX,
                     self.TILE_SIZE_PX
                 )
+                image.pal()
 
                 y += self.TILE_SIZE_PX
             x += self.TILE_SIZE_PX
         return image
-
-    def __set_block_tile_color(color: int):
-        pass
-    
-    def __adjust_brightness(color: int, factor: float) -> int:
-        """
-        指定された16進数の色の明度を調整する。
-        """
-        # RGB成分に分解
-        r = (color >> 16) & 0xFF  # 赤成分
-        g = (color >> 8) & 0xFF   # 緑成分
-        b = color & 0xFF          # 青成分
-
-        # 明度を調整（0～255に収まるようにクリップ）
-        r = max(0, min(255, int(r * factor)))
-        g = max(0, min(255, int(g * factor)))
-        b = max(0, min(255, int(b * factor)))
-
-        # RGB成分を再び1つの整数にまとめる
-        return (r << 16) | (g << 8) | b

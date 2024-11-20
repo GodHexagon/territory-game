@@ -1,17 +1,12 @@
-import pyxel
 from board import BoardView
+import pyxel
 
 class App:
     def __init__(self):
         pyxel.init(768, 512, title="Territory Game")
         pyxel.mouse(True)
 
-        pyxel.colors.from_list([
-            0x000000,
-            0xdcdcdc,
-            0xa9a9a9,
-            0x808080
-        ])
+        pyxel.load('../art/common.pyxres')
 
         self.views = [BoardView(0, 0, pyxel.width, pyxel.height * 0.7)]
 

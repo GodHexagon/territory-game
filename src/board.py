@@ -41,7 +41,7 @@ class DraggableBoard:
         self.w = self.BOARD_SIZE_TILES * self.TILE_SIZE_PX + self.TILES_ZERO_ADDITION * 2
         self.h = self.BOARD_SIZE_TILES * self.TILE_SIZE_PX + self.TILES_ZERO_ADDITION * 2
         self.drawer = drawer
-        self.tiles = self.__draw_tiles( [[1 for _ in range(self.BOARD_SIZE_TILES)] for _ in range(self.BOARD_SIZE_TILES)] )
+        self.tiles = self.__draw_tiles( [[2 for _ in range(self.BOARD_SIZE_TILES)] for _ in range(self.BOARD_SIZE_TILES)] )
         self.to_center_coordinates(cx, cy)
     
     def to_center_coordinates(self, cx:float, cy:float):
@@ -72,6 +72,7 @@ class DraggableBoard:
         TILE_COLOR_PALLET_NUMBER = 4
         DEFAULT_COLOR_S = 1
         RED_COLOR_S = 4
+        BLUE_COLOR_S = 7
 
         image = pyxel.Image(self.BOARD_SIZE_TILES * self.TILE_SIZE_PX, self.BOARD_SIZE_TILES * self.TILE_SIZE_PX)
         x = 0
@@ -84,6 +85,8 @@ class DraggableBoard:
                     tile_coor = BLOCK_TILE_COOR
                     if t == 1:
                         for i in range(TILE_COLOR_PALLET_NUMBER): image.pal(i + DEFAULT_COLOR_S, i + RED_COLOR_S)
+                    elif t == 2:
+                        for i in range(TILE_COLOR_PALLET_NUMBER): image.pal(i + DEFAULT_COLOR_S, i + BLUE_COLOR_S)
                 image.blt(
                     x,
                     y,

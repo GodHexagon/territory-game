@@ -1,15 +1,12 @@
-from view import ViewArea
-from limitter import LimitedDrawer, LimitedMouseInput
-from typing import List, Literal, Tuple
+from limitter import LimitableView, LimitedDrawer
+from typing import List, Tuple
 import pyxel
 
-class BoardView(ViewArea):
+class BoardView(LimitableView):
     DRAGGABLE_GAP_PX = 50
 
     def __init__(self, x, y, w, h):
         super().__init__(x, y, w, h)
-        self.drawer = LimitedDrawer(self)
-        self.input = LimitedMouseInput(self)
         self.board = DraggableBoard(self.x + self.w // 2, self.y + self.h // 2, self.drawer)
     
     def update(self):
@@ -64,7 +61,7 @@ class DraggableBoard:
         self.h = float(self.DEFAULT_BOARD_SIZE_PX)
         self.scale = 1.0
         self.drawer = drawer
-        self.tiles = self.__draw_tiles( [[1 for _ in range(self.BOARD_SIZE_TILES)] for _ in range(self.BOARD_SIZE_TILES)] )
+        self.tiles = self.__draw_tiles( [[0 for _ in range(self.BOARD_SIZE_TILES)] for _ in range(self.BOARD_SIZE_TILES)] )
         self.to_center_coordinates(cx, cy)
     
     def to_center_coordinates(self, cx:float, cy:float):

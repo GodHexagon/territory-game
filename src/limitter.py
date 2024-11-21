@@ -1,6 +1,11 @@
-from typing import Union
 from view import ViewArea
 import pyxel
+
+class LimitableView(ViewArea):
+    def __init__(self, x, y, w, h):
+        super().__init__(x, y, w, h)
+        self.drawer = LimitedDrawer(self)
+        self.input = LimitedMouseInput(self)
 
 # Limitter
 class LimitedMouseInput:

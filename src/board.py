@@ -8,6 +8,7 @@ class BoardView(LimitableView):
     def __init__(self, x, y, w, h):
         super().__init__(x, y, w, h)
         self.board = DraggableBoard(self.x + self.w // 2, self.y + self.h // 2, self.drawer)
+        self.dg = None
     
     def update(self):
         if pyxel.btnr(pyxel.MOUSE_BUTTON_RIGHT):
@@ -18,12 +19,19 @@ class BoardView(LimitableView):
             nbp = self.dg.get_board_pos( (pyxel.mouse_x, pyxel.mouse_y) )
             self.__limited_move( (nbp[0], nbp[1]) )
         
-        effected_scale = self.board.zoom(1 + pyxel.mouse_wheel * 0.1)
-        bcc = self.board.get_center_coordinates()
-        self.__limited_move( (
-            bcc[0] + (effected_scale - 1) * (bcc[0] - pyxel.mouse_x),
-            bcc[1] + (effected_scale - 1) * (bcc[1] - pyxel.mouse_y),
-        ) )
+        p = self
+        if (
+            p.x <= pyxel.mouse_x and
+            p.y <= pyxel.mouse_y and
+            pyxel.mouse_x <= p.x + p.w and
+            pyxel.mouse_y <= p.y + p.h
+        ):
+            effected_scale = self.board.zoom(1 + pyxel.mouse_wheel * 0.1)
+            bcc = self.board.get_center_coordinates()
+            self.__limited_move( (
+                bcc[0] + (effected_scale - 1) * (bcc[0] - pyxel.mouse_x),
+                bcc[1] + (effected_scale - 1) * (bcc[1] - pyxel.mouse_y),
+            ) )
 
     def __limited_move(self, to:Tuple[int, int]):
         self.board.to_center_coordinates(

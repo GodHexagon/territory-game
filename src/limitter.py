@@ -1,4 +1,5 @@
 from view import ViewArea
+from typing import Optional
 import pyxel
 
 class LimitableView(ViewArea):
@@ -36,7 +37,7 @@ class LimitedMouseInput:
         return pyxel.btn(key) and self.__enabled(key)
     
     def btnp(
-        self, key: int, *, hold: int = None, repeat: int = None
+        self, key: int, *, hold: Optional[int] = None, repeat: Optional[int] = None
     ) -> bool:
         return pyxel.btnp(key, hold=hold, repeat=repeat) and self.__enabled(key)
     
@@ -52,6 +53,6 @@ class LimitedDrawer:
     def rect(self, x:float, y:float, w:float, h:float, col:int):
         p = self.parent
         pyxel.rect(max(p.x, x), max(p.y, y), 
-            (min(p.x + p.w, x + w) - max(p.x, x)), 
-            (min(p.y + p.h, y + h) - max(p.y, y)), 
+            (min(p.x + p.w, x + w) - max(p.x, x) + 1), 
+            (min(p.y + p.h, y + h) - max(p.y, y) + 1), 
         col)

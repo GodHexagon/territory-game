@@ -1,4 +1,7 @@
+from view import ViewArea
 from board import BoardView
+from picker import PickerView
+from typing import List
 import pyxel
 
 class App:
@@ -8,7 +11,11 @@ class App:
 
         pyxel.load('../art/common.pyxres')
 
-        self.views = [BoardView(0, 0, pyxel.width, pyxel.height * 0.7)]
+        board_view_end_y = int(pyxel.height * 0.6)
+        self.views:List[ViewArea] = [
+            BoardView(0, 0, pyxel.width, board_view_end_y),
+            PickerView(0, board_view_end_y + 1, pyxel.width, pyxel.height - board_view_end_y - 1)
+        ]
 
         pyxel.run(self.update, self.draw)
 

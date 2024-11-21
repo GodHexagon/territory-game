@@ -3,22 +3,26 @@ from typing import List, Tuple
 import pyxel
 
 class BoardView(LimitableView):
-    DRAGGABLE_GAP_PX = 50
+    """DraggableBoardの表示限界を表す"""
+    DRAGGABLE_LIMIT_POCKET_PX = 50
+    DRAG = pyxel.MOUSE_BUTTON_RIGHT
 
     def __init__(self, x, y, w, h):
         super().__init__(x, y, w, h)
         self.board = DraggableBoard(self.x + self.w // 2, self.y + self.h // 2, self.drawer)
-        self.dg = None
+        self.dg: Dragging | None = None
     
     def update(self):
-        if pyxel.btnr(pyxel.MOUSE_BUTTON_RIGHT):
+        # ドラッグ検知・計算
+        if pyxel.btnr(self.DRAG):
             self.dg = None
-        elif self.input.btnp(pyxel.MOUSE_BUTTON_RIGHT):
+        elif self.input.btnp(self.DRAG):
             self.dg = Dragging( (pyxel.mouse_x, pyxel.mouse_y), self.board.get_center_coordinates() )
-        if pyxel.btn(pyxel.MOUSE_BUTTON_RIGHT) and self.dg is not None:
+        if pyxel.btn(self.DRAG) and self.dg is not None:
             nbp = self.dg.get_board_pos( (pyxel.mouse_x, pyxel.mouse_y) )
             self.__limited_move( (nbp[0], nbp[1]) )
         
+        # ホイール検知・計算
         p = self
         if (
             p.x <= pyxel.mouse_x and
@@ -34,15 +38,18 @@ class BoardView(LimitableView):
             ) )
 
     def __limited_move(self, to:Tuple[int, int]):
+        """盤がビューの外に出ないようにしつつ盤を移動"""
+        gap = self.DRAGGABLE_LIMIT_POCKET_PX
         self.board.to_center_coordinates(
-            min(self.x + self.w + self.board.w / 2 - self.DRAGGABLE_GAP_PX, max(self.x - self.board.w / 2 + self.DRAGGABLE_GAP_PX, to[0])),
-            min(self.y + self.h + self.board.w / 2 - self.DRAGGABLE_GAP_PX, max(self.y - self.board.h / 2 + self.DRAGGABLE_GAP_PX, to[1]))
+            min(self.x + self.w + self.board.w / 2 - gap, max(self.x - self.board.w / 2 + gap, to[0])),
+            min(self.y + self.h + self.board.w / 2 - gap, max(self.y - self.board.h / 2 + gap, to[1]))
         )
     
     def draw(self):
         self.board.draw()
 
 class Dragging:
+    """ドラッグが開始してから離すまでが寿命のクラス"""
     def __init__(self, mouse_pos:Tuple[float, float], board_pos:Tuple[float, float]):
         self.mouse_pos = mouse_pos
         self.board_pos = board_pos
@@ -50,17 +57,16 @@ class Dragging:
     def get_board_pos(self, curr_mouse_pos:Tuple[float, float]) -> Tuple[float, float]:
         return tuple(self.board_pos[i] + curr_mouse_pos[i] - self.mouse_pos[i] for i in range(2))
 
-# Game board for display
 class DraggableBoard:
-    TILES_ZERO_ADDITION = 10
+    """移動可能な盤の座標系を表す"""
+    FRAME_THICKNESS = 10
     TILE_SIZE_PX = 8
 
     BOARD_SIZE_TILES = 20
 
-    DEFAULT_BOARD_SIZE_PX = BOARD_SIZE_TILES * TILE_SIZE_PX + TILES_ZERO_ADDITION * 2
-    ZOOM_REDUCE = 0.8
-    MIN_ZOOM = 1
-    MAX_ZOOM = 25
+    DEFAULT_BOARD_SIZE_PX = BOARD_SIZE_TILES * TILE_SIZE_PX + FRAME_THICKNESS * 2
+    MIN_ZOOM = 1.0
+    MAX_ZOOM = 25.0
 
     def __init__(self, cx:float, cy:float, drawer:LimitedDrawer):
         self.x = 0.0
@@ -80,6 +86,7 @@ class DraggableBoard:
         return (self.x + self.w / 2, self.y + self.h / 2)
     
     def zoom(self, scale:float):
+        """現在の大きさに対しての拡大倍率を指定。さらに、中心位置を保持。"""
         prev_scale = self.scale
         self.scale = min(self.MAX_ZOOM, max(self.MIN_ZOOM, scale * self.scale))
 
@@ -95,13 +102,15 @@ class DraggableBoard:
         return effected_scale
 
     def draw(self):
+        # フレーム
         self.drawer.rect(self.x + 2 * self.scale, self.y + 2 * self.scale, self.w, self.h, 3)
         self.drawer.rect(self.x - 2 * self.scale, self.y - 2 * self.scale, self.w, self.h, 2)
         self.drawer.rect(self.x, self.y, self.w, self.h, 1)
 
+        # タイル
         self.drawer.lblt(
-            self.x + self.TILES_ZERO_ADDITION * self.scale + (self.scale - 1) * self.tiles.width / 2,
-            self.y + self.TILES_ZERO_ADDITION * self.scale + (self.scale - 1) * self.tiles.height / 2,
+            self.x + self.FRAME_THICKNESS * self.scale + (self.scale - 1) * self.tiles.width / 2,
+            self.y + self.FRAME_THICKNESS * self.scale + (self.scale - 1) * self.tiles.height / 2,
             self.tiles,
             0,
             0,
@@ -111,6 +120,7 @@ class DraggableBoard:
         )
     
     def __draw_tiles(self, data:List[List[int]]) -> pyxel.Image:
+        """タイルマップをもとに画像を生成し、これを返す"""
         EMPTY_TILE_COOR = (0, 0)
         BLOCK_TILE_COOR = (8, 0)
         TILE_COLOR_PALLET_NUMBER = 4

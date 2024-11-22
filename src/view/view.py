@@ -1,7 +1,6 @@
 from abc import ABC, abstractmethod
-from typing import Tuple
 
-class View(ABC):
+class Displayable(ABC):
     @abstractmethod
     def update(self):
         pass

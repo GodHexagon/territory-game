@@ -1,9 +1,9 @@
-from limitter import LimitableArea, LimitedDrawer
-from view import View, CenteredArea
+from view.limitter import LimitableArea, LimitedDrawer
+from view.view import Displayable, CenteredArea
 from typing import List, Tuple
 import pyxel
 
-class BoardView(View, LimitableArea):
+class BoardView(Displayable, LimitableArea):
     """DraggableBoardの表示限界を表す"""
     DRAGGABLE_LIMIT_POCKET_PX = 50
     DRAG = pyxel.MOUSE_BUTTON_RIGHT

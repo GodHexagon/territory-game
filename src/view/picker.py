@@ -1,19 +1,19 @@
-from limitter import LimitableArea, LimitedMouseInput
-from view import Area, View
+from view.limitter import LimitableArea
+from view.view import Area, Displayable, CenteredArea
 from typing import Tuple
 import pyxel
 
 SLIDER_HEIGHT = 30
 SLIDER_WIDTH = 30
 
-class PickerView(Area, View):
+class PickerView(Displayable, Area):
     FRAME_THICKNESS_PX = 3
 
     def __init__(self, x, y, w, h):
         super().__init__(x, y, w, h)
 
         f = self.FRAME_THICKNESS_PX
-        self.childs:Tuple[Area] = (
+        self.childs:Tuple[Displayable] = (
             Window(x + f, y + f, w - f * 2, h - f * 2 - SLIDER_HEIGHT),
             ScrollBar(x, y + h - SLIDER_HEIGHT + 1, w)
         )
@@ -26,7 +26,7 @@ class PickerView(Area, View):
 
         for c in self.childs: c.draw()
 
-class Window(LimitableArea):
+class Window(Displayable, LimitableArea):
     def __init__(self, x, y, w, h):
         super().__init__(x, y, w, h)
         self.scroll = 0.0
@@ -40,7 +40,11 @@ class Window(LimitableArea):
     def draw(self):
         self.drawer.rect(self.x, self.y, self.w, self.h, 1)
 
-class ScrollBar(LimitableArea):
+class Piece(CenteredArea):
+    def __init__(self, x, y, ):
+        super().__init__(x, y, 0, 0)
+
+class ScrollBar(Displayable, LimitableArea):
     def __init__(self, x, y, w):
         super().__init__(x, y, w, SLIDER_HEIGHT)
         self.slider = Slider(x, y)

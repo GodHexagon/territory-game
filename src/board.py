@@ -1,8 +1,9 @@
-from limitter import LimitableView, LimitedDrawer
+from limitter import LimitableArea, LimitedDrawer
+from view import View, CenteredArea
 from typing import List, Tuple
 import pyxel
 
-class BoardView(LimitableView):
+class BoardView(View, LimitableArea):
     """DraggableBoardの表示限界を表す"""
     DRAGGABLE_LIMIT_POCKET_PX = 50
     DRAG = pyxel.MOUSE_BUTTON_RIGHT
@@ -17,7 +18,7 @@ class BoardView(LimitableView):
         if pyxel.btnr(self.DRAG):
             self.dg = None
         elif self.input.btnp(self.DRAG):
-            self.dg = Dragging( (pyxel.mouse_x, pyxel.mouse_y), self.board.get_center_coordinates() )
+            self.dg = Dragging( (pyxel.mouse_x, pyxel.mouse_y), self.board.get_center_pos() )
         if pyxel.btn(self.DRAG) and self.dg is not None:
             nbp = self.dg.get_board_pos( (pyxel.mouse_x, pyxel.mouse_y) )
             self.__limited_move( (nbp[0], nbp[1]) )
@@ -31,7 +32,7 @@ class BoardView(LimitableView):
             pyxel.mouse_y <= p.y + p.h
         ):
             effected_scale = self.board.zoom(1 + pyxel.mouse_wheel * 0.1)
-            bcc = self.board.get_center_coordinates()
+            bcc = self.board.get_center_pos()
             self.__limited_move( (
                 bcc[0] + (effected_scale - 1) * (bcc[0] - pyxel.mouse_x),
                 bcc[1] + (effected_scale - 1) * (bcc[1] - pyxel.mouse_y),
@@ -40,7 +41,7 @@ class BoardView(LimitableView):
     def __limited_move(self, to:Tuple[int, int]):
         """盤がビューの外に出ないようにしつつ盤を移動"""
         gap = self.DRAGGABLE_LIMIT_POCKET_PX
-        self.board.to_center_coordinates(
+        self.board.to_center_pos(
             min(self.x + self.w + self.board.w / 2 - gap, max(self.x - self.board.w / 2 + gap, to[0])),
             min(self.y + self.h + self.board.w / 2 - gap, max(self.y - self.board.h / 2 + gap, to[1]))
         )
@@ -57,7 +58,7 @@ class Dragging:
     def get_board_pos(self, curr_mouse_pos:Tuple[float, float]) -> Tuple[float, float]:
         return tuple(self.board_pos[i] + curr_mouse_pos[i] - self.mouse_pos[i] for i in range(2))
 
-class DraggableBoard:
+class DraggableBoard(CenteredArea):
     """移動可能な盤の座標系を表す"""
     FRAME_THICKNESS = 10
     TILE_SIZE_PX = 8
@@ -76,14 +77,7 @@ class DraggableBoard:
         self.scale = 1.0
         self.drawer = drawer
         self.tiles = self.__draw_tiles( [[0 for _ in range(self.BOARD_SIZE_TILES)] for _ in range(self.BOARD_SIZE_TILES)] )
-        self.to_center_coordinates(cx, cy)
-    
-    def to_center_coordinates(self, cx:float, cy:float):
-        self.x = cx - self.w / 2
-        self.y = cy - self.h / 2
-    
-    def get_center_coordinates(self):
-        return (self.x + self.w / 2, self.y + self.h / 2)
+        self.to_center_pos(cx, cy)
     
     def zoom(self, scale:float):
         """現在の大きさに対しての拡大倍率を指定。さらに、中心位置を保持。"""

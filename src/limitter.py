@@ -1,8 +1,8 @@
-from view import ViewArea
+from view import Area
 from typing import Optional
 import pyxel
 
-class LimitableView(ViewArea):
+class LimitableArea(Area):
     def __init__(self, x, y, w, h):
         super().__init__(x, y, w, h)
         self.drawer = LimitedDrawer(self)
@@ -10,7 +10,7 @@ class LimitableView(ViewArea):
 
 # Limitter
 class LimitedMouseInput:
-    def __init__(self, parent:ViewArea):
+    def __init__(self, parent:Area):
         self.parent = parent
     
     def __enabled(self, key:int):
@@ -45,7 +45,7 @@ class LimitedMouseInput:
         return pyxel.btnr(key) and self.__enabled(key)
 
 class LimitedDrawer:
-    def __init__(self, parent:ViewArea):
+    def __init__(self, parent:Area):
         self.parent = parent
 
         self.lblt = pyxel.blt

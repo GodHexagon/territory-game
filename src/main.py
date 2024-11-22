@@ -1,4 +1,4 @@
-from view import ViewArea
+from view import View
 from board import BoardView
 from picker import PickerView
 from typing import List
@@ -6,13 +6,13 @@ import pyxel
 
 class App:
     def __init__(self):
-        pyxel.init(768, 512, title="Territory Game")
+        pyxel.init(768, 512, title="Territory Game", display_scale=2)
         pyxel.mouse(True)
 
         pyxel.load('../art/common.pyxres')
 
         board_view_end_y = int(pyxel.height * 0.6)
-        self.views:List[ViewArea] = [
+        self.views:List[View] = [
             BoardView(0, 0, pyxel.width, board_view_end_y),
             PickerView(0, board_view_end_y + 1, pyxel.width, pyxel.height - board_view_end_y - 1)
         ]

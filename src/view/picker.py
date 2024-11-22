@@ -1,5 +1,5 @@
-from view.limitter import LimitableArea
-from view.view import Area, Displayable, CenteredArea
+from .limitter import LimitableArea
+from .view import Area, Displayable, CenteredArea
 from typing import Tuple
 import pyxel
 

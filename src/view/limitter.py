@@ -1,4 +1,4 @@
-from view.view import Area
+from .view import Area
 from typing import Optional
 import pyxel
 

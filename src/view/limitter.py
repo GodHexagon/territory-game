@@ -13,6 +13,15 @@ class LimitedMouseInput:
     def __init__(self, parent:Area):
         self.parent = parent
     
+    def __is_in_range(self):
+        p = self.parent
+        return (
+            p.x <= pyxel.mouse_x and
+            p.y <= pyxel.mouse_y and
+            pyxel.mouse_x <= p.x + p.w and
+            pyxel.mouse_y <= p.y + p.h
+        )
+    
     def __enabled(self, key:int):
         mbs = (
             pyxel.MOUSE_BUTTON_LEFT,
@@ -25,13 +34,7 @@ class LimitedMouseInput:
             pyxel.MOUSE_WHEEL_X,
             pyxel.MOUSE_WHEEL_Y
         )
-        p = self.parent
-        return key not in mbs or (
-            p.x <= pyxel.mouse_x and
-            p.y <= pyxel.mouse_y and
-            pyxel.mouse_x <= p.x + p.w and
-            pyxel.mouse_y <= p.y + p.h
-        )
+        return key not in mbs or self.__is_in_range()
     
     def btn(self, key:int):
         return pyxel.btn(key) and self.__enabled(key)
@@ -43,6 +46,10 @@ class LimitedMouseInput:
     
     def btnr(self, key:int):
         return pyxel.btnr(key) and self.__enabled(key)
+    
+    def get_wheel(self):
+        m = 1 if self.__is_in_range() else 0
+        return pyxel.mouse_wheel * m
 
 class LimitedDrawer:
     def __init__(self, parent:Area):

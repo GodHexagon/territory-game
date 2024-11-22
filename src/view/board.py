@@ -24,19 +24,12 @@ class BoardView(Displayable, LimitableArea):
             self.__limited_move( (nbp[0], nbp[1]) )
         
         # ホイール検知・計算
-        p = self
-        if (
-            p.x <= pyxel.mouse_x and
-            p.y <= pyxel.mouse_y and
-            pyxel.mouse_x <= p.x + p.w and
-            pyxel.mouse_y <= p.y + p.h
-        ):
-            effected_scale = self.board.zoom(1 + pyxel.mouse_wheel * 0.1)
-            bcc = self.board.get_center_pos()
-            self.__limited_move( (
-                bcc[0] + (effected_scale - 1) * (bcc[0] - pyxel.mouse_x),
-                bcc[1] + (effected_scale - 1) * (bcc[1] - pyxel.mouse_y),
-            ) )
+        effected_scale = self.board.zoom(1 + self.input.get_wheel() * 0.1)
+        bcc = self.board.get_center_pos()
+        self.__limited_move( (
+            bcc[0] + (effected_scale - 1) * (bcc[0] - pyxel.mouse_x),
+            bcc[1] + (effected_scale - 1) * (bcc[1] - pyxel.mouse_y),
+        ) )
 
     def __limited_move(self, to:Tuple[int, int]):
         """盤がビューの外に出ないようにしつつ盤を移動"""

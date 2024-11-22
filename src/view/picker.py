@@ -1,30 +1,32 @@
 from .limitter import LimitableArea
 from .view import Area, Displayable, CenteredArea
-from typing import Tuple
+from typing import Tuple, Dict
 import pyxel
 
 SLIDER_HEIGHT = 30
 SLIDER_WIDTH = 30
 
-class PickerView(Displayable, Area):
+class PickerView(Displayable, LimitableArea):
     FRAME_THICKNESS_PX = 3
 
     def __init__(self, x, y, w, h):
         super().__init__(x, y, w, h)
 
         f = self.FRAME_THICKNESS_PX
-        self.childs:Tuple[Displayable] = (
-            Window(x + f, y + f, w - f * 2, h - f * 2 - SLIDER_HEIGHT),
-            ScrollBar(x, y + h - SLIDER_HEIGHT + 1, w)
-        )
+        self.childs: Dict[str, Displayable] = {
+            "w": Window(x + f, y + f, w - f * 2, h - f * 2 - SLIDER_HEIGHT),
+            "s": ScrollBar(x, y + h - SLIDER_HEIGHT + 1, w)
+        }
     
     def update(self):
-        for c in self.childs: c.update()
+        for c in self.childs.values(): c.update()
+        s: ScrollBar = self.childs["s"]
+        s.set_scroll(s.value + self.input.get_wheel() * 0.1)
 
     def draw(self):
         pyxel.rect(self.x, self.y, self.w, self.h, 16)
 
-        for c in self.childs: c.draw()
+        for c in self.childs.values(): c.draw()
 
 class Window(Displayable, LimitableArea):
     def __init__(self, x, y, w, h):
@@ -40,9 +42,16 @@ class Window(Displayable, LimitableArea):
     def draw(self):
         self.drawer.rect(self.x, self.y, self.w, self.h, 1)
 
+class Shelf(Area):
+    def __init__(self, x, y, h, ):
+        super().__init__(x, y, w, h)
+        
+
 class Piece(CenteredArea):
-    def __init__(self, x, y, ):
-        super().__init__(x, y, 0, 0)
+    def __init__(self, cx, cy, shape: Tuple[Tuple[int]]):
+        self.shape = shape
+        super().__init__(0, 0, 0, 0)
+        self.to_center_pos(cx, cy)
 
 class ScrollBar(Displayable, LimitableArea):
     def __init__(self, x, y, w):
@@ -56,11 +65,14 @@ class ScrollBar(Displayable, LimitableArea):
         if self.input.btnp(pyxel.MOUSE_BUTTON_LEFT):
             self.is_clicking = True
         if self.input.btn(pyxel.MOUSE_BUTTON_LEFT) and self.is_clicking:
-            self.value = max(0.0, min(1.0, (pyxel.mouse_x - self.x - SLIDER_WIDTH / 2) / (self.w - SLIDER_WIDTH)))
+            self.set_scroll( (pyxel.mouse_x - self.x - SLIDER_WIDTH / 2) / (self.w - SLIDER_WIDTH) )
         if pyxel.btnr(pyxel.MOUSE_BUTTON_LEFT):
             self.is_clicking = False
         
         self.slider.x = (self.w - SLIDER_WIDTH) * self.value
+    
+    def set_scroll(self, value: float):
+        self.value = max(0.0, min(1.0, value))
 
     def draw(self):
         self.drawer.rect(self.x, self.y, self.w, self.h, 3)
@@ -69,9 +81,6 @@ class ScrollBar(Displayable, LimitableArea):
 class Slider(Area):
     def __init__(self, x, y):
         super().__init__(x, y, SLIDER_WIDTH, SLIDER_HEIGHT)
-
-    def update(self):
-        pass
     
     def draw(self):
         pyxel.rect(self.x, self.y, self.w, self.h, 2)

@@ -1,25 +1,35 @@
-from .limitter import LimitableArea
+from .limitter import LimitableArea, LimitedDrawer
 from .view import Area, View, ParenthoodView, CenteredArea
-from typing import Tuple, Dict
+from ..rule.rule import Piece as PieceRes
+from typing import Tuple, Dict, List
 import pyxel
 
 SLIDER_HEIGHT = 30
 SLIDER_WIDTH = 30
 
+drawer: LimitedDrawer
+pieces_res: List[PieceRes]
+
 class PickerView(LimitableArea, ParenthoodView):
     FRAME_THICKNESS_PX = 3
 
-    def __init__(self, x, y, w, h):
+    def __init__(self, x, y, w, h, pieces: Tuple[PieceRes]):
         super().__init__(x, y, w, h)
+        
+        global drawer
+        drawer = self.drawer
+        global pieces_res
+        pieces_res = pieces
 
         f = PickerView.FRAME_THICKNESS_PX
-        self.childs: Dict[str, View] = {
+        self.set_childs( {
             "w": Window(x + f, y + f, w - f * 2, h - f * 2 - SLIDER_HEIGHT),
             "s": ScrollBar(x, y + h - SLIDER_HEIGHT + 1, w)
-        }
+        } )
     
     def update(self):
         super().update()
+
         s: ScrollBar = self.childs["s"]
         s.set_scroll(s.value + self.input.get_wheel() * -0.1)
 
@@ -28,32 +38,57 @@ class PickerView(LimitableArea, ParenthoodView):
 
         super().draw()
 
-class Window(View, LimitableArea):
+class Window(LimitableArea, ParenthoodView):
     def __init__(self, x, y, w, h):
         super().__init__(x, y, w, h)
+        self.set_childs( {"s": Shelf(x, y, h)} )
         self.scroll = 0.0
     
     def set_scroll(self, value: float):
         self.scroll = value
     
     def update(self):
-        pass
+        super().update()
 
     def draw(self):
         self.drawer.rect(self.x, self.y, self.w, self.h, 1)
+        super().draw()
+
 
 class Shelf(Area):
-    def __init__(self, x, y, h, peices: Tuple):
+    def __init__(self, x, y, h):
+        GAP_PX = 50
+        width = 0
+        p1: List[Piece] = []
+        global pieces_res
+        for i in range(len(pieces_res)):
+            width += GAP_PX
+            p_w = pieces_res[i].get_width()
+            p1.append(Piece(x + width + p_w / 2, y + h / 2, pieces_res[i]))
+            width += p_w
+        self.pieces = tuple(p1)
+        
+        super().__init__(x, y, width, h)
+    
+    def update(self):
         pass
+    
+    def draw(self):
+        for p in self.pieces: p.draw()
         
 
 class Piece(CenteredArea):
-    def __init__(self, cx, cy, shape: Tuple[Tuple[int]]):
-        self.shape = shape
-        super().__init__(0, 0, 0, 0)
+    def __init__(self, cx: float, cy: float, piece: PieceRes):
+        self.piece = piece
+        super().__init__(0, 0, piece.get_width(), piece.get_height())
         self.to_center_pos(cx, cy)
+    
+    def draw(self):
+        global drawer
+        r = self.piece
+        drawer.rect(self.x, self.y, r.get_width(), r.get_height(), 4)
 
-class ScrollBar(View, LimitableArea):
+class ScrollBar(LimitableArea, View):
     def __init__(self, x, y, w):
         super().__init__(x, y, w, SLIDER_HEIGHT)
         self.slider = Slider(x, y)

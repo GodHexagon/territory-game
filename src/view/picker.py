@@ -12,7 +12,7 @@ class PickerView(Displayable, LimitableArea):
     def __init__(self, x, y, w, h):
         super().__init__(x, y, w, h)
 
-        f = self.FRAME_THICKNESS_PX
+        f = PickerView.FRAME_THICKNESS_PX
         self.childs: Dict[str, Displayable] = {
             "w": Window(x + f, y + f, w - f * 2, h - f * 2 - SLIDER_HEIGHT),
             "s": ScrollBar(x, y + h - SLIDER_HEIGHT + 1, w)
@@ -43,8 +43,8 @@ class Window(Displayable, LimitableArea):
         self.drawer.rect(self.x, self.y, self.w, self.h, 1)
 
 class Shelf(Area):
-    def __init__(self, x, y, h, ):
-        super().__init__(x, y, w, h)
+    def __init__(self, x, y, h, peices: Tuple):
+        pass
         
 
 class Piece(CenteredArea):

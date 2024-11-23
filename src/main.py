@@ -1,4 +1,4 @@
-from view import *
+from basic.view import *
 from typing import List
 import pyxel
 

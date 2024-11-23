@@ -21,7 +21,7 @@ class PickerView(LimitableArea, ParenthoodView):
     def update(self):
         super().update()
         s: ScrollBar = self.childs["s"]
-        s.set_scroll(s.value + self.input.get_wheel() * 0.1)
+        s.set_scroll(s.value + self.input.get_wheel() * -0.1)
 
     def draw(self):
         pyxel.rect(self.x, self.y, self.w, self.h, 16)

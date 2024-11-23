@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
+from typing import Dict
 
-class Displayable(ABC):
+class View(ABC):
     @abstractmethod
     def update(self):
         pass
@@ -23,3 +24,13 @@ class CenteredArea(Area):
     
     def get_center_pos(self):
         return (self.x + self.w / 2, self.y + self.h / 2)
+    
+class ParenthoodView(View):
+    def __init__(self, childs: Dict[str, View]):
+        self.childs = childs
+    
+    def update(self):
+        for c in self.childs.values(): c.update()
+    
+    def draw(self):
+        for c in self.childs.values(): c.draw()

@@ -1,34 +1,34 @@
 from .limitter import LimitableArea
-from .view import Area, Displayable, CenteredArea
+from .view import Area, View, ParenthoodView, CenteredArea
 from typing import Tuple, Dict
 import pyxel
 
 SLIDER_HEIGHT = 30
 SLIDER_WIDTH = 30
 
-class PickerView(Displayable, LimitableArea):
+class PickerView(LimitableArea, ParenthoodView):
     FRAME_THICKNESS_PX = 3
 
     def __init__(self, x, y, w, h):
         super().__init__(x, y, w, h)
 
         f = PickerView.FRAME_THICKNESS_PX
-        self.childs: Dict[str, Displayable] = {
+        self.childs: Dict[str, View] = {
             "w": Window(x + f, y + f, w - f * 2, h - f * 2 - SLIDER_HEIGHT),
             "s": ScrollBar(x, y + h - SLIDER_HEIGHT + 1, w)
         }
     
     def update(self):
-        for c in self.childs.values(): c.update()
+        super().update()
         s: ScrollBar = self.childs["s"]
         s.set_scroll(s.value + self.input.get_wheel() * 0.1)
 
     def draw(self):
         pyxel.rect(self.x, self.y, self.w, self.h, 16)
 
-        for c in self.childs.values(): c.draw()
+        super().draw()
 
-class Window(Displayable, LimitableArea):
+class Window(View, LimitableArea):
     def __init__(self, x, y, w, h):
         super().__init__(x, y, w, h)
         self.scroll = 0.0
@@ -53,7 +53,7 @@ class Piece(CenteredArea):
         super().__init__(0, 0, 0, 0)
         self.to_center_pos(cx, cy)
 
-class ScrollBar(Displayable, LimitableArea):
+class ScrollBar(View, LimitableArea):
     def __init__(self, x, y, w):
         super().__init__(x, y, w, SLIDER_HEIGHT)
         self.slider = Slider(x, y)

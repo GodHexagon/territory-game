@@ -1,5 +1,3 @@
-from .view import Displayable
-from .board import BoardView
-from .picker import PickerView
+from .game import GameView
 
-__all__ = ['Displayable', 'BoardView', 'PickerView']
+__all__ = ['GameView']

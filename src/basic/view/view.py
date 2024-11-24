@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Dict, List, Optional
+from typing import Dict, Optional
 
 class View(ABC):
     @abstractmethod
@@ -12,11 +12,13 @@ class View(ABC):
     
 class ParenthoodView(View):
     def set_childs(self, childs: Dict[str, View]):
-        self.inherited: Optional[List[any]] = None
         self.childs = childs
-        for c in childs.values():
+    
+    def inherit(self, new_inherited: Optional[Dict[str, any]]):
+        self.inherited = new_inherited
+        for c in self.childs.values():
             if isinstance(c, ParenthoodView) and self.inherited is not None:
-                c.inherited.append(self.inherited)
+                c.inherited |= self.inherited
     
     def update(self):
         for c in self.childs.values(): c.update()

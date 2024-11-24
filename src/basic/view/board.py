@@ -1,6 +1,5 @@
 from .limitter import LimitableArea, LimitedDrawer
 from .view import View, CenteredArea
-from pyxres import TILE_SIZE_PX
 from typing import List, Tuple
 import pyxel
 
@@ -55,7 +54,7 @@ class Dragging:
 class DraggableBoard(CenteredArea):
     """移動可能な盤の座標系を表す"""
     FRAME_THICKNESS = 10
-    TILE_SIZE_PX = TILE_SIZE_PX
+    from pyxres import TILE_SIZE_PX
 
     BOARD_SIZE_TILES = 20
 
@@ -109,12 +108,7 @@ class DraggableBoard(CenteredArea):
     
     def __draw_tiles(self, data:List[List[int]]) -> pyxel.Image:
         """タイルマップをもとに画像を生成し、これを返す"""
-        EMPTY_TILE_COOR = (0, 0)
-        BLOCK_TILE_COOR = (8, 0)
-        TILE_COLOR_PALLET_NUMBER = 4
-        DEFAULT_COLOR_S = 1
-        RED_COLOR_S = 4
-        BLUE_COLOR_S = 7
+        from pyxres import EMPTY_TILE_COOR, BLOCK_TILE_COOR, TILE_COLOR_PALLET_NUMBER, DEFAULT_COLOR_S, RED_COLOR_S, BLUE_COLOR_S
 
         image = pyxel.Image(self.BOARD_SIZE_TILES * self.TILE_SIZE_PX, self.BOARD_SIZE_TILES * self.TILE_SIZE_PX)
         x = 0

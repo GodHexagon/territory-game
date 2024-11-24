@@ -10,8 +10,17 @@ SLIDER_WIDTH = 30
 
 PICKER_TILE_SCALE = 2
 
-drawer: LimitedDrawer
-pieces_res: List[PieceRes]
+window_drawer: LimitedDrawer
+pieces_res: Tuple[PieceRes]
+
+class ScrollState:
+    def __init__(self, value: float):
+        self.value = value
+    
+    def set_value(self, value: float):
+        self.value = max(0.0, min(1.0, value))
+
+scroll_state: ScrollState
 
 class PickerView(LimitableArea, ParenthoodView):
     """Pickerが占有する範囲。"""
@@ -19,11 +28,11 @@ class PickerView(LimitableArea, ParenthoodView):
 
     def __init__(self, x, y, w, h, pieces: Tuple[PieceRes]):
         super().__init__(x, y, w, h)
-        
-        global drawer
-        drawer = self.drawer
+
         global pieces_res
         pieces_res = pieces
+        global scroll_state
+        scroll_state = ScrollState(0.0)
 
         f = PickerView.FRAME_THICKNESS_PX
         self.set_childs( {
@@ -34,8 +43,9 @@ class PickerView(LimitableArea, ParenthoodView):
     def update(self):
         super().update()
 
-        s: ScrollBar = self.childs["s"]
-        s.set_scroll(s.value + self.input.get_wheel() * -0.1)
+        global scroll_state
+        s = scroll_state
+        s.set_value(s.value + self.input.get_wheel() * -0.1)
 
     def draw(self):
         pyxel.rect(self.x, self.y, self.w, self.h, 16)
@@ -46,14 +56,17 @@ class Window(LimitableArea, ParenthoodView):
     """スクロール可能Viewの表示限界。"""
     def __init__(self, x, y, w, h):
         super().__init__(x, y, w, h)
-        self.set_childs( {"s": Shelf(x, y, h)} )
-        self.scroll = 0.0
-    
-    def set_scroll(self, value: float):
-        self.scroll = value
+        self.set_childs( {'s': Shelf(x, y, h)} )
+
+        global window_drawer
+        window_drawer = self.drawer
     
     def update(self):
         super().update()
+
+        global scroll_state
+        shelf: Shelf = self.childs['s']
+        shelf.x = self.x + scroll_state.value * -100
 
     def draw(self):
         self.drawer.rect(self.x, self.y, self.w, self.h, 1)
@@ -61,7 +74,7 @@ class Window(LimitableArea, ParenthoodView):
 
 
 class Shelf(Area, View):
-    """スクロール可能Viewであり、それらのベースメント。"""
+    """スクロール可能Viewの座標系。"""
     def __init__(self, x, y, h):
         GAP_PX = 50
         width = 0
@@ -71,14 +84,14 @@ class Shelf(Area, View):
         for i in range(len(pieces_res)):
             width += GAP_PX
             p_w_px = pieces_res[i].get_width() * TILE_SIZE_PX * PICKER_TILE_SCALE
-            p1.append(Piece(x + width + p_w_px / 2, y + h / 2, pieces_res[i]))
+            p1.append(Piece( (x, y), (width + p_w_px / 2, h / 2), pieces_res[i]))
             width += p_w_px
         self.pieces = tuple(p1)
         
         super().__init__(x, y, width, h)
     
     def update(self):
-        pass
+        for p in self.pieces: p.set_parent_pos( (self.x, self.y) )
     
     def draw(self):
         for p in self.pieces: p.draw()
@@ -86,38 +99,41 @@ class Shelf(Area, View):
 
 class Piece(CenteredArea):
     """スクロール可能なピース。表示に必要な情報を持つ。"""
-    def __init__(self, cx: float, cy: float, piece: PieceRes):
+    def __init__(self, parent_pos: Tuple[int, int], relative_pos: Tuple[int, int], piece: PieceRes):
         self.piece = piece
+        self.relative_pos = relative_pos
+
         s = TILE_SIZE_PX * PICKER_TILE_SCALE
         super().__init__(0, 0, piece.get_width() * s, piece.get_height() * s)
-        self.to_center_pos(cx, cy)
+
+        self.set_parent_pos(parent_pos)
+
+    def set_parent_pos(self, parent_pos: Tuple[int, int]):
+        self.to_center_pos(parent_pos[0] + self.relative_pos[0], parent_pos[1] + self.relative_pos[1])
     
     def draw(self):
-        global drawer
-        r = self.piece
-        drawer.rect(self.x, self.y, self.w, self.h, 4)
+        global window_drawer
+        window_drawer.rect(self.x, self.y, self.w, self.h, 4)
 
 class ScrollBar(LimitableArea, View):
     """スクロールバーの範囲。"""
     def __init__(self, x, y, w):
         super().__init__(x, y, w, SLIDER_HEIGHT)
         self.slider = Slider(x, y)
-        self.value = 0.0
         self.is_clicking = False
     
     def update(self):
+        global scroll_state
+
         # クリック検知
         if self.input.btnp(pyxel.MOUSE_BUTTON_LEFT):
             self.is_clicking = True
         if self.input.btn(pyxel.MOUSE_BUTTON_LEFT) and self.is_clicking:
-            self.set_scroll( (pyxel.mouse_x - self.x - SLIDER_WIDTH / 2) / (self.w - SLIDER_WIDTH) )
+            scroll_state.set_value( (pyxel.mouse_x - self.x - SLIDER_WIDTH / 2) / (self.w - SLIDER_WIDTH) )
         if pyxel.btnr(pyxel.MOUSE_BUTTON_LEFT):
             self.is_clicking = False
         
-        self.slider.x = (self.w - SLIDER_WIDTH) * self.value
-    
-    def set_scroll(self, value: float):
-        self.value = max(0.0, min(1.0, value))
+        self.slider.x = (self.w - SLIDER_WIDTH) * scroll_state.value
 
     def draw(self):
         self.drawer.rect(self.x, self.y, self.w, self.h, 3)

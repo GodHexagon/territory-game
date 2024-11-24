@@ -1,7 +1,26 @@
 from typing import Tuple, Dict
+import enum
 import numpy
 
+class Rotation(enum.Enum):
+    DEFAULT = 0
+    RIGHT_90 = 1
+    RIGHT_180 = 2
+    RIGHT_270 = 3
+
+    @staticmethod
+    def cw(rotation: "Rotation") -> "Rotation":
+        return Rotation((rotation.value + 1) % 4)
+
+    @staticmethod
+    def counter_cw(rotation: "Rotation") -> "Rotation":
+        return Rotation((rotation.value + 3) % 4)
+
+
 class Piece:
+    EMPTY = 0
+    TILED = 1
+
     SHAPES = (
         (
             (1, ),
@@ -19,6 +38,17 @@ class Piece:
             (1, 0),
             (1, 1),
         ),
+        (
+            (1, ),
+            (1, ),
+            (1, ),
+            (1, ),
+        ),
+        (
+            (0, 1),
+            (0, 1),
+            (1, 1),
+        )
     )
 
     def __init__(self, shape: numpy.ndarray):
@@ -29,10 +59,10 @@ class Piece:
         return tuple(Piece( numpy.array(s) ) for s in Piece.SHAPES)
 
     def get_width(self):
-        return self.shape.shape[0]
+        return self.shape.shape[1]
     
     def get_height(self):
-        return self.shape.shape[1]
+        return self.shape.shape[0]
 
 class Rule:
     """ゲームルールに基づきデータをアップデートさせ、さらに現在のデータを提供する"""

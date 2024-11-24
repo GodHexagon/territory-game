@@ -4,7 +4,7 @@ from typing import List, Tuple
 import pyxel
 
 class BoardView(View, LimitableArea):
-    """DraggableBoardの表示限界を表す"""
+    """DraggableBoardの表示限界。"""
     DRAGGABLE_LIMIT_POCKET_PX = 50
     DRAG = pyxel.MOUSE_BUTTON_RIGHT
 
@@ -101,8 +101,8 @@ class DraggableBoard(CenteredArea):
             self.tiles,
             0,
             0,
-            self.BOARD_SIZE_TILES * self.TILE_SIZE_PX,
-            self.BOARD_SIZE_TILES * self.TILE_SIZE_PX,
+            self.tiles.width,
+            self.tiles.height,
             scale=self.scale
         )
     

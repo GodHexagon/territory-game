@@ -1,10 +1,11 @@
 from .limitter import LimitableArea, LimitedDrawer
 from .view import Area, View, ParenthoodView, CenteredArea
-from ..rule.rule import Piece as PieceRes
-from pyxres import TILE_SIZE_PX
+from ..rule.rule import Piece as PieceRes, Rotation
 from typing import Tuple, Dict, List
+import numpy
 import pyxel
 
+from pyxres import TILE_SIZE_PX, BLOCK_TILE_COOR, TILE_COLOR_PALLET_NUMBER, DEFAULT_COLOR_S
 SLIDER_HEIGHT = 30
 SLIDER_WIDTH = 30
 
@@ -12,6 +13,8 @@ PICKER_TILE_SCALE = 2
 
 window_drawer: LimitedDrawer
 pieces_res: Tuple[PieceRes]
+piece_rotation: Rotation
+piece_color_s: int
 
 class ScrollState:
     def __init__(self, value: float):
@@ -26,13 +29,17 @@ class PickerView(LimitableArea, ParenthoodView):
     """Pickerが占有する範囲。"""
     FRAME_THICKNESS_PX = 3
 
-    def __init__(self, x, y, w, h, pieces: Tuple[PieceRes]):
+    def __init__(self, x, y, w, h, pieces: Tuple[PieceRes], color_s: int):
         super().__init__(x, y, w, h)
 
         global pieces_res
         pieces_res = pieces
         global scroll_state
         scroll_state = ScrollState(0.0)
+        global piece_rotation
+        piece_rotation = Rotation.DEFAULT
+        global piece_color_s
+        piece_color_s = color_s
 
         f = PickerView.FRAME_THICKNESS_PX
         self.set_childs( {
@@ -51,6 +58,10 @@ class PickerView(LimitableArea, ParenthoodView):
         pyxel.rect(self.x, self.y, self.w, self.h, 16)
 
         super().draw()
+
+    def set_piece_rotation(rotation: Rotation):
+        global piece_rotation
+        piece_rotation = rotation
 
 class Window(LimitableArea, ParenthoodView):
     """スクロール可能Viewの表示限界。"""
@@ -80,13 +91,43 @@ class Shelf(Area, View):
         width = 0
         global pieces_res
 
-        p1: List[Piece] = []
-        for i in range(len(pieces_res)):
+        pieces: List[Piece] = []
+        for p in pieces_res:
+            image = pyxel.Image(p.get_width() * TILE_SIZE_PX, p.get_height() * TILE_SIZE_PX)
+            global piece_color_s
+            for i in range(TILE_COLOR_PALLET_NUMBER): image.pal(i + DEFAULT_COLOR_S, i + piece_color_s)
+            for (row, col), value in numpy.ndenumerate(p.shape):
+                if value == PieceRes.TILED:
+                    image.blt(
+                        col * TILE_SIZE_PX,
+                        row * TILE_SIZE_PX,
+                        pyxel.image(0),
+                        BLOCK_TILE_COOR[0], 
+                        BLOCK_TILE_COOR[1], 
+                        TILE_SIZE_PX,
+                        TILE_SIZE_PX,
+                    )
+                    
+            p_w_px = p.get_width() * TILE_SIZE_PX * PICKER_TILE_SCALE
+            p_h_px = p.get_height() * TILE_SIZE_PX * PICKER_TILE_SCALE
+            
+            """
+            scaled = pyxel.Image(p_w_px, p_h_px)
+            scaled.blt((PICKER_TILE_SCALE - 1) * p_w_px / 2, 
+                       (PICKER_TILE_SCALE - 1) * p_h_px / 2, 
+                       image, 0, 0, image.width, image.height, scale=PICKER_TILE_SCALE)
+            """
+
             width += GAP_PX
-            p_w_px = pieces_res[i].get_width() * TILE_SIZE_PX * PICKER_TILE_SCALE
-            p1.append(Piece( (x, y), (width + p_w_px / 2, h / 2), pieces_res[i]))
+            pieces.append(Piece(
+                (x, y), 
+                (width + p_w_px / 2, h / 2),
+                p_w_px,
+                p_h_px,
+                image
+            ))
             width += p_w_px
-        self.pieces = tuple(p1)
+        self.pieces = tuple(pieces)
         
         super().__init__(x, y, width, h)
     
@@ -99,21 +140,44 @@ class Shelf(Area, View):
 
 class Piece(CenteredArea):
     """スクロール可能なピース。表示に必要な情報を持つ。"""
-    def __init__(self, parent_pos: Tuple[int, int], relative_pos: Tuple[int, int], piece: PieceRes):
-        self.piece = piece
+    def __init__(self,
+        parent_pos: Tuple[int, int], 
+        relative_pos: Tuple[int, int],
+        width: int,
+        height: int,
+        image: pyxel.Image
+    ):
         self.relative_pos = relative_pos
+        self.image = image
 
-        s = TILE_SIZE_PX * PICKER_TILE_SCALE
-        super().__init__(0, 0, piece.get_width() * s, piece.get_height() * s)
-
+        super().__init__(0, 0, width, height)
         self.set_parent_pos(parent_pos)
 
     def set_parent_pos(self, parent_pos: Tuple[int, int]):
         self.to_center_pos(parent_pos[0] + self.relative_pos[0], parent_pos[1] + self.relative_pos[1])
     
     def draw(self):
+        global piece_rotation
+        if piece_rotation == Rotation.RIGHT_90:
+            dagree = 90
+        elif piece_rotation == Rotation.RIGHT_180:
+            dagree = 180
+        elif piece_rotation == Rotation.RIGHT_180:
+            dagree = 270
+        else:
+            dagree = 0
+
         global window_drawer
-        window_drawer.rect(self.x, self.y, self.w, self.h, 4)
+        
+        window_drawer.lblt(
+            self.x,
+            self.y,
+            self.image,
+            0, 0, self.image.width, self.image.height,
+            colkey=0,
+            rotate=dagree,
+            scale=PICKER_TILE_SCALE
+        )
 
 class ScrollBar(LimitableArea, View):
     """スクロールバーの範囲。"""

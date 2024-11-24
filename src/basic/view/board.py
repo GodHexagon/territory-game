@@ -1,5 +1,6 @@
 from .limitter import LimitableArea, LimitedDrawer
 from .view import View, CenteredArea
+from pyxres import TILE_SIZE_PX
 from typing import List, Tuple
 import pyxel
 
@@ -54,7 +55,7 @@ class Dragging:
 class DraggableBoard(CenteredArea):
     """移動可能な盤の座標系を表す"""
     FRAME_THICKNESS = 10
-    TILE_SIZE_PX = 8
+    TILE_SIZE_PX = TILE_SIZE_PX
 
     BOARD_SIZE_TILES = 20
 

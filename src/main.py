@@ -1,12 +1,14 @@
 from basic.view import *
 from typing import List
+import pyxres
 import pyxel
+
 
 class App:
     def __init__(self):
         pyxel.init(768, 512, title="Territory Game", display_scale=2)
         pyxel.mouse(True)
-        pyxel.load('../art/common.pyxres')
+        pyxel.load(pyxres.PYXRES_PATH)
 
         self.view = GameView(0, 0, pyxel.width, pyxel.height)
 

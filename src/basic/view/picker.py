@@ -59,7 +59,7 @@ class PickerView(LimitableArea, ParenthoodView):
 
         super().draw()
 
-    def set_piece_rotation(rotation: Rotation):
+    def set_piece_rotation(self, rotation: Rotation):
         global piece_rotation
         piece_rotation = rotation
 
@@ -159,16 +159,15 @@ class Piece(LimitableArea, CenteredArea):
     def draw(self):
         global piece_rotation
         if piece_rotation == Rotation.RIGHT_90:
-            dagree = 90
+            dagree = -90
         elif piece_rotation == Rotation.RIGHT_180:
-            dagree = 180
-        elif piece_rotation == Rotation.RIGHT_180:
-            dagree = 270
+            dagree = -180
+        elif piece_rotation == Rotation.RIGHT_270:
+            dagree = -270
         else:
             dagree = 0
 
         global window_drawer
-        
         window_drawer.lblt(
             self.x,
             self.y,

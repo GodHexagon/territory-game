@@ -1,7 +1,6 @@
-from .view import Area, View, ParenthoodView
-from .board import BoardView
-from .picker import PickerView
-from ..rule.rule import Rule
+from .rule.rule import Rule
+from .view.view import Area, ParenthoodView
+from .view import *
 from pyxres import BLUE_COLOR_S
 from typing import Dict
 

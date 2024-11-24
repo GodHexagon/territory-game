@@ -138,7 +138,7 @@ class Shelf(Area, View):
         for p in self.pieces: p.draw()
         
 
-class Piece(CenteredArea):
+class Piece(LimitableArea, CenteredArea):
     """スクロール可能なピース。表示に必要な情報を持つ。"""
     def __init__(self,
         parent_pos: Tuple[int, int], 

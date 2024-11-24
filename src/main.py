@@ -1,4 +1,4 @@
-from basic.view import *
+from basic.game import GameView
 from typing import List
 import pyxres
 import pyxel

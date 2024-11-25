@@ -3,6 +3,7 @@ import pyxel
 import enum
 
 class Bind(enum.Enum):
+    SEIZE_PIECE = 0
     ROTATE_RIGHT = 1
     ROTATE_LEFT = 2
 
@@ -20,5 +21,8 @@ def __agent(f: Callable[[any], bool], args: Tuple[any]):
         )) or
         (args[0] == Bind.ROTATE_RIGHT and (
             f(pyxel.KEY_F, *a) or f(pyxel.KEY_RIGHT, *a)
+        )) or
+        (args[0] == Bind.SEIZE_PIECE and (
+            f(pyxel.MOUSE_BUTTON_LEFT, *a)
         ))
     )

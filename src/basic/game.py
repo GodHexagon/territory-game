@@ -12,6 +12,8 @@ class GameView(Area, ParenthoodView):
         self.game = Rule()
         self.rotation = Rotation.DEFAULT
         
+        new = Cursor()
+
         board_view_end_y = int(h * 0.6)
         self.childs: Dict[View] = {
             "b": BoardView(0, 0, w, board_view_end_y),
@@ -21,8 +23,10 @@ class GameView(Area, ParenthoodView):
                 w, 
                 h - board_view_end_y - 1, 
                 self.game.get_pieces(Rule.PLAYER1),
-                BLUE_COLOR_S
-            )
+                BLUE_COLOR_S,
+                new
+            ),
+            'c': new
         }
     
     def update(self):

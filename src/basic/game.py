@@ -30,7 +30,7 @@ class GameView(Area, ParenthoodView):
         }
     
     def update(self):
-        if btnp(Bind.ROTATE_LEFT, 10, 1):
+        if btnp(Bind.ROTATE_LEFT):
             self.rotation = Rotation.counter_cw(self.rotation)
         if btnp(Bind.ROTATE_RIGHT):
             self.rotation = Rotation.cw(self.rotation)

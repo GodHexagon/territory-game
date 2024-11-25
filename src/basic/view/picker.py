@@ -12,12 +12,6 @@ from pyxres import TILE_SIZE_PX, BLOCK_TILE_COOR, TILE_COLOR_PALLET_NUMBER, DEFA
 SLIDER_HEIGHT = 30
 SLIDER_WIDTH = 30
 
-window_drawer: LimitedDrawer
-pieces_res: Tuple[PieceRes]
-piece_rotation: Rotation
-piece_color_s: int
-cursor: Cursor
-
 class ScrollState:
     def __init__(self, value: float):
         self.value = value
@@ -27,85 +21,72 @@ class ScrollState:
 
 scroll_state: ScrollState
 
-class PickerView(LimitableArea, ParenthoodView):
+class PickerView(LimitableArea, View):
     """Pickerが占有する範囲。"""
     FRAME_THICKNESS_PX = 3
 
-    def __init__(self, x, y, w, h, pieces: Tuple[PieceRes], color_s: int, current: Cursor):
+    def __init__(self, x, y, w, h, pieces: Tuple[PieceRes], color_s: int, cursor: Cursor):
         super().__init__(x, y, w, h)
+        self.cursor = cursor
 
-        global pieces_res
-        pieces_res = pieces
         global scroll_state
         scroll_state = ScrollState(0.0)
-        global piece_rotation
-        piece_rotation = Rotation.DEFAULT
-        global piece_color_s
-        piece_color_s = color_s
-        global cursor
-        cursor = current
 
-        f = PickerView.FRAME_THICKNESS_PX
-        self.set_childs( {
-            "w": Window(x + f, y + f, w - f * 2, h - f * 2 - SLIDER_HEIGHT),
-            "s": ScrollBar(x, y + h - SLIDER_HEIGHT + 1, w)
-        } )
-    
+        F = PickerView.FRAME_THICKNESS_PX
+        self.window = Window(self.x + F, self.y + F, self.w - F * 2, self.h - F * 2 - SLIDER_HEIGHT)
+        self.shelf = self.window.ini_shelf()
+        self.pieces = self.shelf.ini_pieces(pieces, color_s)
+        self.scroll_bar = ScrollBar(self.x, self.y + self.h - SLIDER_HEIGHT + 1, self.w)
+
     def update(self):
-        super().update()
-
+        # スクロール検知
         global scroll_state
-        s = scroll_state
-        s.set_value(s.value + self.input.get_wheel() * -0.1)
+        scroll_state.set_value(scroll_state.value + self.input.get_wheel() * -0.1)
+        self.shelf.x = self.x + scroll_state.value * -100
+
+        # ピースを置く
+        if btnp(Bind.SEIZE_PIECE) and self.window.input.is_in_range() and self.cursor.is_holding():
+            pass
+
+        # updates
+        self.scroll_bar.update()
+        for p in self.pieces: p.update(self.cursor)
 
     def draw(self):
         pyxel.rect(self.x, self.y, self.w, self.h, 16)
 
-        super().draw()
+        self.window.draw()
+        self.scroll_bar.draw()
+        for p in self.pieces: p.draw(self.piece_rotation, self.window.drawer)
 
     def set_piece_rotation(self, rotation: Rotation):
-        global piece_rotation
-        piece_rotation = rotation
+        self.piece_rotation = rotation
 
-class Window(LimitableArea, ParenthoodView):
+class Window(LimitableArea):
     """スクロール可能Viewの表示限界。"""
     def __init__(self, x, y, w, h):
         super().__init__(x, y, w, h)
-        self.set_childs( {'s': Shelf(x, y, h)} )
-
-        global window_drawer
-        window_drawer = self.drawer
     
-    def update(self):
-        global scroll_state
-        shelf: Shelf = self.childs['s']
-        shelf.x = self.x + scroll_state.value * -100
-        
-        global cursor
-        if btnp(Bind.SEIZE_PIECE) and self.input.is_in_range() and cursor.is_holding():
-            s: Shelf = self.childs['s']
-            s.reset_piece(cursor.held)
-        
-        super().update()
+    def ini_shelf(self):
+        return Shelf(self.x, self.y, self.h)
 
     def draw(self):
         self.drawer.rect(self.x, self.y, self.w, self.h, 1)
-        super().draw()
 
 PICKER_TILE_SCALE = 2
 
-class Shelf(Area, View):
+class Shelf(Area):
     """スクロール可能Viewの座標系。"""
     GAP_PX = 50
     
-    def __init__(self, x, y, h):
+    def __init__(self, x, y, h):        
+        super().__init__(x, y, 0, h)
+    
+    def ini_pieces(self, pieces_res: Tuple[PieceRes], piece_color_s: int):
         width = 0
-        global pieces_res
-
         pieces: List[Piece] = []
         for p in pieces_res:
             image = pyxel.Image(p.get_width() * TILE_SIZE_PX, p.get_height() * TILE_SIZE_PX)
-            global piece_color_s
             for i in range(TILE_COLOR_PALLET_NUMBER): image.pal(i + DEFAULT_COLOR_S, i + piece_color_s)
             for (row, col), value in numpy.ndenumerate(p.shape):
                 if value == PieceRes.TILED:
@@ -121,42 +102,18 @@ class Shelf(Area, View):
                     
             p_w_px = p.get_width() * TILE_SIZE_PX * PICKER_TILE_SCALE
             p_h_px = p.get_height() * TILE_SIZE_PX * PICKER_TILE_SCALE
-            
-            """
-            scaled = pyxel.Image(p_w_px, p_h_px)
-            scaled.blt((PICKER_TILE_SCALE - 1) * p_w_px / 2, 
-                       (PICKER_TILE_SCALE - 1) * p_h_px / 2, 
-                       image, 0, 0, image.width, image.height, scale=PICKER_TILE_SCALE)
-            """
 
             width += Shelf.GAP_PX
             pieces.append(Piece(
                 self,
-                (width + p_w_px / 2, h / 2),
+                (width + p_w_px / 2, self.h / 2),
                 p_w_px,
                 p_h_px,
                 image
             ))
             width += p_w_px
-        self.pieces = tuple(pieces)
-
-        default_pos: Dict[int, Tuple[int, int]] = {}
-        for p in self.pieces:
-            default_pos[p.__hash__()] = (p.x, p.y)
-        self.default_pos = default_pos
-        
-        super().__init__(x, y, width, h)
-    
-    def reset_piece(self, piece: 'Piece'):
-        dp = self.default_pos[piece.__hash__()]
-        piece.follow(self, (dp[0], dp[1]))
-    
-    def update(self):
-        for p in self.pieces: p.update()
-    
-    def draw(self):
-        for p in self.pieces: p.draw()
-        
+        self.w = width
+        return pieces       
 
 class Piece(LimitableArea, CenteredArea, Followable):
     """スクロール可能なピース。表示に必要な情報を持つ。"""
@@ -177,15 +134,13 @@ class Piece(LimitableArea, CenteredArea, Followable):
         self.relative_pos = relative_pos
         self.following_to = to
     
-    def update(self):
+    def update(self, cursor: Cursor):
         self.to_center_pos(self.following_to.x + self.relative_pos[0], self.following_to.y + self.relative_pos[1])
-        
-        global cursor
+
         if btnp(Bind.SEIZE_PIECE) and self.input.is_in_range() and not cursor.is_holding():
             cursor.hold(self)
     
-    def draw(self):
-        global piece_rotation
+    def draw(self, piece_rotation: Rotation, drawer: LimitedDrawer):
         if piece_rotation == Rotation.RIGHT_90:
             dagree = -90
         elif piece_rotation == Rotation.RIGHT_180:
@@ -195,9 +150,8 @@ class Piece(LimitableArea, CenteredArea, Followable):
         else:
             dagree = 0
 
-        global window_drawer
         T = PICKER_TILE_SCALE
-        window_drawer.lblt(
+        drawer.lblt(
             self.x + (T - 1) * (self.image.width / 2),
             self.y + (T - 1) * (self.image.height / 2),
             self.image,

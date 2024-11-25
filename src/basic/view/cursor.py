@@ -1,5 +1,7 @@
 from .view import View, Area
 from typing import *
+
+from abc import ABC
 import pyxel
 
 class Cursor(Area, View):
@@ -14,13 +16,13 @@ class Cursor(Area, View):
     def draw(self):
         pass
     
-    def hold(self, thing):
-        self.held = thing
+    def hold(self, by: 'Followable'):
+        by.follow(self)
+        self.held = by
     
     def is_holding(self):
         return self.held is not None
 
-class Followable:
-    def follow(self, to: Cursor, relative_pos: Tuple[int, int]):
-        self.relative_pos = relative_pos
+class Followable(ABC):
+    def follow(self, to: Cursor):
         self.following_to = to

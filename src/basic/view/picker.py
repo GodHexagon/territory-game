@@ -16,7 +16,7 @@ window_drawer: LimitedDrawer
 pieces_res: Tuple[PieceRes]
 piece_rotation: Rotation
 piece_color_s: int
-cursor = Cursor
+cursor: Cursor
 
 class ScrollState:
     def __init__(self, value: float):
@@ -77,15 +77,16 @@ class Window(LimitableArea, ParenthoodView):
         window_drawer = self.drawer
     
     def update(self):
-        super().update()
-
         global scroll_state
         shelf: Shelf = self.childs['s']
         shelf.x = self.x + scroll_state.value * -100
         
         global cursor
         if btnp(Bind.SEIZE_PIECE) and self.input.is_in_range() and cursor.is_holding():
-            pass
+            s: Shelf = self.childs['s']
+            s.reset_piece(cursor.held)
+        
+        super().update()
 
     def draw(self):
         self.drawer.rect(self.x, self.y, self.w, self.h, 1)
@@ -95,8 +96,9 @@ PICKER_TILE_SCALE = 2
 
 class Shelf(Area, View):
     """スクロール可能Viewの座標系。"""
+    GAP_PX = 50
+    
     def __init__(self, x, y, h):
-        GAP_PX = 50
         width = 0
         global pieces_res
 
@@ -127,7 +129,7 @@ class Shelf(Area, View):
                        image, 0, 0, image.width, image.height, scale=PICKER_TILE_SCALE)
             """
 
-            width += GAP_PX
+            width += Shelf.GAP_PX
             pieces.append(Piece(
                 self,
                 (width + p_w_px / 2, h / 2),
@@ -137,12 +139,17 @@ class Shelf(Area, View):
             ))
             width += p_w_px
         self.pieces = tuple(pieces)
+
+        default_pos: Dict[int, Tuple[int, int]] = {}
+        for p in self.pieces:
+            default_pos[p.__hash__()] = (p.x, p.y)
+        self.default_pos = default_pos
         
         super().__init__(x, y, width, h)
     
-    def align(self, pieces: Tuple[Area]):
-        for p in pieces:
-            pass
+    def reset_piece(self, piece: 'Piece'):
+        dp = self.default_pos[piece.__hash__()]
+        piece.follow(self, (dp[0], dp[1]))
     
     def update(self):
         for p in self.pieces: p.update()
@@ -155,23 +162,27 @@ class Piece(LimitableArea, CenteredArea, Followable):
     """スクロール可能なピース。表示に必要な情報を持つ。"""
 
     def __init__(self,
-        following_to: Area,
+        parent: Area,
         relative_pos: Tuple[int, int],
         width: int,
         height: int,
         image: pyxel.Image
     ):
-        self.follow(following_to, relative_pos)
+        self.follow(parent, relative_pos)
         self.image = image
 
         super().__init__(0, 0, width, height)
+    
+    def follow(self, to: Area, relative_pos: Optional[Tuple[int, int]] = (0, 0)):
+        self.relative_pos = relative_pos
+        self.following_to = to
     
     def update(self):
         self.to_center_pos(self.following_to.x + self.relative_pos[0], self.following_to.y + self.relative_pos[1])
         
         global cursor
         if btnp(Bind.SEIZE_PIECE) and self.input.is_in_range() and not cursor.is_holding():
-            self.follow(cursor, (0, 0))
+            cursor.hold(self)
     
     def draw(self):
         global piece_rotation

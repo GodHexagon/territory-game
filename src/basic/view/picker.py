@@ -1,7 +1,8 @@
 from .limitter import LimitableArea, LimitedDrawer
 from .view import Area, View, ParenthoodView, CenteredArea
-from .cursor import Cursor
+from .cursor import Cursor, Followable
 from ..rule.rule import Piece as PieceRes, Rotation
+from ..key_bind import *
 
 from typing import *
 import numpy
@@ -81,6 +82,10 @@ class Window(LimitableArea, ParenthoodView):
         global scroll_state
         shelf: Shelf = self.childs['s']
         shelf.x = self.x + scroll_state.value * -100
+        
+        global cursor
+        if btnp(Bind.SEIZE_PIECE) and self.input.is_in_range() and cursor.is_holding():
+            pass
 
     def draw(self):
         self.drawer.rect(self.x, self.y, self.w, self.h, 1)
@@ -135,6 +140,10 @@ class Shelf(Area, View):
         
         super().__init__(x, y, width, h)
     
+    def align(self, pieces: Tuple[Area]):
+        for p in pieces:
+            pass
+    
     def update(self):
         for p in self.pieces: p.update()
     
@@ -142,7 +151,7 @@ class Shelf(Area, View):
         for p in self.pieces: p.draw()
         
 
-class Piece(LimitableArea, CenteredArea):
+class Piece(LimitableArea, CenteredArea, Followable):
     """スクロール可能なピース。表示に必要な情報を持つ。"""
 
     def __init__(self,
@@ -152,22 +161,16 @@ class Piece(LimitableArea, CenteredArea):
         height: int,
         image: pyxel.Image
     ):
-        self.following_to = following_to
-        self.relative_pos = relative_pos
+        self.follow(following_to, relative_pos)
         self.image = image
 
         super().__init__(0, 0, width, height)
-    
-    def follow(self, to: Area, relative_pos: Tuple[int, int]):
-        self.relative_pos = relative_pos
-        self.following_to = to
     
     def update(self):
         self.to_center_pos(self.following_to.x + self.relative_pos[0], self.following_to.y + self.relative_pos[1])
         
         global cursor
-        from ..key_bind import Bind, btnp
-        if btnp(Bind.SEIZE_PIECE) and self.input.is_in_range():
+        if btnp(Bind.SEIZE_PIECE) and self.input.is_in_range() and not cursor.is_holding():
             self.follow(cursor, (0, 0))
     
     def draw(self):

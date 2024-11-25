@@ -43,10 +43,11 @@ class PickerView(LimitableArea, View):
         global scroll_state
         scroll_state.set_value(scroll_state.value + self.input.get_wheel() * -0.1)
         self.shelf.x = self.x + scroll_state.value * -100
-
+        
         # ピースを置く
         if btnp(Bind.SEIZE_PIECE) and self.window.input.is_in_range() and self.cursor.is_holding():
-            pass
+            self.cursor.hold()
+            self.shelf.align(self.pieces)
 
         # updates
         self.scroll_bar.update()
@@ -112,8 +113,18 @@ class Shelf(Area):
                 image
             ))
             width += p_w_px
+        width += Shelf.GAP_PX
         self.w = width
-        return pieces       
+        return tuple(pieces) 
+
+    def align(self, pieces: Tuple['Piece']):
+        width = 0
+        for p in pieces:
+            width += Shelf.GAP_PX
+            p.follow(self, (width, self.h / 2))
+            width += p.w
+        width += Shelf.GAP_PX
+        self.w = width
 
 class Piece(LimitableArea, CenteredArea, Followable):
     """スクロール可能なピース。表示に必要な情報を持つ。"""

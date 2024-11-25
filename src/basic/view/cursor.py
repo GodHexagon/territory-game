@@ -16,8 +16,8 @@ class Cursor(Area, View):
     def draw(self):
         pass
     
-    def hold(self, by: 'Followable'):
-        by.follow(self)
+    def hold(self, by: Optional['Followable'] = None):
+        if by is not None: by.follow(self)
         self.held = by
     
     def is_holding(self):

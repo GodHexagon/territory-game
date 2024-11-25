@@ -57,6 +57,8 @@ class PickerView(LimitableArea, View):
         pyxel.rect(self.x, self.y, self.w, self.h, 16)
 
         self.window.draw()
+        s = self.shelf
+        pyxel.rect(s.x, s.y, s.w, s.h, 2)
         self.scroll_bar.draw()
         for p in self.pieces: p.draw(self.piece_rotation, self.window.drawer)
 
@@ -78,7 +80,7 @@ PICKER_TILE_SCALE = 2
 
 class Shelf(Area):
     """スクロール可能Viewの座標系。"""
-    GAP_PX = 50
+    GAP_PX = 48
     
     def __init__(self, x, y, h):        
         super().__init__(x, y, 0, h)
@@ -87,6 +89,7 @@ class Shelf(Area):
         width = 0
         pieces: List[Piece] = []
         for p in pieces_res:
+            # 画像を生成
             image = pyxel.Image(p.get_width() * TILE_SIZE_PX, p.get_height() * TILE_SIZE_PX)
             for i in range(TILE_COLOR_PALLET_NUMBER): image.pal(i + DEFAULT_COLOR_S, i + piece_color_s)
             for (row, col), value in numpy.ndenumerate(p.shape):
@@ -100,7 +103,8 @@ class Shelf(Area):
                         TILE_SIZE_PX,
                         TILE_SIZE_PX,
                     )
-                    
+            
+            # インスタンス化
             p_w_px = p.get_width() * TILE_SIZE_PX * PICKER_TILE_SCALE
             p_h_px = p.get_height() * TILE_SIZE_PX * PICKER_TILE_SCALE
 
@@ -112,17 +116,18 @@ class Shelf(Area):
                 p_h_px,
                 image
             ))
-            width += p_w_px
-        width += Shelf.GAP_PX
-        self.w = width
+        
+        self.align(pieces)
         return tuple(pieces) 
 
     def align(self, pieces: Tuple['Piece']):
         width = 0
         for p in pieces:
             width += Shelf.GAP_PX
+            
+            width += p.allocated / 2
             p.follow(self, (width, self.h / 2))
-            width += p.w
+            width += p.allocated / 2
         width += Shelf.GAP_PX
         self.w = width
 
@@ -137,11 +142,14 @@ class Piece(LimitableArea, CenteredArea, Followable):
         image: pyxel.Image
     ):
         self.follow(parent, relative_pos)
+        self.set_visibility(True)
         self.image = image
 
         super().__init__(0, 0, width, height)
+        
+        self.allocated = max(self.w, self.h)
     
-    def follow(self, to: Area, relative_pos: Optional[Tuple[int, int]] = (0, 0)):
+    def follow(self, to: Area, relative_pos: Tuple[int, int] = (0, 0)):
         self.relative_pos = relative_pos
         self.following_to = to
     

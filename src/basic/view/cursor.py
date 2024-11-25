@@ -26,3 +26,6 @@ class Cursor(Area, View):
 class Followable(ABC):
     def follow(self, to: Cursor):
         self.following_to = to
+    
+    def set_visibility(self, visible: bool):
+        self.visibility = visible

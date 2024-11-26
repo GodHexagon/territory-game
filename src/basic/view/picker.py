@@ -48,10 +48,11 @@ class PickerView(LimitableArea, View):
         if btnp(Bind.SEIZE_PIECE) and self.window.input.is_in_range() and self.cursor.is_holding():
             self.cursor.hold()
             self.shelf.align(self.pieces)
-
-        # updates
+        else:
+            # マウス操作
+            for p in self.pieces: p.mouse_input(self.cursor)
+        
         self.scroll_bar.update()
-        for p in self.pieces: p.update(self.cursor)
 
     def draw(self):
         pyxel.rect(self.x, self.y, self.w, self.h, 16)
@@ -60,7 +61,12 @@ class PickerView(LimitableArea, View):
         s = self.shelf
         pyxel.rect(s.x, s.y, s.w, s.h, 2)
         self.scroll_bar.draw()
+        
         for p in self.pieces: p.draw(self.piece_rotation, self.window.drawer)
+
+        ps = filter(lambda p: isinstance(p.following_to, Cursor), self.pieces)
+        for p in ps:
+            p.draw(self.piece_rotation, self.window.drawer)
 
     def set_piece_rotation(self, rotation: Rotation):
         self.piece_rotation = rotation
@@ -153,7 +159,7 @@ class Piece(LimitableArea, CenteredArea, Followable):
         self.relative_pos = relative_pos
         self.following_to = to
     
-    def update(self, cursor: Cursor):
+    def mouse_input(self, cursor: Cursor):
         self.to_center_pos(self.following_to.x + self.relative_pos[0], self.following_to.y + self.relative_pos[1])
 
         if btnp(Bind.SEIZE_PIECE) and self.input.is_in_range() and not cursor.is_holding():

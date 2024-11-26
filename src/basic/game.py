@@ -16,7 +16,7 @@ class GameView(Area, ParenthoodView):
 
         board_view_end_y = int(h * 0.6)
         self.childs: Dict[View] = {
-            "b": BoardView(0, 0, w, board_view_end_y),
+            "b": BoardView(0, 0, w, board_view_end_y, new),
             "p": PickerView(
                 0, 
                 board_view_end_y + 1, 

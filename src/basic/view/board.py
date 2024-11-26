@@ -1,5 +1,6 @@
 from .limitter import LimitableArea, LimitedDrawer
 from .view import View, CenteredArea
+from .cursor import Cursor
 from typing import List, Tuple
 import pyxel
 
@@ -8,9 +9,11 @@ class BoardView(View, LimitableArea):
     DRAGGABLE_LIMIT_POCKET_PX = 50
     DRAG = pyxel.MOUSE_BUTTON_RIGHT
 
-    def __init__(self, x, y, w, h):
+    def __init__(self, x, y, w, h, cursor: Cursor):
         super().__init__(x, y, w, h)
         self.board = DraggableBoard(self.x + self.w // 2, self.y + self.h // 2, self.drawer)
+        self.b_input = self.board.ini_b_input()
+        self.cursor = cursor
         self.dg: Dragging | None = None
     
     def update(self):
@@ -30,6 +33,9 @@ class BoardView(View, LimitableArea):
             bcc[0] + (effected_scale - 1) * (bcc[0] - pyxel.mouse_x),
             bcc[1] + (effected_scale - 1) * (bcc[1] - pyxel.mouse_y),
         ) )
+
+        self.board.make_sizing_bi(self.b_input)
+        self.b_input.update(self.cursor)
 
     def __limited_move(self, to:Tuple[int, int]):
         """盤がビューの外に出ないようにしつつ盤を移動"""
@@ -65,12 +71,17 @@ class DraggableBoard(CenteredArea):
     def __init__(self, cx:float, cy:float, drawer:LimitedDrawer):
         self.x = 0.0
         self.y = 0.0
-        self.w = float(self.DEFAULT_BOARD_SIZE_PX)
-        self.h = float(self.DEFAULT_BOARD_SIZE_PX)
+        self.w = float(DraggableBoard.DEFAULT_BOARD_SIZE_PX)
+        self.h = float(DraggableBoard.DEFAULT_BOARD_SIZE_PX)
         self.scale = 1.0
         self.drawer = drawer
         self.tiles = self.__draw_tiles( [[0 for _ in range(self.BOARD_SIZE_TILES)] for _ in range(self.BOARD_SIZE_TILES)] )
         self.to_center_pos(cx, cy)
+    
+    def ini_b_input(self):
+        F = DraggableBoard.FRAME_THICKNESS
+        T = DraggableBoard.BOARD_SIZE_TILES * DraggableBoard.TILE_SIZE_PX
+        return BoardInput(self.x + F, self.y + F, T, T, self.scale)
     
     def zoom(self, scale:float):
         """現在の大きさに対しての拡大倍率を指定。さらに、中心位置を保持。"""
@@ -87,6 +98,17 @@ class DraggableBoard(CenteredArea):
         self.h = size
 
         return effected_scale
+    
+    def make_sizing_bi(self, bi: 'BoardInput'):
+        F = DraggableBoard.FRAME_THICKNESS
+        bi.x = self.x + F * self.scale
+        bi.y = self.y + F * self.scale
+
+        T = DraggableBoard.BOARD_SIZE_TILES * DraggableBoard.TILE_SIZE_PX
+        bi.w = T * self.scale
+        bi.h = T * self.scale
+
+        bi.scale = self.scale
 
     def draw(self):
         # フレーム
@@ -137,3 +159,25 @@ class DraggableBoard(CenteredArea):
                 y += self.TILE_SIZE_PX
             x += self.TILE_SIZE_PX
         return image
+
+class BoardInput(LimitableArea):
+    def __init__(self, x, y, w, h, scale: float):
+        super().__init__(x, y, w, h)
+        self.scale = scale
+        self.prev_hovered = False
+    
+    def set_shape(self, x, y, w, h, scale):
+        self.x = x
+        self.y = y
+        self.w = w
+        self.h = h
+        self.scale = scale
+    
+    def update(self, cursor: Cursor):
+        iir = self.input.is_in_range()
+        if (
+            (self.prev_hovered and not iir) or
+            (not self.prev_hovered and iir)
+        ):
+            self.prev_hovered = iir
+            if cursor.held is not None: cursor.held.set_visibility(not iir)

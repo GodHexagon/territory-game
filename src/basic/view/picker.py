@@ -160,6 +160,9 @@ class Piece(LimitableArea, CenteredArea, Followable):
             cursor.hold(self)
     
     def draw(self, piece_rotation: Rotation, drawer: LimitedDrawer):
+        if not self.visibility:
+            return
+
         if piece_rotation == Rotation.RIGHT_90:
             dagree = -90
         elif piece_rotation == Rotation.RIGHT_180:

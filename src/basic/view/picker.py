@@ -61,7 +61,7 @@ class PickerView(LimitableArea, View):
         s = self.shelf
         pyxel.rect(s.x, s.y, s.w, s.h, 2)
         self.scroll_bar.draw()
-        
+
         for p in self.pieces: p.draw(self.piece_rotation, self.window.drawer)
 
         ps = filter(lambda p: isinstance(p.following_to, Cursor), self.pieces)
@@ -96,19 +96,20 @@ class Shelf(Area):
         pieces: List[Piece] = []
         for p in pieces_res:
             # 画像を生成
-            image = pyxel.Image(p.get_width() * TILE_SIZE_PX, p.get_height() * TILE_SIZE_PX)
-            for i in range(TILE_COLOR_PALLET_NUMBER): image.pal(i + DEFAULT_COLOR_S, i + piece_color_s)
-            for (row, col), value in numpy.ndenumerate(p.shape):
-                if value == PieceRes.TILED:
-                    image.blt(
-                        col * TILE_SIZE_PX,
-                        row * TILE_SIZE_PX,
-                        pyxel.image(0),
-                        BLOCK_TILE_COOR[0], 
-                        BLOCK_TILE_COOR[1], 
-                        TILE_SIZE_PX,
-                        TILE_SIZE_PX,
-                    )
+            for by_direction in range(4):
+                image = pyxel.Image(p.get_width() * TILE_SIZE_PX, p.get_height() * TILE_SIZE_PX)
+                for i in range(TILE_COLOR_PALLET_NUMBER): image.pal(i + DEFAULT_COLOR_S, i + piece_color_s)
+                for (row, col), value in numpy.ndenumerate(p.shape):
+                    if value == PieceRes.TILED:
+                        image.blt(
+                            col * TILE_SIZE_PX,
+                            row * TILE_SIZE_PX,
+                            pyxel.image(0),
+                            BLOCK_TILE_COOR[0], 
+                            BLOCK_TILE_COOR[1], 
+                            TILE_SIZE_PX,
+                            TILE_SIZE_PX,
+                        )
             
             # インスタンス化
             p_w_px = p.get_width() * TILE_SIZE_PX * PICKER_TILE_SCALE
@@ -145,11 +146,12 @@ class Piece(LimitableArea, CenteredArea, Followable):
         relative_pos: Tuple[int, int],
         width: int,
         height: int,
-        image: pyxel.Image
+        images: Tuple[pyxel.Image]
     ):
         self.follow(parent, relative_pos)
         self.set_visibility(True)
-        self.image = image
+        self.images = images
+        self.size_default_orientation = (width, height)
 
         super().__init__(0, 0, width, height)
         
@@ -160,8 +162,6 @@ class Piece(LimitableArea, CenteredArea, Followable):
         self.following_to = to
     
     def mouse_input(self, cursor: Cursor):
-        self.to_center_pos(self.following_to.x + self.relative_pos[0], self.following_to.y + self.relative_pos[1])
-
         if btnp(Bind.SEIZE_PIECE) and self.input.is_in_range() and not cursor.is_holding():
             cursor.hold(self)
     
@@ -170,22 +170,25 @@ class Piece(LimitableArea, CenteredArea, Followable):
             return
 
         if piece_rotation == Rotation.RIGHT_90:
-            dagree = -90
+            image = self.images[1]
         elif piece_rotation == Rotation.RIGHT_180:
-            dagree = -180
+            image = self.images[2]
         elif piece_rotation == Rotation.RIGHT_270:
-            dagree = -270
+            image = self.images[3]
         else:
-            dagree = 0
+            image = self.images[0]
+        
+        self.w = image.width
+        self.h = image.height
+        self.to_center_pos(self.following_to.x + self.relative_pos[0], self.following_to.y + self.relative_pos[1])
 
         T = PICKER_TILE_SCALE
         drawer.lblt(
-            self.x + (T - 1) * (self.image.width / 2),
-            self.y + (T - 1) * (self.image.height / 2),
-            self.image,
-            0, 0, self.image.width, self.image.height,
+            self.x + (T - 1) * (image.width / 2),
+            self.y + (T - 1) * (image.height / 2),
+            image,
+            0, 0, image.width, image.height,
             colkey=0,
-            rotate=dagree,
             scale=T
         )
 

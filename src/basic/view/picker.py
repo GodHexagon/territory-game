@@ -96,10 +96,15 @@ class Shelf(Area):
         pieces: List[Piece] = []
         for p in pieces_res:
             # 画像を生成
-            for by_direction in range(4):
-                image = pyxel.Image(p.get_width() * TILE_SIZE_PX, p.get_height() * TILE_SIZE_PX)
+            images: List[pyxel.Image] = []
+
+            for by_direction_sequence in range(4):
+                rotated = p.copy_rotated_right90(by_direction_sequence)
+
+                image = pyxel.Image(rotated.get_width() * TILE_SIZE_PX, rotated.get_height() * TILE_SIZE_PX)
                 for i in range(TILE_COLOR_PALLET_NUMBER): image.pal(i + DEFAULT_COLOR_S, i + piece_color_s)
-                for (row, col), value in numpy.ndenumerate(p.shape):
+
+                for (row, col), value in numpy.ndenumerate(rotated.shape):
                     if value == PieceRes.TILED:
                         image.blt(
                             col * TILE_SIZE_PX,
@@ -110,6 +115,7 @@ class Shelf(Area):
                             TILE_SIZE_PX,
                             TILE_SIZE_PX,
                         )
+                images.append(image)
             
             # インスタンス化
             p_w_px = p.get_width() * TILE_SIZE_PX * PICKER_TILE_SCALE
@@ -121,7 +127,7 @@ class Shelf(Area):
                 (width + p_w_px / 2, self.h / 2),
                 p_w_px,
                 p_h_px,
-                image
+                tuple(images)
             ))
         
         self.align(pieces)
@@ -178,8 +184,8 @@ class Piece(LimitableArea, CenteredArea, Followable):
         else:
             image = self.images[0]
         
-        self.w = image.width
-        self.h = image.height
+        self.w = image.width * PICKER_TILE_SCALE
+        self.h = image.height * PICKER_TILE_SCALE
         self.to_center_pos(self.following_to.x + self.relative_pos[0], self.following_to.y + self.relative_pos[1])
 
         T = PICKER_TILE_SCALE

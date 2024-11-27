@@ -52,7 +52,7 @@ class Piece:
     )
 
     def __init__(self, shape: numpy.ndarray):
-        self.shape: numpy.ndarray = shape
+        self.shape = shape
     
     @staticmethod
     def get_piece_set():
@@ -63,6 +63,10 @@ class Piece:
     
     def get_height(self):
         return self.shape.shape[0]
+
+    def copy_rotated_right90(self, times: int):
+        s = numpy.rot90(self.shape, times)
+        return Piece(s)
 
 class Rule:
     """ゲームルールに基づきデータをアップデートさせ、さらに現在のデータを提供する"""

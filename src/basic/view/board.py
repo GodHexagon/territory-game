@@ -9,18 +9,21 @@ class BoardView(View, LimitableArea):
     DRAGGABLE_LIMIT_POCKET_PX = 50
     DRAG = pyxel.MOUSE_BUTTON_RIGHT
 
-    def __init__(self, x, y, w, h, cursor: Cursor):
+    def __init__(self, x, y, w, h, cursor: Cursor, colors_s: int):
         super().__init__(x, y, w, h)
+
+        self.tiles_data = [[0 for _ in range(DraggableBoard.BOARD_SIZE_TILES)] for _ in range(DraggableBoard.BOARD_SIZE_TILES)]
 
         self.board = DraggableBoard(
             self.x + self.w // 2, 
             self.y + self.h // 2, 
             self.drawer, 
-            self.__draw_tiles( [[0 for _ in range(DraggableBoard.BOARD_SIZE_TILES)] for _ in range(DraggableBoard.BOARD_SIZE_TILES)] )
+            self.__draw_tiles(self.tiles_data)
         )
 
         self.b_input = self.board.ini_b_input()
         self.cursor = cursor
+        self.color_s = colors_s
         self.dg: Dragging | None = None
     
     def update(self):
@@ -32,6 +35,12 @@ class BoardView(View, LimitableArea):
         if pyxel.btn(self.DRAG) and self.dg is not None:
             nbp = self.dg.get_board_pos( (pyxel.mouse_x, pyxel.mouse_y) )
             self.__limited_move( (nbp[0], nbp[1]) )
+        
+        # マウスホバーをもとにタイルを再生成
+        new_tiles_data = self.b_input.get_tiles_data(self.color_s)
+        if new_tiles_data != self.tiles_data:
+            self.tiles_data = new_tiles_data
+            self.board.set_tiles(self.__draw_tiles(self.tiles_data))
         
         # ホイール検知・計算
         effected_scale = self.board.zoom(1 + self.input.get_wheel() * 0.1)
@@ -154,6 +163,9 @@ class DraggableBoard(CenteredArea):
 
         bi.scale = self.scale
 
+    def set_tiles(self, value: pyxel.Image):
+        self.tiles = value
+
     def draw(self):
         # フレーム
         self.drawer.rect(self.x + 2 * self.scale, self.y + 2 * self.scale, self.w, self.h, 3)
@@ -178,14 +190,6 @@ class BoardInput(LimitableArea):
         self.scale = scale
         self.prev_hovered = False
     
-    def set_shape(self, x, y, w, h, scale):
-        """形の調整を受けとる。"""
-        self.x = x
-        self.y = y
-        self.w = w
-        self.h = h
-        self.scale = scale
-    
     def update(self, cursor: Cursor):
         iir = self.input.is_in_range()
         if (
@@ -194,3 +198,15 @@ class BoardInput(LimitableArea):
         ):
             self.prev_hovered = iir
             if cursor.held is not None: cursor.held.set_visibility(not iir)
+
+    def get_tiles_data(self, color_s: int) -> List[List[int]]:
+        MAX_INDEX = DraggableBoard.BOARD_SIZE_TILES - 1
+        cursor_coord = (
+            max(0, min( MAX_INDEX, int((pyxel.mouse_x - self.x) / (self.w / (MAX_INDEX + 1))) )),
+            max(0, min( MAX_INDEX, int((pyxel.mouse_y - self.y) / (self.h / (MAX_INDEX + 1))) ))
+        )
+
+        data = [[0 for _ in range(DraggableBoard.BOARD_SIZE_TILES)] for _ in range(DraggableBoard.BOARD_SIZE_TILES)]
+        if self.input.is_in_range(): data[cursor_coord[0]][cursor_coord[1]] = 2
+
+        return data

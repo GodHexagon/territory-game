@@ -1,13 +1,18 @@
 from .limitter import LimitableArea, LimitedDrawer
 from .view import View, CenteredArea
 from .cursor import Cursor
+from pyxres import DEFAULT_COLOR_S, RED_COLOR_S, BLUE_COLOR_S
+
 from typing import List, Tuple
+
 import pyxel
 
 class BoardView(View, LimitableArea):
     """DraggableBoardの表示限界。"""
     DRAGGABLE_LIMIT_POCKET_PX = 50
     DRAG = pyxel.MOUSE_BUTTON_RIGHT
+    
+    TILE_COLORS = (DEFAULT_COLOR_S, BLUE_COLOR_S, RED_COLOR_S)
 
     def __init__(self, x, y, w, h, cursor: Cursor, colors_s: int):
         super().__init__(x, y, w, h)
@@ -37,7 +42,7 @@ class BoardView(View, LimitableArea):
             self.__limited_move( (nbp[0], nbp[1]) )
         
         # マウスホバーをもとにタイルを再生成
-        new_tiles_data = self.b_input.get_tiles_data(self.color_s)
+        new_tiles_data = self.b_input.get_tiles_data(self.cursor, BoardView.TILE_COLORS[0])
         if new_tiles_data != self.tiles_data:
             self.tiles_data = new_tiles_data
             self.board.set_tiles(self.__draw_tiles(self.tiles_data))
@@ -66,7 +71,7 @@ class BoardView(View, LimitableArea):
         
     def __draw_tiles(self, data:List[List[int]]) -> pyxel.Image:
         """タイルマップをもとに画像を生成し、これを返す"""
-        from pyxres import EMPTY_TILE_COOR, BLOCK_TILE_COOR, TILE_COLOR_PALLET_NUMBER, DEFAULT_COLOR_S, RED_COLOR_S, BLUE_COLOR_S
+        from pyxres import EMPTY_TILE_COOR, BLOCK_TILE_COOR, TILE_COLOR_PALLETS_NUMBER, DEFAULT_COLOR_S
 
         image = pyxel.Image(DraggableBoard.BOARD_SIZE_TILES * TILE_SIZE_PX, DraggableBoard.BOARD_SIZE_TILES * TILE_SIZE_PX)
         x = 0
@@ -77,10 +82,7 @@ class BoardView(View, LimitableArea):
                 if t == 0: tile_coor = EMPTY_TILE_COOR
                 else:
                     tile_coor = BLOCK_TILE_COOR
-                    if t == 1:
-                        for i in range(TILE_COLOR_PALLET_NUMBER): image.pal(i + DEFAULT_COLOR_S, i + RED_COLOR_S)
-                    elif t == 2:
-                        for i in range(TILE_COLOR_PALLET_NUMBER): image.pal(i + DEFAULT_COLOR_S, i + BLUE_COLOR_S)
+                    for i in range(TILE_COLOR_PALLETS_NUMBER): image.pal(i + DEFAULT_COLOR_S, i + BoardView.TILE_COLORS[t])
                 image.blt(
                     x,
                     y,
@@ -196,7 +198,7 @@ class BoardInput(LimitableArea):
             self.prev_hovered = iir
             if cursor.held is not None: cursor.held.set_visibility(not iir)
 
-    def get_tiles_data(self, color_s: int) -> List[List[int]]:
+    def get_tiles_data(self, cursor: Cursor, held_piece_tile: int) -> List[List[int]]:
         MAX_INDEX = DraggableBoard.BOARD_SIZE_TILES - 1
         cursor_coord = (
             max(0, min( MAX_INDEX, int((pyxel.mouse_x - self.x) / (self.w / (MAX_INDEX + 1))) )),
@@ -204,6 +206,6 @@ class BoardInput(LimitableArea):
         )
 
         data = [[0 for _ in range(DraggableBoard.BOARD_SIZE_TILES)] for _ in range(DraggableBoard.BOARD_SIZE_TILES)]
-        if self.input.is_in_range(): data[cursor_coord[0]][cursor_coord[1]] = 2
+        if self.input.is_in_range(): data[cursor_coord[0]][cursor_coord[1]] = 1
 
         return data

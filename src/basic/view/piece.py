@@ -10,7 +10,7 @@ import pyxel
 from typing import *
 from abc import ABC
 
-from pyxres import TILE_SIZE_PX, TILE_COLOR_PALLET_NUMBER, DEFAULT_COLOR_S, BLOCK_TILE_COOR
+from pyxres import TILE_SIZE_PX, TILE_COLOR_PALLETS_NUMBER, DEFAULT_COLOR_S, BLOCK_TILE_COOR
 
 class FollowablePiece:
     TILE_SCALE = 2
@@ -28,7 +28,7 @@ class FollowablePiece:
             rotated = piece.copy_rotated_right90(by_direction_sequence)
 
             image = pyxel.Image(rotated.get_width_tiles() * TILE_SIZE_PX, rotated.get_height_tiles() * TILE_SIZE_PX)
-            for i in range(TILE_COLOR_PALLET_NUMBER): image.pal(i + DEFAULT_COLOR_S, i + piece_color_s)
+            for i in range(TILE_COLOR_PALLETS_NUMBER): image.pal(i + DEFAULT_COLOR_S, i + piece_color_s)
 
             for (row, col), value in numpy.ndenumerate(rotated.shape):
                 if value == Piece.TILED:

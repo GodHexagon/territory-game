@@ -8,7 +8,7 @@ from typing import *
 import numpy
 import pyxel
 
-from pyxres import TILE_SIZE_PX, BLOCK_TILE_COOR, TILE_COLOR_PALLET_NUMBER, DEFAULT_COLOR_S
+from pyxres import TILE_SIZE_PX, BLOCK_TILE_COOR, TILE_COLOR_PALLETS_NUMBER, DEFAULT_COLOR_S
 SLIDER_HEIGHT = 30
 SLIDER_WIDTH = 30
 

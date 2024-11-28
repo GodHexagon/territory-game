@@ -46,18 +46,23 @@ class PickerView(LimitableArea, View):
         self.shelf.x = self.x + PickerView.FRAME_THICKNESS_PX + scroll_state.value * -100
         
         # ピースを置く
-        if btnp(Bind.SEIZE_PIECE) and self.window.input.is_in_range() and self.cursor.is_holding():
-            p = self.shelf.get_a_item(
-                self.cursor.held.piece,
+        held_piece = self.cursor.held
+        if btnp(Bind.SEIZE_PIECE) and self.window.input.is_in_range() and held_piece is not None:
+            new = self.shelf.get_a_item(
+                held_piece.piece,
                 self.piece_color_s
             )
-            self.items.append(p)
-            self.cursor.held.follow(p)
+            target = [
+                t for t in filter(lambda i: i.held is None, self.items)
+            ][0]
+            held_piece.follow(target)
+            #self.items.append(p)
+            #self.cursor.held.follow(p)
 
             self.shelf.align(self.items)
         else:
             # マウス操作
-            for p in self.items: p.mouse_input(self.cursor)
+            for i in self.items: i.mouse_input(self.cursor)
         
         self.scroll_bar.update()
 

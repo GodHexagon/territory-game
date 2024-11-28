@@ -31,7 +31,7 @@ class FollowablePiece:
             for i in range(TILE_COLOR_PALLETS_NUMBER): image.pal(i + DEFAULT_COLOR_S, i + piece_color_s)
 
             for (row, col), value in numpy.ndenumerate(rotated.shape):
-                if value == Piece.TILED:
+                if value in (Piece.TILED, Piece.CENTER):
                     image.blt(
                         col * TILE_SIZE_PX,
                         row * TILE_SIZE_PX,

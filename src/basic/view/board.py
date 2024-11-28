@@ -206,6 +206,7 @@ class BoardInput(LimitableArea):
         )
 
         data = [[0 for _ in range(DraggableBoard.BOARD_SIZE_TILES)] for _ in range(DraggableBoard.BOARD_SIZE_TILES)]
-        if self.input.is_in_range(): data[cursor_coord[0]][cursor_coord[1]] = 1
+        if self.input.is_in_range():
+            data[cursor_coord[0]][cursor_coord[1]] = held_piece_tile
 
         return data

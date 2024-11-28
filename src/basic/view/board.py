@@ -104,7 +104,7 @@ class Dragging:
         self.mouse_pos = mouse_pos
         self.board_pos = board_pos
     
-    def get_board_pos(self, curr_mouse_pos:Tuple[float, float]) -> Tuple[float, float]:
+    def get_board_pos(self, curr_mouse_pos:Tuple[float, float]):
         return tuple(self.board_pos[i] + curr_mouse_pos[i] - self.mouse_pos[i] for i in range(2))
 
 from pyxres import TILE_SIZE_PX

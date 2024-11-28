@@ -13,7 +13,7 @@ def btn(*args):
 def btnp(*args):
     return __agent(pyxel.btnp, args)
 
-def __agent(f: Callable[[any], bool], args: Tuple[any]):
+def __agent(f: Callable[[any], bool], args: Tuple[any]): # type: ignore
     a = args[1:]
     return (
         (args[0] == Bind.ROTATE_LEFT and (

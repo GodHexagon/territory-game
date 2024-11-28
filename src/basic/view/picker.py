@@ -123,7 +123,7 @@ class Shelf(Area):
         )
 
     def align(self, pieces: List['Item']):
-        width = Shelf.X_MARGIN_PX
+        width = float(Shelf.X_MARGIN_PX)
         empty_items = []
         for p in pieces:
             if p.held is None:
@@ -144,7 +144,7 @@ from .piece import PieceHolder, FollowablePiece
 class Item(LimitableArea, PieceHolder):
     def __init__(self,
         base: Area,
-        relative_pos: Tuple[int, int],
+        relative_pos: Tuple[float, float],
         piece: PieceRes,
         color_s: int
     ):

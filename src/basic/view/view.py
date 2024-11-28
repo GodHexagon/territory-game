@@ -14,12 +14,6 @@ class ParenthoodView(View):
     def set_childs(self, childs: Dict[str, View]):
         self.childs = childs
     
-    def inherit(self, new_inherited: Optional[Dict[str, any]]):
-        self.inherited = new_inherited
-        for c in self.childs.values():
-            if isinstance(c, ParenthoodView) and self.inherited is not None:
-                c.inherited |= self.inherited
-    
     def update(self):
         for c in self.childs.values(): c.update()
     
@@ -34,7 +28,7 @@ class Area(ABC):
         self.h = h
 
 class CenteredArea(Area):
-    def to_center_pos(self, cx:float, cy:float):
+    def to_center_pos(self, cx: int, cy: int):
         self.x = cx - self.w / 2
         self.y = cy - self.h / 2
     

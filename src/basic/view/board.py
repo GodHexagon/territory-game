@@ -163,9 +163,6 @@ class DraggableBoard(CenteredArea):
 
         bi.scale = self.scale
 
-    def set_tiles(self, value: pyxel.Image):
-        self.tiles = value
-
     def draw(self):
         # フレーム
         self.drawer.rect(self.x + 2 * self.scale, self.y + 2 * self.scale, self.w, self.h, 3)

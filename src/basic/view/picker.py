@@ -1,6 +1,6 @@
 from .limitter import LimitableArea, LimitedDrawer
 from .view import Area, View, ParenthoodView, CenteredArea
-from .cursor import Cursor, Followable
+from .cursor import Cursor
 from ..rule.rule import Piece as PieceRes, Rotation
 from ..key_bind import *
 
@@ -27,6 +27,7 @@ class PickerView(LimitableArea, View):
 
     def __init__(self, x, y, w, h, pieces: Tuple[PieceRes], color_s: int, cursor: Cursor):
         super().__init__(x, y, w, h)
+        self.piece_color_s = color_s
         self.cursor = cursor
 
         global scroll_state
@@ -35,7 +36,7 @@ class PickerView(LimitableArea, View):
         F = PickerView.FRAME_THICKNESS_PX
         self.window = Window(self.x + F, self.y + F, self.w - F * 2, self.h - F * 2 - SLIDER_HEIGHT)
         self.shelf = self.window.ini_shelf()
-        self.pieces = self.shelf.ini_pieces(pieces, color_s)
+        self.pieces = list(self.shelf.ini_pieces(pieces, color_s))
         self.scroll_bar = ScrollBar(self.x, self.y + self.h - SLIDER_HEIGHT + 1, self.w)
 
     def update(self):
@@ -46,9 +47,12 @@ class PickerView(LimitableArea, View):
         
         # ピースを置く
         if btnp(Bind.SEIZE_PIECE) and self.window.input.is_in_range() and self.cursor.is_holding():
-            self.cursor.hold()
-            self.cursor.set_piece_shape()
-            self.shelf.align(self.pieces)
+            self.pieces.append(
+                self.shelf.get_a_piece(
+                    self.cursor.held,
+                    self.piece_color_s
+                )
+            )
         else:
             # マウス操作
             for p in self.pieces: p.mouse_input(self.cursor)
@@ -64,10 +68,6 @@ class PickerView(LimitableArea, View):
         self.scroll_bar.draw()
 
         for p in self.pieces: p.draw(self.piece_rotation, self.window.drawer)
-
-        ps = filter(lambda p: isinstance(p.following_to, Cursor), self.pieces)
-        for p in ps:
-            p.draw(self.piece_rotation, self.window.drawer)
 
     def set_piece_rotation(self, rotation: Rotation):
         self.piece_rotation = rotation
@@ -96,29 +96,39 @@ class Shelf(Area):
         width = 0
         pieces: List[Piece] = []
         for p in pieces_res:            
-            # インスタンス化
-            p_w_px = p.get_width() * TILE_SIZE_PX * PICKER_TILE_SCALE
-            p_h_px = p.get_height() * TILE_SIZE_PX * PICKER_TILE_SCALE
-
             width += Shelf.GAP_PX
-            pieces.append(Piece(
-                (self.x, self.y),
-                (width + p_w_px / 2, self.h / 2),
-                p,
-                piece_color_s
-            ))
-        
-        self.align(pieces)
-        return tuple(pieces) 
 
-    def align(self, pieces: Tuple['Piece']):
+            new = self.get_a_piece(p, piece_color_s)
+            pieces.append(new)
+
+            width += new.allocated
+        self.align(pieces)
+        
+        return tuple(pieces)
+    
+    def get_a_piece(self, piece_res: PieceRes, piece_color_s):
+        return Piece(
+            self,
+            (0, 0),
+            piece_res,
+            piece_color_s
+        )
+
+    def align(self, pieces: List['Piece']):
         width = 0
         for p in pieces:
+            if not p.is_holding():
+                pieces.remove(p)
+                continue
+
             width += Shelf.GAP_PX
             
             width += p.allocated / 2
-            p.follow(self, (width, self.h / 2))
+            p.relative_pos = (width, self.h / 2)
+            p.resize()
+            p.held.follow(p)
             width += p.allocated / 2
+
         width += Shelf.GAP_PX
         self.w = width
 
@@ -126,29 +136,38 @@ from .piece import PieceHolder, FollowablePiece
 
 class Piece(LimitableArea, PieceHolder):
     def __init__(self,
-        base_pos: Tuple[int, int],
+        base: Area,
         relative_pos: Tuple[int, int],
         piece: PieceRes,
         color_s: int
     ):
-        self.base_pos = base_pos
+        self.base = base
         self.relative_pos = relative_pos
-        FollowablePiece(*self.__get_absolute_pos(), piece, color_s, self)
+        FollowablePiece(piece, color_s, self)
 
         super().__init__(0, 0, 0, 0)
+        self.allocated = max(piece.get_width(), piece.get_height())
+
+        self.resize()
     
-    def __get_absolute_pos(self):
-        return (
-            self.base_pos[0] + self.relative_pos[0],
-            self.base_pos[1] + self.relative_pos[1]
+    def resize(self):
+        self.to_center_pos(
+            self.base.x + self.relative_pos[0],
+            self.base.y + self.relative_pos[1]
         )
 
     def mouse_input(self, cursor: Cursor):
-        if btnp(Bind.SEIZE_PIECE) and self.input.is_in_range() and not cursor.is_holding():
+        if (
+            btnp(Bind.SEIZE_PIECE) and 
+            self.input.is_in_range() and 
+            self.held is not None and
+            not cursor.is_holding()
+        ):
             self.held.follow(cursor)
     
     def draw(self, piece_rotation: Rotation, drawer: LimitedDrawer):
-        self.held.draw(piece_rotation, drawer)
+        self.resize()
+        if self.held is not None: self.held.draw(piece_rotation, drawer)
 
 class ScrollBar(LimitableArea, View):
     """スクロールバーの範囲。"""

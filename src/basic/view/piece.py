@@ -18,7 +18,8 @@ class FollowablePiece:
     def __init__(self, piece: Piece, piece_color_s: int, holder: 'PieceHolder'):
         self.piece = piece
         self.piece_color_s = piece_color_s
-        self.follow(holder)
+        holder.hold(self)
+        self.followings = holder
         self.visibility = True
         
         images: List[pyxel.Image] = []
@@ -73,6 +74,7 @@ class FollowablePiece:
         )
     
     def follow(self, holder: 'PieceHolder'):
+        self.followings.hold()
         holder.hold(self)
         self.followings = holder
     

@@ -36,6 +36,8 @@ class GameView(Area, ParenthoodView):
             self.rotation = Rotation.cw(self.rotation)
         picker: PickerView = self.childs['p']
         picker.set_piece_rotation(self.rotation)
+        cursor: Cursor = self.childs['c']
+        cursor.set_rotation(self.rotation)
 
         return super().update()
     

@@ -35,7 +35,7 @@ class FollowablePiece:
                     image.blt(
                         col * TILE_SIZE_PX,
                         row * TILE_SIZE_PX,
-                        pyxel.image(0),
+                        pyxel.images[0],
                         BLOCK_TILE_COOR[0], 
                         BLOCK_TILE_COOR[1], 
                         TILE_SIZE_PX,

@@ -170,7 +170,7 @@ class DraggableBoard(CenteredArea):
         self.drawer.rect(self.x, self.y, self.w, self.h, 1)
 
         # タイル
-        self.drawer.lblt(
+        self.drawer.blt(
             self.x + self.FRAME_THICKNESS * self.scale + (self.scale - 1) * self.tiles.width / 2,
             self.y + self.FRAME_THICKNESS * self.scale + (self.scale - 1) * self.tiles.height / 2,
             self.tiles,

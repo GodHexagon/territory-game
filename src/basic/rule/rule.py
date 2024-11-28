@@ -58,10 +58,10 @@ class Piece:
     def get_piece_set():
         return tuple(Piece( numpy.array(s) ) for s in Piece.SHAPES)
 
-    def get_width(self):
+    def get_width_tiles(self):
         return self.shape.shape[1]
     
-    def get_height(self):
+    def get_height_tiles(self):
         return self.shape.shape[0]
 
     def copy_rotated_right90(self, times: int):
@@ -103,5 +103,5 @@ if __name__ == '__main__':
         print(game.get_turn())
     for p in game.data.pieces_by_player[Rule.PLAYER1]:
         print(p.shape)
-        print(p.get_width())
-        print(p.get_height())
+        print(p.get_width_tiles())
+        print(p.get_height_tiles())

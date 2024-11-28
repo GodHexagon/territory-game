@@ -55,7 +55,7 @@ class LimitedDrawer:
     def __init__(self, parent:Area):
         self.parent = parent
 
-        self.lblt = pyxel.blt
+        self.blt = pyxel.blt
 
     def rect(self, x:float, y:float, w:float, h:float, col:int):
         p = self.parent

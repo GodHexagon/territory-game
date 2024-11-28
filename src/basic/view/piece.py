@@ -19,7 +19,7 @@ class FollowablePiece:
         self.piece = piece
         self.piece_color_s = piece_color_s
         holder.hold(self)
-        self.followings = holder
+        self.holder = holder
         self.visibility = True
         
         images: List[pyxel.Image] = []
@@ -27,7 +27,7 @@ class FollowablePiece:
         for by_direction_sequence in range(4):
             rotated = piece.copy_rotated_right90(by_direction_sequence)
 
-            image = pyxel.Image(rotated.get_width() * TILE_SIZE_PX, rotated.get_height() * TILE_SIZE_PX)
+            image = pyxel.Image(rotated.get_width_tiles() * TILE_SIZE_PX, rotated.get_height_tiles() * TILE_SIZE_PX)
             for i in range(TILE_COLOR_PALLET_NUMBER): image.pal(i + DEFAULT_COLOR_S, i + piece_color_s)
 
             for (row, col), value in numpy.ndenumerate(rotated.shape):
@@ -57,16 +57,11 @@ class FollowablePiece:
         else:
             image = self.images[0]
         
-        f = self.followings
-        c = f.get_center_pos()
-        f.w = image.width
-        f.h = image.height
-        f.to_center_pos(c[0], c[1])
-
+        c = self.holder.get_center_pos()
         T = FollowablePiece.TILE_SCALE
-        drawer.lblt(
-            c[0] - T * (image.width / 2),
-            c[1] - T * (image.height / 2),
+        drawer.blt(
+            c[0] - image.width / 2,
+            c[1] - image.height / 2,
             image,
             0, 0, image.width, image.height,
             colkey=0,
@@ -74,9 +69,9 @@ class FollowablePiece:
         )
     
     def follow(self, holder: 'PieceHolder'):
-        self.followings.hold()
+        self.holder.hold()
         holder.hold(self)
-        self.followings = holder
+        self.holder = holder
     
     def set_visibility(self, value: bool):
         self.visibility = value

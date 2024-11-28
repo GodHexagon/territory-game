@@ -36,18 +36,18 @@ class PickerView(LimitableArea, View):
         F = PickerView.FRAME_THICKNESS_PX
         self.window = Window(self.x + F, self.y + F, self.w - F * 2, self.h - F * 2 - SLIDER_HEIGHT)
         self.shelf = self.window.ini_shelf()
-        self.items = list(self.shelf.ini_pieces(pieces, color_s))
+        self.items = list(self.shelf.ini_items(pieces, color_s))
         self.scroll_bar = ScrollBar(self.x, self.y + self.h - SLIDER_HEIGHT + 1, self.w)
 
     def update(self):
         # スクロール検知
         global scroll_state
         scroll_state.set_value(scroll_state.value + self.input.get_wheel() * -0.1)
-        self.shelf.x = self.x + scroll_state.value * -100
+        self.shelf.x = self.x + PickerView.FRAME_THICKNESS_PX + scroll_state.value * -100
         
         # ピースを置く
         if btnp(Bind.SEIZE_PIECE) and self.window.input.is_in_range() and self.cursor.is_holding():
-            p = self.shelf.get_a_piece(
+            p = self.shelf.get_a_item(
                 self.cursor.held.piece,
                 self.piece_color_s
             )
@@ -66,10 +66,13 @@ class PickerView(LimitableArea, View):
 
         self.window.draw()
         s = self.shelf
-        pyxel.rect(s.x, s.y, s.w, s.h, 2)
         self.scroll_bar.draw()
 
-        for p in self.items: p.draw(self.piece_rotation, self.window.drawer)
+        for p in self.items:
+            c = p.get_center_pos()
+            T = FollowablePiece.TILE_SCALE
+            self.window.drawer.rect(p.x, p.y, p.w, p.h, 2)
+            p.draw(self.piece_rotation, self.window.drawer)
 
     def set_piece_rotation(self, rotation: Rotation):
         self.piece_rotation = rotation
@@ -90,25 +93,23 @@ PICKER_TILE_SCALE = 2
 class Shelf(Area):
     """スクロール可能Viewの座標系。"""
     GAP_PX = 48
+    X_MARGIN_PX = 20
     
     def __init__(self, x, y, h):        
         super().__init__(x, y, 0, h)
     
-    def ini_pieces(self, pieces_res: Tuple[PieceRes], piece_color_s: int):
+    def ini_items(self, pieces_res: Tuple[PieceRes], piece_color_s: int):
         width = 0
         pieces: List[Item] = []
-        for p in pieces_res:            
-            width += Shelf.GAP_PX
-
-            new = self.get_a_piece(p, piece_color_s)
+        for p in pieces_res:
+            new = self.get_a_item(p, piece_color_s)
             pieces.append(new)
-
-            width += new.allocated
+            width += new.w
         self.align(pieces)
         
         return tuple(pieces)
     
-    def get_a_piece(self, piece_res: PieceRes, piece_color_s):
+    def get_a_item(self, piece_res: PieceRes, piece_color_s):
         return Item(
             self,
             (0, 0),
@@ -117,26 +118,20 @@ class Shelf(Area):
         )
 
     def align(self, pieces: List['Item']):
-        width = 0
+        width = Shelf.X_MARGIN_PX
         empty_items = []
         for p in pieces:
-            if not p.is_holding():
+            if p.held is None:
                 empty_items.append(p)
                 continue
-
-            p.resize()
-
-            width += Shelf.GAP_PX
-            width += p.allocated / 2
             
-            p.relative_pos = (width, self.h / 2)
-            p.held.follow(p)
+            p.relative_pos = (width, 0)
+            p.move_absolute_pos()
 
-            width += p.allocated / 2
+            width += p.w
 
-        width += Shelf.GAP_PX
+        width += Shelf.X_MARGIN_PX
         self.w = width
-
         for i in empty_items: pieces.remove(i)
 
 from .piece import PieceHolder, FollowablePiece
@@ -152,19 +147,17 @@ class Item(LimitableArea, PieceHolder):
         self.relative_pos = relative_pos
         FollowablePiece(piece, color_s, self)
 
-        super().__init__(0, 0, 0, 0)
-        self.allocated = max(
-            piece.get_width() * TILE_SIZE_PX * FollowablePiece.TILE_SCALE, 
-            piece.get_height() * TILE_SIZE_PX * FollowablePiece.TILE_SCALE
+        allocation = max(
+            piece.get_width_tiles() * TILE_SIZE_PX * FollowablePiece.TILE_SCALE, 
+            piece.get_height_tiles() * TILE_SIZE_PX * FollowablePiece.TILE_SCALE
         )
+        super().__init__(0, 0, Shelf.GAP_PX + allocation, base.h)
 
-        self.resize()
+        self.move_absolute_pos()
     
-    def resize(self):
-        self.to_center_pos(
-            self.base.x + self.relative_pos[0],
-            self.base.y + self.relative_pos[1]
-        )
+    def move_absolute_pos(self):
+        self.x = self.base.x + self.relative_pos[0]
+        self.y = self.base.y + self.relative_pos[1]
 
     def mouse_input(self, cursor: Cursor):
         if (
@@ -176,8 +169,9 @@ class Item(LimitableArea, PieceHolder):
             self.held.follow(cursor)
     
     def draw(self, piece_rotation: Rotation, drawer: LimitedDrawer):
-        self.resize()
-        if self.held is not None: self.held.draw(piece_rotation, drawer)
+        if self.held is not None:
+            self.move_absolute_pos()
+            self.held.draw(piece_rotation, drawer)
 
 class ScrollBar(LimitableArea, View):
     """スクロールバーの範囲。"""

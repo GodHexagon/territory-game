@@ -3,9 +3,10 @@ from .view import View, CenteredArea
 from .cursor import Cursor
 from ..rule.rule import Rotation, Piece
 
-from typing import List, Tuple
+from typing import *
 
 import pyxel
+from numpy import ndarray as NDArray
 import numpy
 
 from pyxres import DEFAULT_COLOR_S, RED_COLOR_S, BLUE_COLOR_S
@@ -23,13 +24,14 @@ class BoardView(View, LimitableArea):
         super().__init__(x, y, w, h)
         self.set_limiteds()
 
-        self.tiles_data = [[0 for _ in range(DraggableBoard.BOARD_SIZE_TILES)] for _ in range(DraggableBoard.BOARD_SIZE_TILES)]
+        self.commited_tiles_data = numpy.array( [[0 for _ in range(DraggableBoard.BOARD_SIZE_TILES)] for _ in range(DraggableBoard.BOARD_SIZE_TILES)] )
+        self.displaying_tiles_data = self.commited_tiles_data
 
         self.board = DraggableBoard(
             self.x + self.w // 2, 
             self.y + self.h // 2, 
             self.drawer, 
-            self.__draw_tiles(self.tiles_data)
+            self.__draw_tiles(self.displaying_tiles_data)
         )
 
         self.b_input = self.board.ini_b_input(self)
@@ -51,10 +53,11 @@ class BoardView(View, LimitableArea):
             self.__limited_move( (nbp[0], nbp[1]) )
         
         # マウスホバーをもとにタイルを再生成
-        new_tiles_data = self.b_input.get_tiles_data(self.cursor, BoardView.TILE_COLORS[0], self.piece_rotation)
-        if new_tiles_data != self.tiles_data:
-            self.tiles_data = new_tiles_data
-            self.board.set_tiles(self.__draw_tiles(self.tiles_data))
+        cursored_tiles_data = self.commited_tiles_data.copy()
+        self.b_input.write_cursor(cursored_tiles_data, self.cursor, BoardView.TILE_COLORS[0], self.piece_rotation)
+        if not numpy.all(cursored_tiles_data == self.displaying_tiles_data):
+            self.displaying_tiles_data = cursored_tiles_data
+            self.board.set_tiles(self.__draw_tiles(self.displaying_tiles_data))
         
         # ホイール検知・計算
         effected_scale = self.board.zoom(1 + self.input.get_wheel() * 0.1)
@@ -65,7 +68,7 @@ class BoardView(View, LimitableArea):
         ) )
 
         self.board.make_sizing_bi(self.b_input)
-        self.b_input.update(self.cursor)
+        self.b_input.mouse_input(self.cursor)
     
     def draw(self):
         self.board.draw()
@@ -78,7 +81,7 @@ class BoardView(View, LimitableArea):
             min(self.y + self.h + self.board.w / 2 - gap, max(self.y - self.board.h / 2 + gap, to[1]))
         )
         
-    def __draw_tiles(self, data:List[List[int]]) -> pyxel.Image:
+    def __draw_tiles(self, data: NDArray) -> pyxel.Image:
         """タイルマップをもとに画像を生成し、これを返す"""
         from pyxres import EMPTY_TILE_COOR, BLOCK_TILE_COOR, TILE_COLOR_PALLETS_NUMBER, DEFAULT_COLOR_S
 
@@ -125,7 +128,7 @@ class DraggableBoard(CenteredArea):
     FRAME_THICKNESS = 10
     DEFAULT_BOARD_SIZE_PX = BOARD_SIZE_TILES * TILE_SIZE_PX + FRAME_THICKNESS * 2
 
-    MIN_ZOOM = 1.0
+    MIN_ZOOM = 0.5
     MAX_ZOOM = 25.0
 
     def __init__(self, cx:float, cy:float, drawer:LimitedDrawer, tiles: pyxel.Image):
@@ -193,13 +196,14 @@ class DraggableBoard(CenteredArea):
         )
 
 class BoardInput(LimitableArea):
+    """盤のマウス入力についての座標系であり、DraggableBoardに追従する。"""
     def __init__(self, x, y, w, h, scale: float, parent: BoardView):
         super().__init__(x, y, w, h)
         self.set_limiteds(parent.surface)
         self.scale = scale
         self.prev_hovered = False
     
-    def update(self, cursor: Cursor):
+    def mouse_input(self, cursor: Cursor):
         iir = self.input.is_in_range()
         if (
             (self.prev_hovered and not iir) or
@@ -208,7 +212,8 @@ class BoardInput(LimitableArea):
             self.prev_hovered = iir
             if cursor.held is not None: cursor.held.set_visibility(not iir)
 
-    def get_tiles_data(self, cursor: Cursor, tile_value: int, rotation: Rotation) -> List[List[int]]:
+    def write_cursor(self, data: NDArray, cursor: Cursor, tile_value: int, rotation: Rotation) -> None:
+        """２次元地図形式のタイルデータを取得"""
         SIZE = DraggableBoard.BOARD_SIZE_TILES
         def coord_limiter(x, y):
             return (
@@ -221,12 +226,17 @@ class BoardInput(LimitableArea):
             int( (pyxel.mouse_y - self.y) / (self.h / (SIZE)) )
         )
 
-        data = [[0 for _ in range(SIZE)] for _ in range(SIZE)]
         if self.input.is_in_range() and cursor.held is not None:
             shape = cursor.held.piece.shape.copy()
+            
+            r = rotation
+            rotation_times = 0
+            if r == Rotation.RIGHT_90: rotation_times = 1
+            elif r == Rotation.RIGHT_180: rotation_times = 2
+            elif r == Rotation.RIGHT_270: rotation_times = 3
 
             shape = numpy.fliplr(shape)
-            shape = numpy.rot90(shape)
+            shape = numpy.rot90(shape, (rotation_times + 1) % 4)
 
             diff = None
             for (row, col), value in numpy.ndenumerate(shape):
@@ -245,5 +255,3 @@ class BoardInput(LimitableArea):
                         start_coord[1] + col
                     )
                     data[target[0]][target[1]] = tile_value
-
-        return data

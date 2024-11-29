@@ -3,22 +3,25 @@ from typing import Optional
 import pyxel
 
 class LimitableArea(Area):
-    def set_limiteds(self):
+    def set_limiteds(self, parent_surface: Optional['Surface'] = None):
+        self.surface = Surface(self, parent_surface)
         self.drawer = LimitedDrawer(self)
         self.input = LimitedMouseInput(self)
 
-# Limitter
+# Limitters
 class LimitedMouseInput:
-    def __init__(self, parent:Area):
-        self.parent = parent
+    def __init__(self, owner: LimitableArea):
+        self.owner = owner
     
     def is_in_range(self):
-        p = self.parent
+        s = self.owner.surface
+        s.inherit_surface()
+        
         return (
-            p.x <= pyxel.mouse_x and
-            p.y <= pyxel.mouse_y and
-            pyxel.mouse_x <= p.x + p.w and
-            pyxel.mouse_y <= p.y + p.h
+            s.x <= pyxel.mouse_x and
+            s.y <= pyxel.mouse_y and
+            pyxel.mouse_x <= s.x + s.w and
+            pyxel.mouse_y <= s.y + s.h
         )
     
     def __enabled(self, key:int):
@@ -51,21 +54,27 @@ class LimitedMouseInput:
         return pyxel.mouse_wheel * m
 
 class LimitedDrawer:
-    def __init__(self, owner :Area):
+    def __init__(self, owner: LimitableArea):
         self.owner = owner
 
         self.blt = pyxel.blt
 
     def rect(self, x:float, y:float, w:float, h:float, col:int):
-        o = self.owner
-        pyxel.rect(max(o.x, x), max(o.y, y), 
-            (min(o.x + o.w, x + w) - max(o.x, x) + 1), 
-            (min(o.y + o.h, y + h) - max(o.y, y) + 1),
-        col)
+        s = self.owner.surface
+        s.inherit_surface()
+        
+        pyxel.rect(
+            max(s.x, x), 
+            max(s.y, y), 
+            (min(s.x + s.w, x + w) - max(s.x, x) + 1), 
+            (min(s.y + s.h, y + h) - max(s.y, y) + 1),
+            col
+        )
 
 class Surface(Area):
-    def __init__(self, x, y, w, h, owner: LimitableArea, parent: Optional['Surface'] = None):
-        super().__init__(x, y, w, h)
+    def __init__(self, owner: LimitableArea, parent: Optional['Surface'] = None):
+        o = owner
+        super().__init__(o.x, o.y, o.w, o.h)
         self.owner = owner
         self.parent = parent
     
@@ -74,7 +83,12 @@ class Surface(Area):
         o = self.owner
         if p is not None:
             p.inherit_surface()
-        self.x = max(o.x, p.x)
-        self.y = max(o.y, p.y)
-        self.w = min(o.x + o.w, p.x + p.w)
-        self.w = min(o.y + o.h, p.y + p.h)
+            self.x = max(o.x, p.x)
+            self.y = max(o.y, p.y)
+            self.w = min(o.x + o.w, p.x + p.w) - self.x + 1
+            self.h = min(o.y + o.h, p.y + p.h) - self.y + 1
+        else:
+            self.x = o.x
+            self.y = o.y
+            self.w = o.w
+            self.h = o.h

@@ -1,5 +1,5 @@
-from .limitter import LimitableArea, LimitedDrawer
-from .view import Area, View, ParenthoodView, CenteredArea
+from .limitter import LimitableArea, LimitedDrawer, LimitableArea
+from .view import Area, View
 from .cursor import Cursor
 from ..rule.rule import Piece as PieceRes, Rotation
 from ..key_bind import *
@@ -35,7 +35,7 @@ class PickerView(LimitableArea, View):
         scroll_state = ScrollState(0.0)
 
         F = PickerView.FRAME_THICKNESS_PX
-        self.window = Window(self.x + F, self.y + F, self.w - F * 2, self.h - F * 2 - SLIDER_HEIGHT)
+        self.window = Window(self.x + F, self.y + F, self.w - F * 2, self.h - F * 2 - SLIDER_HEIGHT, self)
         self.shelf = self.window.ini_shelf()
         self.items = list(self.shelf.ini_items(pieces, color_s))
         self.scroll_bar = ScrollBar(self.x, self.y + self.h - SLIDER_HEIGHT + 1, self.w)
@@ -75,9 +75,7 @@ class PickerView(LimitableArea, View):
         self.scroll_bar.draw()
 
         for p in self.items:
-            c = p.get_center_pos()
-            T = FollowablePiece.TILE_SCALE
-            self.window.drawer.rect(p.x, p.y, p.w, p.h, 2)
+            #self.window.drawer.rect(p.surface.x, p.surface.y, p.surface.w, p.surface.h, 2)
             p.draw(self.piece_rotation, self.window.drawer)
 
     def set_piece_rotation(self, rotation: Rotation):
@@ -85,25 +83,26 @@ class PickerView(LimitableArea, View):
 
 class Window(LimitableArea):
     """スクロール可能Viewの表示限界。"""
-    def __init__(self, x, y, w, h):
+    def __init__(self, x, y, w, h, parent: PickerView):
         super().__init__(x, y, w, h)
-        self.set_limiteds()
+        self.set_limiteds(parent.surface)
     
     def ini_shelf(self):
-        return Shelf(self.x, self.y, self.h)
+        return Shelf(self.x, self.y, self.h, self)
 
     def draw(self):
         self.drawer.rect(self.x, self.y, self.w, self.h, 1)
 
 PICKER_TILE_SCALE = 2
 
-class Shelf(Area):
+class Shelf(LimitableArea):
     """スクロール可能Viewの座標系。"""
     GAP_PX = 48
     X_MARGIN_PX = 20
     
-    def __init__(self, x, y, h):        
+    def __init__(self, x, y, h, parent: Window):        
         super().__init__(x, y, 0, h)
+        self.set_limiteds(parent.surface)
     
     def ini_items(self, pieces_res: Tuple[PieceRes], piece_color_s: int):
         width = 0
@@ -145,7 +144,7 @@ from .piece import PieceHolder, FollowablePiece
 
 class Item(LimitableArea, PieceHolder):
     def __init__(self,
-        base: Area,
+        base: Shelf,
         relative_pos: Tuple[float, float],
         piece: PieceRes,
         color_s: int
@@ -159,7 +158,7 @@ class Item(LimitableArea, PieceHolder):
             piece.get_height_tiles() * TILE_SIZE_PX * FollowablePiece.TILE_SCALE
         )
         super().__init__(0, 0, Shelf.GAP_PX + allocation, base.h)
-        self.set_limiteds()
+        self.set_limiteds(base.surface)
 
         self.move_absolute_pos()
     

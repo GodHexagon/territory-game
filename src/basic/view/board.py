@@ -1,4 +1,4 @@
-from .limitter import LimitableArea, LimitedDrawer
+from .limitter import LimitableArea, LimitedDrawer, Surface
 from .view import View, CenteredArea
 from .cursor import Cursor
 from ..rule.rule import Rotation, Piece
@@ -32,7 +32,7 @@ class BoardView(View, LimitableArea):
             self.__draw_tiles(self.tiles_data)
         )
 
-        self.b_input = self.board.ini_b_input()
+        self.b_input = self.board.ini_b_input(self)
         self.cursor = cursor
         self.color_s = colors_s
         self.dg: Dragging | None = None
@@ -138,10 +138,10 @@ class DraggableBoard(CenteredArea):
         self.tiles = tiles
         self.to_center_pos(cx, cy)
     
-    def ini_b_input(self):
+    def ini_b_input(self, parent: BoardView):
         F = DraggableBoard.FRAME_THICKNESS
         T = DraggableBoard.BOARD_SIZE_TILES * TILE_SIZE_PX
-        return BoardInput(self.x + F, self.y + F, T, T, self.scale)
+        return BoardInput(self.x + F, self.y + F, T, T, self.scale, parent)
     
     def set_tiles(self, value: pyxel.Image):
         self.tiles = value
@@ -193,9 +193,9 @@ class DraggableBoard(CenteredArea):
         )
 
 class BoardInput(LimitableArea):
-    def __init__(self, x, y, w, h, scale: float):
+    def __init__(self, x, y, w, h, scale: float, parent: BoardView):
         super().__init__(x, y, w, h)
-        self.set_limiteds()
+        self.set_limiteds(parent.surface)
         self.scale = scale
         self.prev_hovered = False
     

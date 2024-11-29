@@ -6,7 +6,7 @@ import pyxel
 
 class App:
     def __init__(self):
-        pyxel.init(768, 512, title="Territory Game", display_scale=1)
+        pyxel.init(768, 512, title="Territory Game", display_scale=1, fps=60)
         pyxel.mouse(True)
         pyxel.load(pyxres.PYXRES_PATH)
 

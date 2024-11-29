@@ -21,6 +21,7 @@ class BoardView(View, LimitableArea):
 
     def __init__(self, x, y, w, h, cursor: Cursor, colors_s: int):
         super().__init__(x, y, w, h)
+        self.set_limiteds()
 
         self.tiles_data = [[0 for _ in range(DraggableBoard.BOARD_SIZE_TILES)] for _ in range(DraggableBoard.BOARD_SIZE_TILES)]
 
@@ -194,6 +195,7 @@ class DraggableBoard(CenteredArea):
 class BoardInput(LimitableArea):
     def __init__(self, x, y, w, h, scale: float):
         super().__init__(x, y, w, h)
+        self.set_limiteds()
         self.scale = scale
         self.prev_hovered = False
     

@@ -26,3 +26,4 @@ class Cursor(View, PieceHolder):
 class CursorField(LimitableArea):
     def __init__(self, x, y, w, h):
         super().__init__(x, y, w, h)
+        self.set_limiteds()

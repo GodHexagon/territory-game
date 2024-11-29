@@ -27,6 +27,7 @@ class PickerView(LimitableArea, View):
 
     def __init__(self, x, y, w, h, pieces: Tuple[PieceRes], color_s: int, cursor: Cursor):
         super().__init__(x, y, w, h)
+        self.set_limiteds()
         self.piece_color_s = color_s
         self.cursor = cursor
 
@@ -86,6 +87,7 @@ class Window(LimitableArea):
     """スクロール可能Viewの表示限界。"""
     def __init__(self, x, y, w, h):
         super().__init__(x, y, w, h)
+        self.set_limiteds()
     
     def ini_shelf(self):
         return Shelf(self.x, self.y, self.h)
@@ -157,6 +159,7 @@ class Item(LimitableArea, PieceHolder):
             piece.get_height_tiles() * TILE_SIZE_PX * FollowablePiece.TILE_SCALE
         )
         super().__init__(0, 0, Shelf.GAP_PX + allocation, base.h)
+        self.set_limiteds()
 
         self.move_absolute_pos()
     
@@ -182,6 +185,7 @@ class ScrollBar(LimitableArea, View):
     """スクロールバーの範囲。"""
     def __init__(self, x, y, w):
         super().__init__(x, y, w, SLIDER_HEIGHT)
+        self.set_limiteds()
         self.slider = Slider(x, y)
         self.is_clicking = False
     

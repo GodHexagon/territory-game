@@ -3,8 +3,7 @@ from typing import Optional
 import pyxel
 
 class LimitableArea(Area):
-    def __init__(self, x, y, w, h):
-        super().__init__(x, y, w, h)
+    def set_limiteds(self):
         self.drawer = LimitedDrawer(self)
         self.input = LimitedMouseInput(self)
 
@@ -52,14 +51,30 @@ class LimitedMouseInput:
         return pyxel.mouse_wheel * m
 
 class LimitedDrawer:
-    def __init__(self, parent:Area):
-        self.parent = parent
+    def __init__(self, owner :Area):
+        self.owner = owner
 
         self.blt = pyxel.blt
 
     def rect(self, x:float, y:float, w:float, h:float, col:int):
-        p = self.parent
-        pyxel.rect(max(p.x, x), max(p.y, y), 
-            (min(p.x + p.w, x + w) - max(p.x, x) + 1), 
-            (min(p.y + p.h, y + h) - max(p.y, y) + 1), 
+        o = self.owner
+        pyxel.rect(max(o.x, x), max(o.y, y), 
+            (min(o.x + o.w, x + w) - max(o.x, x) + 1), 
+            (min(o.y + o.h, y + h) - max(o.y, y) + 1),
         col)
+
+class Surface(Area):
+    def __init__(self, x, y, w, h, owner: LimitableArea, parent: Optional['Surface'] = None):
+        super().__init__(x, y, w, h)
+        self.owner = owner
+        self.parent = parent
+    
+    def inherit_surface(self):
+        p = self.parent
+        o = self.owner
+        if p is not None:
+            p.inherit_surface()
+        self.x = max(o.x, p.x)
+        self.y = max(o.y, p.y)
+        self.w = min(o.x + o.w, p.x + p.w)
+        self.w = min(o.y + o.h, p.y + p.h)

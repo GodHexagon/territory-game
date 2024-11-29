@@ -1,11 +1,16 @@
 from .limitter import LimitableArea, LimitedDrawer
 from .view import View, CenteredArea
 from .cursor import Cursor
-from pyxres import DEFAULT_COLOR_S, RED_COLOR_S, BLUE_COLOR_S
+from ..rule.rule import Rotation, Piece
 
 from typing import List, Tuple
 
 import pyxel
+import numpy
+
+from pyxres import DEFAULT_COLOR_S, RED_COLOR_S, BLUE_COLOR_S
+
+
 
 class BoardView(View, LimitableArea):
     """DraggableBoardの表示限界。"""
@@ -31,6 +36,9 @@ class BoardView(View, LimitableArea):
         self.color_s = colors_s
         self.dg: Dragging | None = None
     
+    def set_piece_rotation(self, value: Rotation):
+        self.piece_rotation = value
+    
     def update(self):
         # ドラッグ検知・計算
         if pyxel.btnr(self.DRAG):
@@ -42,7 +50,7 @@ class BoardView(View, LimitableArea):
             self.__limited_move( (nbp[0], nbp[1]) )
         
         # マウスホバーをもとにタイルを再生成
-        new_tiles_data = self.b_input.get_tiles_data(self.cursor, BoardView.TILE_COLORS[0])
+        new_tiles_data = self.b_input.get_tiles_data(self.cursor, BoardView.TILE_COLORS[0], self.piece_rotation)
         if new_tiles_data != self.tiles_data:
             self.tiles_data = new_tiles_data
             self.board.set_tiles(self.__draw_tiles(self.tiles_data))
@@ -111,11 +119,11 @@ from pyxres import TILE_SIZE_PX
 
 class DraggableBoard(CenteredArea):
     """移動可能な盤の座標系を表す"""
-    FRAME_THICKNESS = 10
-
     BOARD_SIZE_TILES = 20
 
+    FRAME_THICKNESS = 10
     DEFAULT_BOARD_SIZE_PX = BOARD_SIZE_TILES * TILE_SIZE_PX + FRAME_THICKNESS * 2
+
     MIN_ZOOM = 1.0
     MAX_ZOOM = 25.0
 
@@ -198,15 +206,42 @@ class BoardInput(LimitableArea):
             self.prev_hovered = iir
             if cursor.held is not None: cursor.held.set_visibility(not iir)
 
-    def get_tiles_data(self, cursor: Cursor, held_piece_tile: int) -> List[List[int]]:
-        MAX_INDEX = DraggableBoard.BOARD_SIZE_TILES - 1
-        cursor_coord = (
-            max(0, min( MAX_INDEX, int((pyxel.mouse_x - self.x) / (self.w / (MAX_INDEX + 1))) )),
-            max(0, min( MAX_INDEX, int((pyxel.mouse_y - self.y) / (self.h / (MAX_INDEX + 1))) ))
+    def get_tiles_data(self, cursor: Cursor, tile_value: int, rotation: Rotation) -> List[List[int]]:
+        SIZE = DraggableBoard.BOARD_SIZE_TILES
+        def coord_limiter(x, y):
+            return (
+                max(0, min(SIZE - 1, x)),
+                max(0, min(SIZE - 1, y)),
+            )
+        
+        cursor_coord = coord_limiter(
+            int( (pyxel.mouse_x - self.x) / (self.w / (SIZE)) ),
+            int( (pyxel.mouse_y - self.y) / (self.h / (SIZE)) )
         )
 
-        data = [[0 for _ in range(DraggableBoard.BOARD_SIZE_TILES)] for _ in range(DraggableBoard.BOARD_SIZE_TILES)]
-        if self.input.is_in_range():
-            data[cursor_coord[0]][cursor_coord[1]] = held_piece_tile
+        data = [[0 for _ in range(SIZE)] for _ in range(SIZE)]
+        if self.input.is_in_range() and cursor.held is not None:
+            shape = cursor.held.piece.shape.copy()
+
+            shape = numpy.fliplr(shape)
+            shape = numpy.rot90(shape)
+
+            diff = None
+            for (row, col), value in numpy.ndenumerate(shape):
+                if value == Piece.CENTER: diff = (row, col)
+            if diff is None: assert False, "The shape does not contain a CENTER (value 2)."
+
+            start_coord = (
+                cursor_coord[0] - diff[0],
+                cursor_coord[1] - diff[1]
+            )
+
+            for (row, col), value in numpy.ndenumerate(shape):
+                if value in (Piece.TILED, Piece.CENTER):
+                    target = coord_limiter(
+                        start_coord[0] + row,
+                        start_coord[1] + col
+                    )
+                    data[target[0]][target[1]] = tile_value
 
         return data

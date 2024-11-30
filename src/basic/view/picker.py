@@ -13,11 +13,21 @@ SLIDER_HEIGHT = 30
 SLIDER_WIDTH = 30
 
 class ScrollState:
-    def __init__(self, value: float):
+    def __init__(self, value: float, range_px: int):
         self.value = value
+        self.range_px = range_px
     
     def set_value(self, value: float):
         self.value = max(0.0, min(1.0, value))
+    
+    def set_range_px(self, value: int):
+        self.range_px = max(0, value)
+    
+    def scroll_by_px(self, px: int):
+        self.set_value(self.value + px / self.range_px)
+    
+    def get_scrolled_px(self):
+        return self.value * self.range_px
 
 scroll_state: ScrollState
 
@@ -32,7 +42,7 @@ class PickerView(LimitableArea, View):
         self.cursor = cursor
 
         global scroll_state
-        scroll_state = ScrollState(0.0)
+        scroll_state = ScrollState(0.0, 0)
 
         F = PickerView.FRAME_THICKNESS_PX
         self.window = Window(self.x + F, self.y + F, self.w - F * 2, self.h - F * 2 - SLIDER_HEIGHT, self)
@@ -40,11 +50,13 @@ class PickerView(LimitableArea, View):
         self.items = list(self.shelf.ini_items(pieces, color_s))
         self.scroll_bar = ScrollBar(self.x, self.y + self.h - SLIDER_HEIGHT + 1, self.w)
 
+        scroll_state.set_range_px(self.shelf.w - self.window.w)
+
     def update(self):
         # スクロール検知
         global scroll_state
-        scroll_state.set_value(scroll_state.value + self.input.get_wheel() * -0.1)
-        self.shelf.x = self.x + PickerView.FRAME_THICKNESS_PX + scroll_state.value * -100
+        scroll_state.scroll_by_px(self.input.get_wheel() * -100)
+        self.shelf.x = self.window.x - scroll_state.get_scrolled_px()
         
         # ピースを置く
         held_piece = self.cursor.held
@@ -61,6 +73,7 @@ class PickerView(LimitableArea, View):
             #self.cursor.held.follow(p)
 
             self.shelf.align(self.items)
+            scroll_state.set_range_px(self.shelf.w - self.window.w)
         else:
             # マウス操作
             for i in self.items: i.mouse_input(self.cursor)
@@ -97,7 +110,7 @@ PICKER_TILE_SCALE = 2
 
 class Shelf(LimitableArea):
     """スクロール可能Viewの座標系。"""
-    GAP_PX = 24
+    GAP_PX = 16
     X_MARGIN_PX = 20
     
     def __init__(self, x, y, h, parent: Window):        

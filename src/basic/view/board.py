@@ -2,6 +2,7 @@ from .limitter import LimitableArea, LimitedDrawer, Surface
 from .view import View, CenteredArea
 from .cursor import Cursor
 from ..rule.rule import Rotation, Piece
+from ..key_bind import Bind, btn, btnp
 
 from typing import *
 
@@ -34,8 +35,7 @@ class BoardView(View, LimitableArea):
             self.__draw_tiles(self.displaying_tiles_data)
         )
 
-        self.b_input = self.board.ini_b_input(self)
-        self.cursor = cursor
+        self.c_monitor = self.board.ini_b_input(self, cursor)
         self.color_s = colors_s
         self.dg: Dragging | None = None
     
@@ -52,12 +52,15 @@ class BoardView(View, LimitableArea):
             nbp = self.dg.get_board_pos( (pyxel.mouse_x, pyxel.mouse_y) )
             self.__limited_move( (nbp[0], nbp[1]) )
         
+        self.c_monitor.monitor(self.piece_rotation)
         # マウスホバーをもとにタイルを再生成
         cursored_tiles_data = self.commited_tiles_data.copy()
-        self.b_input.write_cursor(cursored_tiles_data, self.cursor, BoardView.TILE_COLORS[0], self.piece_rotation)
+        self.c_monitor.write_hover_piece(cursored_tiles_data, 1)
         if not numpy.all(cursored_tiles_data == self.displaying_tiles_data):
             self.displaying_tiles_data = cursored_tiles_data
             self.board.set_tiles(self.__draw_tiles(self.displaying_tiles_data))
+
+        # ピース設置を試行
         
         # ホイール検知・計算
         effected_scale = self.board.zoom(1 + self.input.get_wheel() * 0.1)
@@ -67,8 +70,7 @@ class BoardView(View, LimitableArea):
             bcc[1] + (effected_scale - 1) * (bcc[1] - pyxel.mouse_y),
         ) )
 
-        self.board.make_sizing_bi(self.b_input)
-        self.b_input.mouse_input(self.cursor)
+        self.board.make_sizing_bi(self.c_monitor)
     
     def draw(self):
         self.board.draw()
@@ -141,10 +143,10 @@ class DraggableBoard(CenteredArea):
         self.tiles = tiles
         self.to_center_pos(cx, cy)
     
-    def ini_b_input(self, parent: BoardView):
+    def ini_b_input(self, parent: BoardView, cursor: Cursor):
         F = DraggableBoard.FRAME_THICKNESS
         T = DraggableBoard.BOARD_SIZE_TILES * TILE_SIZE_PX
-        return BoardInput(self.x + F, self.y + F, T, T, self.scale, parent)
+        return CursorMonitor(self.x + F, self.y + F, T, T, self.scale, parent, cursor)
     
     def set_tiles(self, value: pyxel.Image):
         self.tiles = value
@@ -165,7 +167,7 @@ class DraggableBoard(CenteredArea):
 
         return effected_scale
     
-    def make_sizing_bi(self, bi: 'BoardInput'):
+    def make_sizing_bi(self, bi: 'CursorMonitor'):
         """BoardInputの形を、適切な形に調整。"""
         F = DraggableBoard.FRAME_THICKNESS
         bi.x = self.x + F * self.scale
@@ -195,63 +197,82 @@ class DraggableBoard(CenteredArea):
             scale=self.scale
         )
 
-class BoardInput(LimitableArea):
+class CursorMonitor(LimitableArea):
     """盤のマウス入力についての座標系であり、DraggableBoardに追従する。"""
-    def __init__(self, x, y, w, h, scale: float, parent: BoardView):
+    def __init__(self, x, y, w, h, scale: float, limitation_area: BoardView, cursor: Cursor, ):
         super().__init__(x, y, w, h)
-        self.set_limiteds(parent.surface)
+        self.set_limiteds(limitation_area.surface)
         self.scale = scale
         self.prev_hovered = False
+        self.cursor = cursor
+        self.hover_piece_shape = numpy.array( (0, ), )
+        self.hover_piece_start_coord: Tuple[int, int] = (0, 0)
     
-    def mouse_input(self, cursor: Cursor):
+    def monitor(self, rotation: Rotation):
         iir = self.input.is_in_range()
+        
+        if iir:
+            self.__count_piece_preview(rotation)
+
         if (
             (self.prev_hovered and not iir) or
             (not self.prev_hovered and iir)
         ):
             self.prev_hovered = iir
-            if cursor.held is not None: cursor.held.set_visibility(not iir)
-
-    def write_cursor(self, data: NDArray, cursor: Cursor, tile_value: int, rotation: Rotation) -> None:
-        """２次元地図形式のタイルデータを取得"""
-        SIZE = DraggableBoard.BOARD_SIZE_TILES
-        def coord_limiter(x, y):
-            return (
-                max(0, min(SIZE - 1, x)),
-                max(0, min(SIZE - 1, y)),
-            )
+            if self.cursor.held is not None: self.cursor.held.set_visibility(not iir)
         
-        cursor_coord = coord_limiter(
+        if iir:
+            pass
+
+        if btnp(Bind.PLACE_PIECE) and iir:
+            pass
+
+    def __limit_in_board(self, x, y):
+        SIZE = DraggableBoard.BOARD_SIZE_TILES
+        return (
+            max(0, min(SIZE - 1, x)),
+            max(0, min(SIZE - 1, y)),
+        )
+
+    def __count_piece_preview(self, rotation: Rotation):
+        if self.cursor.held is None: return
+
+        SIZE = DraggableBoard.BOARD_SIZE_TILES
+        cursor_coord = self.__limit_in_board(
             int( (pyxel.mouse_x - self.x) / (self.w / (SIZE)) ),
             int( (pyxel.mouse_y - self.y) / (self.h / (SIZE)) )
         )
 
-        if self.input.is_in_range() and cursor.held is not None:
-            shape = cursor.held.piece.shape.copy()
-            
-            r = rotation
-            rotation_times = 0
-            if r == Rotation.RIGHT_90: rotation_times = 1
-            elif r == Rotation.RIGHT_180: rotation_times = 2
-            elif r == Rotation.RIGHT_270: rotation_times = 3
+        shape = self.cursor.held.piece.shape.copy()
+        
+        r = rotation
+        rotation_times = 0
+        if r == Rotation.RIGHT_90: rotation_times = 1
+        elif r == Rotation.RIGHT_180: rotation_times = 2
+        elif r == Rotation.RIGHT_270: rotation_times = 3
 
-            shape = numpy.fliplr(shape)
-            shape = numpy.rot90(shape, (rotation_times + 1) % 4)
+        shape = numpy.fliplr(shape)
+        shape = numpy.rot90(shape, (rotation_times + 1) % 4)
 
-            diff = None
-            for (row, col), value in numpy.ndenumerate(shape):
-                if value == Piece.CENTER: diff = (row, col)
-            if diff is None: assert False, "The shape does not contain a CENTER (value 2)."
+        self.hover_piece_shape = shape
 
-            start_coord = (
-                cursor_coord[0] - diff[0],
-                cursor_coord[1] - diff[1]
-            )
+        diff = None
+        for (row, col), value in numpy.ndenumerate(shape):
+            if value == Piece.CENTER: diff = (row, col)
+        if diff is None: assert False, "'.rule.rule.Piece.SHAPES'のいずれかのPiece形状の定義は、Piece.CENTER（0の値）の値が無い。"
 
-            for (row, col), value in numpy.ndenumerate(shape):
+        self.hover_piece_start_coord = (
+            cursor_coord[0] - diff[0],
+            cursor_coord[1] - diff[1]
+        )
+
+    def write_hover_piece(self, data: NDArray, tile_value: int) -> None:
+        """２次元地図形式のタイルデータに、カーソルホバーによるピースを書き入れる"""
+        if self.input.is_in_range() and self.cursor.held is not None:
+            for (row, col), value in numpy.ndenumerate(self.hover_piece_shape):
                 if value in (Piece.TILED, Piece.CENTER):
-                    target = coord_limiter(
-                        start_coord[0] + row,
-                        start_coord[1] + col
+                    target = self.__limit_in_board(
+                        self.hover_piece_start_coord[0] + row,
+                        self.hover_piece_start_coord[1] + col
                     )
                     data[target[0]][target[1]] = tile_value

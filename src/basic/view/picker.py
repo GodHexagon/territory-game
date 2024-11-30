@@ -61,16 +61,10 @@ class PickerView(LimitableArea, View):
         # ピースを置く
         held_piece = self.cursor.held
         if btnp(Bind.SEIZE_PIECE) and self.window.input.is_in_range() and held_piece is not None:
-            new = self.shelf.get_a_item(
-                held_piece.piece,
-                self.piece_color_s
-            )
             target = [
                 t for t in filter(lambda i: i.held is None, self.items)
             ][0]
             held_piece.follow(target)
-            #self.items.append(p)
-            #self.cursor.held.follow(p)
 
             self.shelf.align(self.items)
             scroll_state.set_range_px(self.shelf.w - self.window.w)

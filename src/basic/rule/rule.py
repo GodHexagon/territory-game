@@ -66,7 +66,7 @@ class Piece:
         return self.shape.shape[0]
 
     def copy_rotated_right90(self, times: int):
-        s = numpy.rot90(self.shape, times)
+        s = numpy.rot90(self.shape.copy(), times)
         return Piece(s)
 
 class Rule:

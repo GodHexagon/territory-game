@@ -49,11 +49,11 @@ class FollowablePiece:
             return
 
         if piece_rotation == Rotation.RIGHT_90:
-            image = self.images[1]
+            image = self.images[3]
         elif piece_rotation == Rotation.RIGHT_180:
             image = self.images[2]
         elif piece_rotation == Rotation.RIGHT_270:
-            image = self.images[3]
+            image = self.images[1]
         else:
             image = self.images[0]
         

@@ -181,7 +181,7 @@ class Item(LimitableArea, PieceHolder):
             self.held.draw(piece_rotation, drawer)
 
 class ScrollBar(LimitableArea, View):
-    """スクロールバーの範囲。"""
+    """スクロールバーが占有する範囲。"""
     def __init__(self, x, y, w):
         super().__init__(x, y, w, SLIDER_HEIGHT)
         self.set_limiteds()

@@ -22,35 +22,7 @@ class Piece:
     TILED = 1
     CENTER = 2
 
-    SHAPES = (
-        (
-            (2, ),
-        ),
-        (
-            (1, ),
-            (2, ),
-        ),
-        (
-            (1, ),
-            (2, ),
-            (1, ),
-        ),
-        (
-            (1, 0),
-            (2, 1),
-        ),
-        (
-            (1, ),
-            (1, ),
-            (2, ),
-            (1, ),
-        ),
-        (
-            (0, 1),
-            (0, 1),
-            (1, 2),
-        )
-    )
+    from .piece_shape import SHAPES
 
     def __init__(self, shape: numpy.ndarray):
         self.shape = shape

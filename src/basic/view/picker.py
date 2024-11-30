@@ -97,7 +97,7 @@ PICKER_TILE_SCALE = 2
 
 class Shelf(LimitableArea):
     """スクロール可能Viewの座標系。"""
-    GAP_PX = 48
+    GAP_PX = 24
     X_MARGIN_PX = 20
     
     def __init__(self, x, y, h, parent: Window):        

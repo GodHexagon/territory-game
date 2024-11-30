@@ -31,6 +31,9 @@ class Piece:
     def get_piece_set():
         return tuple(Piece( numpy.array(s) ) for s in Piece.SHAPES)
 
+    def get_shape(self):
+        return self.shape.copy()
+
     def get_width_tiles(self):
         return self.shape.shape[1]
     
@@ -43,16 +46,23 @@ class Piece:
 
 class Rule:
     """ゲームルールに基づきデータをアップデートさせ、さらに現在のデータを提供する"""
-    PLAYER1 = 0
-    PLAYER2 = 1
+    PLAYER1 = 1
+    PLAYER2 = 2
+    BOARD_SIZE_TILES = 20
 
     def __init__(self):
-        self.data = GameData(Rule.PLAYER1, {
-            Rule.PLAYER1: Piece.get_piece_set(),
-            Rule.PLAYER2: Piece.get_piece_set()
-        } )
+        self.data = GameData(
+            Rule.PLAYER1, 
+            {
+                Rule.PLAYER1: Piece.get_piece_set(),
+                Rule.PLAYER2: Piece.get_piece_set()
+            },
+            Rule.BOARD_SIZE_TILES
+        )
     
-    def switch_turn(self):
+    def place(self, piece: Piece, rotation: Rotation, x, y) -> bool:
+        if piece in (p for p in self.data.pieces_by_player): pass
+
         self.data.turn = (self.data.turn + 1) % len(self.data.pieces_by_player)
     
     def get_turn(self):
@@ -63,16 +73,23 @@ class Rule:
 
 class GameData:
     """ゲーム進行状況を維持する最低限のデータ"""
-    def __init__(self, turn: int, pieces_by_player: Dict[int, Tuple[Piece]]):
+    def __init__(self, turn: int, pieces_by_player: Dict[int, Tuple[Piece]], board_size: int):
         self.pieces_by_player = pieces_by_player
         self.turn = turn
-
+        self.board_size = board_size
+    
+    def limit_in_board(self, coordinate: Tuple[int, int]):
+        s = self.board_size - 1
+        return (
+            max(0, min(s, coordinate[0])),
+            max(0, min(s, coordinate[1]))
+        )
 
 if __name__ == '__main__':
     game = Rule()
     print(game.data.pieces_by_player[Rule.PLAYER1][3].shape)
     for i in range(5):
-        game.switch_turn()
+        game.place()
         print(game.get_turn())
     for p in game.data.pieces_by_player[Rule.PLAYER1]:
         print(p.shape)

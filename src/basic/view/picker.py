@@ -14,16 +14,18 @@ SLIDER_WIDTH = 30
 
 class ScrollState:
     def __init__(self, value: float, range_px: int):
-        self.value = value
-        self.range_px = range_px
+        self.set_value(value)
+        self.set_range_px(range_px)
     
     def set_value(self, value: float):
         self.value = max(0.0, min(1.0, value))
     
     def set_range_px(self, value: int):
         self.range_px = max(0, value)
+        self.enable = self.range_px > 0
     
     def scroll_by_px(self, px: int):
+        if not self.enable: return
         self.set_value(self.value + px / self.range_px)
     
     def get_scrolled_px(self):
@@ -210,7 +212,9 @@ class ScrollBar(LimitableArea, View):
 
     def draw(self):
         self.drawer.rect(self.x, self.y, self.w, self.h, 3)
-        self.slider.draw()
+        global scroll_state
+        if scroll_state.enable:
+            self.slider.draw()
 
 class Slider(Area):
     """ScrollBarの範囲内で移動することで表示領域を示す表示。"""

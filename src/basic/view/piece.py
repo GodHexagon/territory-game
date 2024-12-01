@@ -1,6 +1,6 @@
 from .limitter import LimitedDrawer
 from .view import CenteredArea
-from ..rule.rule import Piece, Rotation
+from ..rule.rule import TilesMap, Rotation, Piece
 
 from numpy import ndarray as NDArray
 import numpy
@@ -15,7 +15,7 @@ from pyxres import TILE_SIZE_PX, TILE_COLOR_PALLETS_NUMBER, DEFAULT_COLOR_S, BLO
 class FollowablePiece:
     TILE_SCALE = 2
 
-    def __init__(self, piece: Piece, piece_color_s: int, holder: 'PieceHolder'):
+    def __init__(self, piece: TilesMap, piece_color_s: int, holder: 'PieceHolder'):
         self.piece = piece
         self.piece_color_s = piece_color_s
         holder.hold(self)
@@ -25,12 +25,12 @@ class FollowablePiece:
         images: List[pyxel.Image] = []
 
         for by_direction_sequence in range(4):
-            rotated = piece.copy_rotated_right90(by_direction_sequence)
+            rotated = piece.rotate_right90(by_direction_sequence)
 
-            image = pyxel.Image(rotated.get_width_tiles() * TILE_SIZE_PX, rotated.get_height_tiles() * TILE_SIZE_PX)
+            image = pyxel.Image(rotated.width * TILE_SIZE_PX, rotated.height * TILE_SIZE_PX)
             for i in range(TILE_COLOR_PALLETS_NUMBER): image.pal(i + DEFAULT_COLOR_S, i + piece_color_s)
 
-            for (row, col), value in numpy.ndenumerate(rotated.copy_shape()):
+            for (row, col), value in numpy.ndenumerate(rotated.to_ndarray()):
                 if value in (Piece.TILED, Piece.CENTER):
                     image.blt(
                         col * TILE_SIZE_PX,

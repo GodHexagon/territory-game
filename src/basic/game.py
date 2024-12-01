@@ -22,7 +22,7 @@ class GameView(Area, ParenthoodView):
                 board_view_end_y + 1, 
                 w, 
                 h - board_view_end_y - 1, 
-                self.game.get_pieces(RuleVSAI.PLAYER),
+                self.game.get_pieces_shape(RuleVSAI.PLAYER),
                 BLUE_COLOR_S,
                 new
             ),

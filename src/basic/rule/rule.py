@@ -1,9 +1,10 @@
 from typing import *
 import enum
 
+from numpy import ndarray as NDArray
 import numpy
 
-from .data import Rotation, GameData, Piece
+from .data import Rotation, GameData, TilesMap, Piece
 
 class Rule:
     """ゲームルールに基づきデータをアップデートさせ、さらに現在のデータを提供する"""
@@ -16,13 +17,13 @@ class Rule:
             Rule.BOARD_SIZE_TILES
         )
         self.tmp_board_map = numpy.array( [[0 for _ in range(self.data.board_size)] for _ in range(self.data.board_size)] )
-        self.next_pm = PlaceRuleMap.get_empty_pm(self.data)
+        self.next_pm = PlacementRuleMap.get_empty_pm(self.data)
     
-    def place(self, piece: Piece, rotation: Rotation, x, y) -> bool:
+    def place(self, piece: TilesMap, rotation: Rotation, x, y) -> bool:
         pbp = self.data.pieces_by_player[self.data.turn]
         if not any(piece is p for p in pbp): return False
 
-        rotated = piece.copy_rotated(rotation)
+        rotated = piece.rotate(rotation)
         
 
         self.data.turn = (self.data.turn + 1) % len(self.data.pieces_by_player)
@@ -31,11 +32,11 @@ class Rule:
     def get_turn(self):
         return self.data.turn
     
-    def get_pieces(self, which_player: int):
-        return self.data.pieces_by_player[which_player]
+    def get_pieces_shape(self, which_player: int):
+        return tuple(p.shape for p in self.data.pieces_by_player[which_player])
 
-class PlaceRuleMap:
-    def __init__(self, col: Tuple[Tuple[bool]], sur: Tuple[Tuple[bool]], cor: Tuple[Tuple[bool]]):
+class PlacementRuleMap:
+    def __init__(self, col: NDArray, sur: NDArray, cor: NDArray):
         self.col = col
         self.sur = sur
         self.cor = cor
@@ -43,9 +44,9 @@ class PlaceRuleMap:
     @staticmethod
     def get_empty_pm(data: 'GameData'):
         empty_map = numpy.array( [[False for _ in range(data.board_size)] for _ in range(data.board_size)] )
-        return PlaceRuleMap(empty_map, empty_map, empty_map)
+        return PlacementRuleMap(empty_map, empty_map, empty_map)
 
-    @staticmethod
+    """@staticmethod
     def get_next_pm(data: 'GameData'):
         col = numpy.array( [[False for _ in range(data.board_size)] for _ in range(data.board_size)] )
         sur = numpy.array( [[False for _ in range(data.board_size)] for _ in range(data.board_size)] )
@@ -56,12 +57,12 @@ class PlaceRuleMap:
             for p in pieces:
                 pass
 
-        return PlaceRuleMap(
+        return PlacementRuleMap(
             
-        )
+        )"""
 
-    def check(self, piece: Piece) -> bool:
-        pass
+    def check(self, piece: TilesMap) -> bool:
+        return False
 
 class RuleVSAI(Rule):
     PLAYER = 0
@@ -71,12 +72,4 @@ class RuleVSAI(Rule):
 
 
 if __name__ == '__main__':
-    game = Rule()
-    print(game.data.pieces_by_player[Rule.PLAYER1][3].shape)
-    for i in range(5):
-        game.place()
-        print(game.get_turn())
-    for p in game.data.pieces_by_player[Rule.PLAYER1]:
-        print(p.shape)
-        print(p.get_width_tiles())
-        print(p.get_height_tiles())
+    pass

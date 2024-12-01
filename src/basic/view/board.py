@@ -1,7 +1,7 @@
 from .limitter import LimitableArea, LimitedDrawer, Surface
 from .view import View, CenteredArea
 from .cursor import Cursor
-from ..rule.rule import Rotation, Piece, Rule
+from ..rule.rule import Rotation, TilesMap, Rule, Piece
 from ..key_bind import Bind, btn, btnp
 
 from typing import *
@@ -251,7 +251,7 @@ class CursorMonitor(LimitableArea):
                 int( (pyxel.mouse_y - self.y) / (self.h / (SIZE)) )
             )
 
-            shape = self.cursor.held.piece.copy_shape()
+            shape = self.cursor.held.piece.to_ndarray()
             
             r = rotation
             rotation_times = 0
@@ -277,7 +277,7 @@ class CursorMonitor(LimitableArea):
 
     def write_hover_piece(self, data: NDArray, tile_value: int) -> None:
         """２次元地図形式のタイルデータに、カーソルホバーによるピースを書き入れる"""
-        if self.input.is_in_range() and self.hover_piece_shape is not None:
+        if self.input.is_in_range() and self.hover_piece_shape is not None and self.hover_piece_start_coord is not None:
             for (row, col), value in numpy.ndenumerate(self.hover_piece_shape):
                 if value in (Piece.TILED, Piece.CENTER):
                     target = self.__limit_in_board(

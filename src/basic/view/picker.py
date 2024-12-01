@@ -1,7 +1,7 @@
 from .limitter import LimitableArea, LimitedDrawer, LimitableArea
 from .view import Area, View
 from .cursor import Cursor
-from ..rule.rule import Piece as PieceRes, Rotation
+from ..rule.rule import TilesMap, Rotation
 from ..key_bind import *
 
 from typing import *
@@ -37,7 +37,7 @@ class PickerView(LimitableArea, View):
     """Pickerが占有する範囲。"""
     FRAME_THICKNESS_PX = 3
 
-    def __init__(self, x, y, w, h, pieces: Tuple[PieceRes], color_s: int, cursor: Cursor):
+    def __init__(self, x, y, w, h, pieces: Tuple[TilesMap], color_s: int, cursor: Cursor):
         super().__init__(x, y, w, h)
         self.set_limiteds()
         self.piece_color_s = color_s
@@ -113,7 +113,7 @@ class Shelf(LimitableArea):
         super().__init__(x, y, 0, h)
         self.set_limiteds(parent.surface)
     
-    def ini_items(self, pieces_res: Tuple[PieceRes], piece_color_s: int):
+    def ini_items(self, pieces_res: Tuple[TilesMap], piece_color_s: int):
         width = 0
         pieces: List[Item] = []
         for p in pieces_res:
@@ -124,7 +124,7 @@ class Shelf(LimitableArea):
         
         return tuple(pieces)
     
-    def get_a_item(self, piece_res: PieceRes, piece_color_s):
+    def get_a_item(self, piece_res: TilesMap, piece_color_s):
         return Item(
             self,
             (0, 0),
@@ -140,7 +140,7 @@ class Shelf(LimitableArea):
                 empty_items.append(p)
                 continue
             
-            p.relative_pos = (width, 0)
+            p.relative_pos = (width, 0.0)
             p.move_absolute_pos()
 
             width += p.w
@@ -155,21 +155,27 @@ class Item(LimitableArea, PieceHolder):
     def __init__(self,
         base: Shelf,
         relative_pos: Tuple[float, float],
-        piece: PieceRes,
+        piece: TilesMap,
         color_s: int
     ):
         self.base = base
         self.relative_pos = relative_pos
         FollowablePiece(piece, color_s, self)
 
-        allocation = max(
-            piece.get_width_tiles() * TILE_SIZE_PX * FollowablePiece.TILE_SCALE, 
-            piece.get_height_tiles() * TILE_SIZE_PX * FollowablePiece.TILE_SCALE
-        )
-        super().__init__(0, 0, Shelf.GAP_PX + allocation, base.h)
-        self.set_limiteds(base.surface)
+        super().__init__(0, 0, 0, base.h)
 
+        self.set_limiteds(base.surface)
+        self.resize_w()
         self.move_absolute_pos()
+    
+    def resize_w(self):
+        if self.held is None: return False
+        
+        self.w = Shelf.GAP_PX + max(
+            self.held.piece.width * TILE_SIZE_PX * FollowablePiece.TILE_SCALE, 
+            self.held.piece.height * TILE_SIZE_PX * FollowablePiece.TILE_SCALE
+        )
+        return True
     
     def move_absolute_pos(self):
         self.x = self.base.x + self.relative_pos[0]
@@ -185,6 +191,7 @@ class Item(LimitableArea, PieceHolder):
             self.held.follow(cursor)
     
     def draw(self, piece_rotation: Rotation, drawer: LimitedDrawer):
+        drawer.rect(self.x, self.y, self.w, self.h, 2)
         if self.held is not None:
             self.move_absolute_pos()
             self.held.draw(piece_rotation, drawer)
@@ -211,7 +218,7 @@ class ScrollBar(LimitableArea, View):
         self.slider.x = (self.w - SLIDER_WIDTH) * scroll_state.value
 
     def draw(self):
-        self.drawer.rect(self.x, self.y, self.w, self.h, 3)
+        self.drawer.rect(self.x + 1, self.y + 1, self.w - 1, self.h - 1, 3)
         global scroll_state
         if scroll_state.enable:
             self.slider.draw()

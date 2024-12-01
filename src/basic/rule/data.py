@@ -36,10 +36,13 @@ class Piece:
     TILED = 1
     CENTER = 2
 
+    Unplaced: TypeAlias = None
+
     from .pieces_shape import SHAPES
 
     def __init__(self, shape: numpy.ndarray):
         self.shape = shape
+        self.position: Tuple[int, int] | Piece.Unplaced = Piece.Unplaced
     
     @staticmethod
     def get_piece_set():

@@ -173,8 +173,8 @@ class Item(LimitableArea, PieceHolder):
         if self.held is None: return False
         
         self.w = Shelf.GAP_PX + max(
-            self.held.piece.width * TILE_SIZE_PX * FollowablePiece.TILE_SCALE, 
-            self.held.piece.height * TILE_SIZE_PX * FollowablePiece.TILE_SCALE
+            self.held.shape.width * TILE_SIZE_PX * FollowablePiece.TILE_SCALE, 
+            self.held.shape.height * TILE_SIZE_PX * FollowablePiece.TILE_SCALE
         )
         return True
     

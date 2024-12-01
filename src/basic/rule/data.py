@@ -30,14 +30,14 @@ class TilesMap:
         self.height, self.width = input_array.shape
 
     def copy(self):
-        return TilesMap(self._map)
+        return TilesMap(self.to_ndarray())
     
     def to_ndarray(self) -> numpy.ndarray:
         """内部の ndarray を取得"""
-        return self._map
+        return self._map.copy()
 
     def rotate_right90(self, times: int):
-        return TilesMap( numpy.rot90(self.to_ndarray().copy(), times) )
+        return TilesMap( numpy.rot90(self.to_ndarray(), times) )
 
     def rotate(self, rotation: Rotation):
         rotation_times = 0
@@ -46,6 +46,20 @@ class TilesMap:
         elif rotation == Rotation.RIGHT_270: rotation_times = 3
         
         return self.rotate_right90(rotation_times)
+
+    def is_equal(self, other: 'TilesMap') -> bool:
+        """
+        他の TilesMap と配列が等しいかを判定します。
+
+        Parameters:
+            other (TilesMap): 比較対象の TilesMap オブジェクト。
+
+        Returns:
+            bool: 配列が等しい場合は True、異なる場合は False。
+        """
+        if not isinstance(other, TilesMap):
+            return False
+        return numpy.array_equal(self._map, other._map)
 
 class GameData:
     """ゲーム進行状況を維持する最低限のデータ"""
@@ -67,10 +81,23 @@ class Piece:
 
     from .pieces_shape import SHAPES
 
-    def __init__(self, shape: TilesMap):
+    def __init__(self, shape: TilesMap, position: Optional['PiecePosition'] = None):
         self.shape = shape
-        self.position: Tuple[int, int] | None = None
+        self.position = position
     
     @staticmethod
     def get_piece_set():
         return tuple(Piece( TilesMap(s) ) for s in Piece.SHAPES)
+    
+    def placed(self):
+        return self.position is not None
+
+    def place(self, x, y, rotation):
+        self.position = PiecePosition(x, y , rotation)
+    
+    def copy(self):
+        return Piece(self.shape, self.position)
+
+class PiecePosition:
+    def __init__(self, x: int, y: int, rotation: Rotation):
+        self.x, self.y, self.rotation = x, y, rotation

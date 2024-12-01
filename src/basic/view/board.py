@@ -53,16 +53,15 @@ class BoardView(View, LimitableArea):
             nbp = self.dg.get_board_pos( (pyxel.mouse_x, pyxel.mouse_y) )
             self.__limited_move( (nbp[0], nbp[1]) )
         
+        # マウス入力を反映
         self.c_monitor.monitor_hover(self.piece_rotation)
-        self.c_monitor.monitor_placement(self.game)
-        # マウスホバーをもとにタイルを再生成
+        self.c_monitor.monitor_placement(self.game, self.piece_rotation)
+        # タイルを再生成
         cursored_tiles_data = self.commited_tiles_data.copy()
         self.c_monitor.write_hover_piece(cursored_tiles_data, 1)
         if not numpy.all(cursored_tiles_data == self.displaying_tiles_data):
             self.displaying_tiles_data = cursored_tiles_data
             self.board.set_tiles(self.__draw_tiles(self.displaying_tiles_data))
-
-        # ピース設置を試行
         
         # ホイール検知・計算
         effected_scale = self.board.zoom(1 + self.input.get_wheel() * 0.1)
@@ -223,15 +222,17 @@ class CursorMonitor(LimitableArea):
             self.prev_hovered = iir
             if self.cursor.held is not None: self.cursor.held.set_visibility(not iir)
 
-    def monitor_placement(self, game: Rule):
+    def monitor_placement(self, game: Rule, rot: Rotation):
+        held = self.cursor.held
+        coord = self.hover_piece_start_coord
         if (
             btnp(Bind.PLACE_PIECE) and 
             self.input.is_in_range() and 
-            self.cursor.held is not None and 
-            self.hover_piece_start_coord is not None
+            held is not None and 
+            coord is not None
         ):
-            self.cursor.held.clear()
-                
+            held.clear()
+            game.place(held.shape, rot, coord[0], coord[1])
 
     def __limit_in_board(self, x, y):
         SIZE = DraggableBoard.BOARD_SIZE_TILES
@@ -251,7 +252,7 @@ class CursorMonitor(LimitableArea):
                 int( (pyxel.mouse_y - self.y) / (self.h / (SIZE)) )
             )
 
-            shape = self.cursor.held.piece.to_ndarray()
+            shape = self.cursor.held.shape.to_ndarray()
             
             r = rotation
             rotation_times = 0

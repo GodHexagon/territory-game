@@ -16,7 +16,7 @@ class FollowablePiece:
     TILE_SCALE = 2
 
     def __init__(self, piece: TilesMap, piece_color_s: int, holder: 'PieceHolder'):
-        self.piece = piece
+        self.shape = piece
         self.piece_color_s = piece_color_s
         holder.hold(self)
         self.holder = holder

@@ -19,21 +19,37 @@ class Rule:
         self.tmp_board_map = numpy.array( [[0 for _ in range(self.data.board_size)] for _ in range(self.data.board_size)] )
         self.next_pm = PlacementRuleMap.get_empty_pm(self.data)
     
-    def place(self, piece: TilesMap, rotation: Rotation, x, y) -> bool:
-        pbp = self.data.pieces_by_player[self.data.turn]
-        if not any(piece is p for p in pbp): return False
+    def place(self, shape: TilesMap, rotation: Rotation, x: int, y: int) -> 'PlacementResult':
+        selectable = self.data.pieces_by_player[self.data.turn]
 
-        rotated = piece.rotate(rotation)
-        
+        found = [p for p in selectable if shape.is_equal(p.shape)]
+        if len(found) == 0: raise ValueError('shapeが指し示すピースがゲームに存在しない。')
+        if len(found) > 1: assert False, "'.rule.rule.Piece.SHAPES'に、複数の同じ形状のピースが定義されている。"
+        target = found[0]
 
+        if target.placed(): raise ValueError('shapeが指し示すピースは、すでに盤上にある。')
+
+        future = target.copy()
+        future.place(x, y, rotation)
+        result = self.next_pm.check(future)
+        if not PlacementResult.successes(result): return result
+
+        target.place(x, y, rotation)
         self.data.turn = (self.data.turn + 1) % len(self.data.pieces_by_player)
-        return True
+        return result
     
     def get_turn(self):
         return self.data.turn
     
     def get_pieces_shape(self, which_player: int):
         return tuple(p.shape for p in self.data.pieces_by_player[which_player])
+
+class PlacementResult(enum.Enum):
+    SUCCESS = 0
+    
+    @staticmethod
+    def successes(value: 'PlacementResult'):
+        return value == PlacementResult.SUCCESS
 
 class PlacementRuleMap:
     def __init__(self, col: NDArray, sur: NDArray, cor: NDArray):
@@ -61,8 +77,8 @@ class PlacementRuleMap:
             
         )"""
 
-    def check(self, piece: TilesMap) -> bool:
-        return False
+    def check(self, piece: TilesMap) -> PlacementResult:
+        return PlacementResult.SUCCESS
 
 class RuleVSAI(Rule):
     PLAYER = 0

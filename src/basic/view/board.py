@@ -251,7 +251,7 @@ class CursorMonitor(LimitableArea):
                 int( (pyxel.mouse_y - self.y) / (self.h / (SIZE)) )
             )
 
-            shape = self.cursor.held.piece.get_shape()
+            shape = self.cursor.held.piece.copy_shape()
             
             r = rotation
             rotation_times = 0

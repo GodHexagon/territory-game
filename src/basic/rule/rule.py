@@ -1,4 +1,4 @@
-from typing import Tuple, Dict
+from typing import *
 import enum
 import numpy
 
@@ -31,7 +31,7 @@ class Piece:
     def get_piece_set():
         return tuple(Piece( numpy.array(s) ) for s in Piece.SHAPES)
 
-    def get_shape(self):
+    def copy_shape(self):
         return self.shape.copy()
 
     def get_width_tiles(self):
@@ -44,26 +44,35 @@ class Piece:
         s = numpy.rot90(self.shape.copy(), times)
         return Piece(s)
 
+    def copy_rotated(self, rotation: Rotation):
+        rotation_times = 0
+        if rotation == Rotation.RIGHT_90: rotation_times = 1
+        elif rotation == Rotation.RIGHT_180: rotation_times = 2
+        elif rotation == Rotation.RIGHT_270: rotation_times = 3
+        
+        return self.copy_rotated_right90(rotation_times)
+
 class Rule:
     """ゲームルールに基づきデータをアップデートさせ、さらに現在のデータを提供する"""
-    PLAYER1 = 1
-    PLAYER2 = 2
     BOARD_SIZE_TILES = 20
 
-    def __init__(self):
+    def create_game_data(self, players_number: int):
         self.data = GameData(
-            Rule.PLAYER1, 
-            {
-                Rule.PLAYER1: Piece.get_piece_set(),
-                Rule.PLAYER2: Piece.get_piece_set()
-            },
+            0,
+            [Piece.get_piece_set() for _ in range(players_number)],
             Rule.BOARD_SIZE_TILES
         )
+        #self.next_pm = PlacableModel.get_next_pm(self.data)
     
     def place(self, piece: Piece, rotation: Rotation, x, y) -> bool:
-        if piece in (p for p in self.data.pieces_by_player): pass
+        pbp = self.data.pieces_by_player[self.data.turn]
+        if not any(piece is p for p in pbp): return False
+
+        rotated = piece.copy_rotated_right90(rotation)
+        
 
         self.data.turn = (self.data.turn + 1) % len(self.data.pieces_by_player)
+        return True
     
     def get_turn(self):
         return self.data.turn
@@ -71,9 +80,34 @@ class Rule:
     def get_pieces(self, which_player: int):
         return self.data.pieces_by_player[which_player]
 
+class PlacableModel:
+    def __init__(self, col: Tuple[Tuple[bool]], sur: Tuple[Tuple[bool]], cor: Tuple[Tuple[bool]]):
+        self.col = col
+        self.sur = sur
+        self.cor = cor
+    
+    @staticmethod
+    def get_next_pm(data: 'GameData'):
+        col = numpy.array( [[False for _ in range(data.board_size)] for _ in range(data.board_size)] )
+        sur = numpy.array( [[False for _ in range(data.board_size)] for _ in range(data.board_size)] )
+        cor = numpy.array( [[False for _ in range(data.board_size)] for _ in range(data.board_size)] )
+        
+        for pieces in data.pieces_by_player:
+            pass
+
+        return PlacableModel(
+            
+        )
+
+class RuleVSAI(Rule):
+    PLAYER = 0
+    AI = 1
+    def __init__(self):
+        self.create_game_data(2)
+
 class GameData:
     """ゲーム進行状況を維持する最低限のデータ"""
-    def __init__(self, turn: int, pieces_by_player: Dict[int, Tuple[Piece]], board_size: int):
+    def __init__(self, turn: int, pieces_by_player: List[Tuple[Piece]], board_size: int):
         self.pieces_by_player = pieces_by_player
         self.turn = turn
         self.board_size = board_size

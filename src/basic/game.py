@@ -1,4 +1,4 @@
-from .rule.rule import Rule, Rotation
+from .rule.rule import RuleVSAI, Rotation
 from .view.view import Area, ParenthoodView
 from .view import *
 from .key_bind import *
@@ -9,7 +9,7 @@ class GameView(Area, ParenthoodView):
     def __init__(self, x, y, w, h):
         super().__init__(x, y, w, h)
         
-        self.game = Rule()
+        self.game = RuleVSAI()
         self.rotation = Rotation.DEFAULT
         
         new = Cursor()
@@ -22,7 +22,7 @@ class GameView(Area, ParenthoodView):
                 board_view_end_y + 1, 
                 w, 
                 h - board_view_end_y - 1, 
-                self.game.get_pieces(Rule.PLAYER1),
+                self.game.get_pieces(RuleVSAI.PLAYER),
                 BLUE_COLOR_S,
                 new
             ),

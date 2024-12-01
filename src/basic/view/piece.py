@@ -30,7 +30,7 @@ class FollowablePiece:
             image = pyxel.Image(rotated.get_width_tiles() * TILE_SIZE_PX, rotated.get_height_tiles() * TILE_SIZE_PX)
             for i in range(TILE_COLOR_PALLETS_NUMBER): image.pal(i + DEFAULT_COLOR_S, i + piece_color_s)
 
-            for (row, col), value in numpy.ndenumerate(rotated.get_shape()):
+            for (row, col), value in numpy.ndenumerate(rotated.copy_shape()):
                 if value in (Piece.TILED, Piece.CENTER):
                     image.blt(
                         col * TILE_SIZE_PX,

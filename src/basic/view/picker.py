@@ -141,6 +141,7 @@ class Shelf(LimitableArea):
                 continue
             
             p.relative_pos = (width, 0.0)
+            p.resize_w()
             p.move_absolute_pos()
 
             width += p.w

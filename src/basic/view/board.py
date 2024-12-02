@@ -1,7 +1,7 @@
 from .limitter import LimitableArea, LimitedDrawer, Surface
 from .view import View, CenteredArea
 from .cursor import Cursor
-from ..rule.rule import Rotation, TilesMap, Rule, Piece
+from ..rule.rule import Rotation, PlacementResult, Rule, Piece
 from ..key_bind import Bind, btn, btnp
 
 from typing import *
@@ -231,8 +231,8 @@ class CursorMonitor(LimitableArea):
             held is not None and 
             coord is not None
         ):
-            held.clear()
-            game.place(held.shape, rot, coord[0], coord[1])
+            result = game.place(held.shape, rot, coord[0], coord[1])
+            if PlacementResult.successes(result): held.clear()
 
     def __limit_in_board(self, x, y):
         SIZE = DraggableBoard.BOARD_SIZE_TILES

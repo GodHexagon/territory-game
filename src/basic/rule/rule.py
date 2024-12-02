@@ -10,7 +10,8 @@ class Rule:
     """ゲームルールに基づきデータをアップデートさせ、さらに現在のデータを提供する"""
     BOARD_SIZE_TILES = 20
 
-    def set_up(self, players_number: int):
+    def set_up(
+            self, players_number: int, on_change_players_pieces: Callable[]):
         self.data = GameData(
             0,
             [Piece.get_piece_set() for _ in range(players_number)],

@@ -1,4 +1,5 @@
 from .rule.rule import RuleVSAI, Rotation
+from .rule.data import GameData
 from .view.view import Area, ParenthoodView
 from .view import *
 from .key_bind import *
@@ -9,7 +10,7 @@ class GameView(Area, ParenthoodView):
     def __init__(self, x, y, w, h):
         super().__init__(x, y, w, h)
         
-        self.game = RuleVSAI()
+        self.game = RuleVSAI(self.on_change_pieces)
         self.rotation = Rotation.DEFAULT
         
         new = Cursor()
@@ -35,6 +36,9 @@ class GameView(Area, ParenthoodView):
         board.set_piece_rotation(self.rotation)
         cursor: Cursor = self.childs['c']
         cursor.set_rotation(self.rotation)
+    
+    def on_change_pieces(self, player: int, data: GameData):
+        assert False, 'ピースが置かれた！'
     
     def update(self):
         if btnp(Bind.ROTATE_LEFT):

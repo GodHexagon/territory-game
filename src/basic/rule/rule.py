@@ -4,19 +4,24 @@ import enum
 from numpy import ndarray as NDArray
 import numpy
 
-from .data import Rotation, GameData, TilesMap, Piece
+from .data import Rotation, GameData, TilesMap, Piece, PiecesBP
 
 class Rule:
     """ゲームルールに基づきデータをアップデートさせ、さらに現在のデータを提供する"""
     BOARD_SIZE_TILES = 20
 
     def set_up(
-            self, players_number: int, on_change_players_pieces: Callable[]):
+            self, 
+            players_number: int,
+            on_change_pieces: Callable[[int, 'GameData'], None]
+        ):
         self.data = GameData(
             0,
             [Piece.get_piece_set() for _ in range(players_number)],
             Rule.BOARD_SIZE_TILES
         )
+        self.on_change_pieces = on_change_pieces
+
         self.tmp_board_map = numpy.array( [[0 for _ in range(self.data.board_size)] for _ in range(self.data.board_size)] )
         self.next_pm = PlacementRuleMap.get_empty_pm(self.data)
     
@@ -36,7 +41,11 @@ class Rule:
         if not PlacementResult.successes(result): return result
 
         target.place(x, y, rotation)
+
+        changed = self.get_turn()
         self.data.turn = (self.data.turn + 1) % len(self.data.pieces_by_player)
+        self.on_change_pieces(changed, self.data)
+
         return result
     
     def get_turn(self):
@@ -84,8 +93,8 @@ class PlacementRuleMap:
 class RuleVSAI(Rule):
     PLAYER = 0
     AI = 1
-    def __init__(self):
-        self.set_up(2)
+    def __init__(self, on_change_pieces: Callable[[int, 'GameData'], None]):
+        self.set_up(2, on_change_pieces)
 
 
 if __name__ == '__main__':

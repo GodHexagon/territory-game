@@ -60,10 +60,12 @@ class TilesMap:
         if not isinstance(other, TilesMap):
             return False
         return numpy.array_equal(self._map, other._map)
+    
+PiecesBP: TypeAlias =Tuple['Piece']
 
 class GameData:
     """ゲーム進行状況を維持する最低限のデータ"""
-    def __init__(self, turn: int, pieces_by_player: List[Tuple['Piece']], board_size: int):
+    def __init__(self, turn: int, pieces_by_player: List[PiecesBP], board_size: int):
         self.pieces_by_player = pieces_by_player
         self.turn = turn
         self.board_size = board_size

@@ -56,14 +56,12 @@ class BoardView(View, LimitableArea):
             if not p.placed(): continue
 
             nda = p.get_rotated_shape().to_ndarray()
-            nda = numpy.fliplr(nda)
-            nda = numpy.rot90(nda, 1)
 
-            for (row, col), value in numpy.ndenumerate(nda):
+            for (y, x), value in numpy.ndenumerate(nda):
                 if value in (Piece.TILED, Piece.CENTER):
                     target = limit_in_board(
-                        p.position.x + row,
-                        p.position.y + col
+                        p.position.x + x,
+                        p.position.y + y
                     )
                     self.commited_tiles_data[target[0]][target[1]] = filler
     
@@ -272,7 +270,7 @@ class CursorMonitor(LimitableArea):
                 int( (pyxel.mouse_y - self.y) / (self.h / (SIZE)) )
             )
 
-            shape = self.cursor.held.shape.to_ndarray()
+            shape = self.cursor.held.shape.rotate(rotation)
             
             r = rotation
             rotation_times = 0
@@ -280,12 +278,9 @@ class CursorMonitor(LimitableArea):
             elif r == Rotation.RIGHT_180: rotation_times = 2
             elif r == Rotation.RIGHT_270: rotation_times = 3
 
-            shape = numpy.fliplr(shape)
-            shape = numpy.rot90(shape, (rotation_times + 1) % 4)
-
             diff = None
-            for (row, col), value in numpy.ndenumerate(shape):
-                if value == Piece.CENTER: diff = (row, col)
+            for (y, x), value in numpy.ndenumerate(shape.to_ndarray()):
+                if value == Piece.CENTER: diff = (x, y)
             if diff is None: assert False, "'.rule.rule.Piece.SHAPES'のいずれかのPiece形状の定義は、Piece.CENTER（0の値）の値が無い。"
 
             start_coord = (
@@ -299,10 +294,10 @@ class CursorMonitor(LimitableArea):
     def write_hover_piece(self, data: NDArray, tile_value: int) -> None:
         """２次元地図形式のタイルデータに、カーソルホバーによるピースを書き入れる"""
         if self.input.is_in_range() and self.hover_piece_shape is not None and self.hover_piece_start_coord is not None:
-            for (row, col), value in numpy.ndenumerate(self.hover_piece_shape):
+            for (y, x), value in numpy.ndenumerate(self.hover_piece_shape.to_ndarray()):
                 if value in (Piece.TILED, Piece.CENTER):
                     target = limit_in_board(
-                        self.hover_piece_start_coord[0] + row,
-                        self.hover_piece_start_coord[1] + col
+                        self.hover_piece_start_coord[0] + x,
+                        self.hover_piece_start_coord[1] + y
                     )
                     data[target[0]][target[1]] = tile_value

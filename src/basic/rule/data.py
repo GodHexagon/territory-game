@@ -46,9 +46,9 @@ class TilesMap:
 
     def rotate(self, rotation: Rotation):
         rotation_times = 0
-        if rotation == Rotation.RIGHT_90: rotation_times = 1
+        if rotation == Rotation.RIGHT_90: rotation_times = 3
         elif rotation == Rotation.RIGHT_180: rotation_times = 2
-        elif rotation == Rotation.RIGHT_270: rotation_times = 3
+        elif rotation == Rotation.RIGHT_270: rotation_times = 1
         
         return self.rotate_right90(rotation_times)
 

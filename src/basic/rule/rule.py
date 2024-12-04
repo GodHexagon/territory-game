@@ -95,7 +95,17 @@ class RuleVSAI(Rule):
     AI = 1
     def __init__(self, on_change_pieces: Callable[[int, 'GameData'], None]):
         self.set_up(2, on_change_pieces)
+        self.enemy_piece = 0
+    
+    def place(self, shape, rotation, x, y):
+        if self.data.turn == RuleVSAI.AI: raise RuntimeError('ゲームのターンが不正に操作された。')
 
+        result = super().place(shape, rotation, x, y)
+
+        super().place(self.data.pieces_by_player[RuleVSAI.AI][self.enemy_piece].shape, 0, 0, 0)
+        self.enemy_piece += 1
+
+        return result
 
 if __name__ == '__main__':
     pass

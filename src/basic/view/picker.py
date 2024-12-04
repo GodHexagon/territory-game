@@ -53,6 +53,12 @@ class PickerView(LimitableArea, View):
         self.scroll_bar = ScrollBar(self.x, self.y + self.h - SLIDER_HEIGHT + 1, self.w)
 
         scroll_state.set_range_px(self.shelf.w - self.window.w)
+    
+    def reset_pieces(self, pieces: Tuple[TilesMap]):
+        self.items = self.shelf.ini_items(
+            pieces,
+            self.piece_color_s
+        )
 
     def update(self):
         # スクロール検知

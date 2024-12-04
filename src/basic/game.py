@@ -32,7 +32,10 @@ class GameView(Area, View):
         self.cursor.set_rotation(self.rotation)
     
     def on_change_pieces(self, player: int, data: GameData):
-        assert False, 'ピースが置かれた！'
+        if RuleVSAI.PLAYER == player:
+            self.picker.reset_pieces(
+                p.shape for p in data.pieces_by_player[player] if not p.placed()
+            )
     
     def update(self):
         if btnp(Bind.ROTATE_LEFT):
@@ -48,6 +51,6 @@ class GameView(Area, View):
         self.cursor.update()
     
     def draw(self):
-        self.picker.draw()
         self.board.draw()
+        self.picker.draw()
         self.cursor.draw()

@@ -3,7 +3,7 @@ from .rule.data import GameData
 from .view.view import Area, ParenthoodView
 from .view import *
 from .key_bind import *
-from pyxres import BLUE_COLOR_S
+from pyxres import BLUE_COLOR_S, RED_COLOR_S
 from typing import Dict
 
 class GameView(Area, View):
@@ -36,6 +36,7 @@ class GameView(Area, View):
             self.picker.reset_pieces(
                 p.shape for p in data.pieces_by_player[player] if not p.placed()
             )
+        self.board.rewrite_board(tuple(data.pieces_by_player), (BLUE_COLOR_S, RED_COLOR_S))
     
     def update(self):
         if btnp(Bind.ROTATE_LEFT):

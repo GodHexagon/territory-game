@@ -1,7 +1,7 @@
 from .limitter import LimitableArea, LimitedDrawer, Surface
 from .view import View, CenteredArea
 from .cursor import Cursor
-from ..rule.rule import Rotation, PlacementResult, Rule, Piece
+from ..rule.rule import Rotation, Rule, Piece, PiecesBP, PlacementResult
 from ..key_bind import Bind, btn, btnp
 
 from typing import *
@@ -13,13 +13,19 @@ import numpy
 from pyxres import DEFAULT_COLOR_S, RED_COLOR_S, BLUE_COLOR_S
 
 
+def limit_in_board(x, y):
+    SIZE = Rule.BOARD_SIZE_TILES
+    return (
+        max(0, min(SIZE - 1, x)),
+        max(0, min(SIZE - 1, y)),
+    )
 
 class BoardView(View, LimitableArea):
     """DraggableBoardの表示限界。"""
     DRAGGABLE_LIMIT_POCKET_PX = 50
     DRAG = pyxel.MOUSE_BUTTON_RIGHT
     
-    TILE_COLORS = (DEFAULT_COLOR_S, BLUE_COLOR_S, RED_COLOR_S)
+    TILE_DATA_COLORS = (DEFAULT_COLOR_S, BLUE_COLOR_S, RED_COLOR_S)
 
     def __init__(self, x, y, w, h, cursor: Cursor, colors_s: int, game: Rule):
         super().__init__(x, y, w, h)
@@ -39,6 +45,27 @@ class BoardView(View, LimitableArea):
         self.color_s = colors_s
         self.game = game
         self.dg: Dragging | None = None
+    
+    def rewrite_board(self, pieces: Tuple[PiecesBP], color_s_s: Tuple[int]):
+        if len(pieces) != len(color_s_s): raise ValueError('プレイヤー数と色指定の要素数が異なる。')
+        for pieces_bp, color_s in zip(pieces, color_s_s):
+            self.__rewrite_commited_tiles_data(pieces_bp, BoardView.TILE_DATA_COLORS.index(color_s))
+    
+    def __rewrite_commited_tiles_data(self, pieces: PiecesBP, filler: int):
+        for p in pieces:
+            if not p.placed(): continue
+
+            nda = p.get_rotated_shape().to_ndarray()
+            nda = numpy.fliplr(nda)
+            nda = numpy.rot90(nda, 1)
+
+            for (row, col), value in numpy.ndenumerate(nda):
+                if value in (Piece.TILED, Piece.CENTER):
+                    target = limit_in_board(
+                        p.position.x + row,
+                        p.position.y + col
+                    )
+                    self.commited_tiles_data[target[0]][target[1]] = filler
     
     def set_piece_rotation(self, value: Rotation):
         self.piece_rotation = value
@@ -87,8 +114,8 @@ class BoardView(View, LimitableArea):
     def __draw_tiles(self, data: NDArray) -> pyxel.Image:
         """タイルマップをもとに画像を生成し、これを返す"""
         from pyxres import EMPTY_TILE_COOR, BLOCK_TILE_COOR, TILE_COLOR_PALLETS_NUMBER, DEFAULT_COLOR_S
-
         image = pyxel.Image(DraggableBoard.BOARD_SIZE_TILES * TILE_SIZE_PX, DraggableBoard.BOARD_SIZE_TILES * TILE_SIZE_PX)
+
         x = 0
         y = 0
         for column in data:
@@ -97,7 +124,7 @@ class BoardView(View, LimitableArea):
                 if t == 0: tile_coor = EMPTY_TILE_COOR
                 else:
                     tile_coor = BLOCK_TILE_COOR
-                    for i in range(TILE_COLOR_PALLETS_NUMBER): image.pal(i + DEFAULT_COLOR_S, i + BoardView.TILE_COLORS[t])
+                    for i in range(TILE_COLOR_PALLETS_NUMBER): image.pal(i + DEFAULT_COLOR_S, i + BoardView.TILE_DATA_COLORS[t])
                 image.blt(
                     x,
                     y,
@@ -234,20 +261,13 @@ class CursorMonitor(LimitableArea):
             result = game.place(held.shape, rot, coord[0], coord[1])
             if PlacementResult.successes(result): held.clear()
 
-    def __limit_in_board(self, x, y):
-        SIZE = DraggableBoard.BOARD_SIZE_TILES
-        return (
-            max(0, min(SIZE - 1, x)),
-            max(0, min(SIZE - 1, y)),
-        )
-
     def __count_hover_piece(self, rotation: Rotation):
         if self.cursor.held is None:
             self.hover_piece_shape = None
             self.hover_piece_start_coord = None
         else:
             SIZE = DraggableBoard.BOARD_SIZE_TILES
-            cursor_coord = self.__limit_in_board(
+            cursor_coord = limit_in_board(
                 int( (pyxel.mouse_x - self.x) / (self.w / (SIZE)) ),
                 int( (pyxel.mouse_y - self.y) / (self.h / (SIZE)) )
             )
@@ -281,7 +301,7 @@ class CursorMonitor(LimitableArea):
         if self.input.is_in_range() and self.hover_piece_shape is not None and self.hover_piece_start_coord is not None:
             for (row, col), value in numpy.ndenumerate(self.hover_piece_shape):
                 if value in (Piece.TILED, Piece.CENTER):
-                    target = self.__limit_in_board(
+                    target = limit_in_board(
                         self.hover_piece_start_coord[0] + row,
                         self.hover_piece_start_coord[1] + col
                     )

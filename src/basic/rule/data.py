@@ -1,6 +1,7 @@
 from typing import *
 import enum
 
+from numpy.typing import *
 import numpy
 
 class Rotation(enum.Enum):
@@ -26,13 +27,17 @@ class TilesMap:
         if input_array.ndim != 2:
             raise ValueError("TileMap only supports 2D arrays.")
         
+        # int 型であることを確認
+        if not numpy.issubdtype(input_array.dtype, numpy.integer):
+            raise ValueError("TileMap only supports arrays with integer values.")
+        
         self._map = input_array
         self.height, self.width = input_array.shape
 
     def copy(self):
         return TilesMap(self.to_ndarray())
     
-    def to_ndarray(self) -> numpy.ndarray:
+    def to_ndarray(self) -> NDArray[numpy.int_]:
         """内部の ndarray を取得"""
         return self._map.copy()
 
@@ -93,7 +98,11 @@ class Piece:
     
     def placed(self):
         return self.position is not None
-
+    
+    def get_rotated_shape(self) -> TilesMap | None:
+        if self.position is None: return None
+        return self.shape.rotate(self.position.rotation)
+        
     def place(self, x, y, rotation):
         self.position = PiecePosition(x, y , rotation)
     

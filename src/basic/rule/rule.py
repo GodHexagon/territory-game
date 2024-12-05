@@ -41,6 +41,7 @@ class Rule:
         if not PlacementResult.successes(result): return result
 
         target.place(x, y, rotation)
+        self.next_pm = PlacementRuleMap.get_next_pm(self.data)
 
         changed = self.get_turn()
         self.data.turn = (self.data.turn + 1) % len(self.data.pieces_by_player)
@@ -56,6 +57,9 @@ class Rule:
 
 class PlacementResult(enum.Enum):
     SUCCESS = 0
+    COLISION = 1
+    SURFACE = 2
+    CORNER = 3
     
     @staticmethod
     def successes(value: 'PlacementResult'):
@@ -63,31 +67,90 @@ class PlacementResult(enum.Enum):
 
 class PlacementRuleMap:
     def __init__(self, col: NDArray, sur: NDArray, cor: NDArray):
-        self.col = col
-        self.sur = sur
-        self.cor = cor
+        self.col = col # colision rule map
+        self.sur = sur # surface rule map
+        self.cor = cor # corner rule map
     
     @staticmethod
     def get_empty_pm(data: 'GameData'):
         empty_map = numpy.array( [[False for _ in range(data.board_size)] for _ in range(data.board_size)] )
-        return PlacementRuleMap(empty_map, empty_map, empty_map)
+        return PlacementRuleMap(empty_map, empty_map.copy(), empty_map.copy())
 
-    """@staticmethod
+    @staticmethod
     def get_next_pm(data: 'GameData'):
         col = numpy.array( [[False for _ in range(data.board_size)] for _ in range(data.board_size)] )
         sur = numpy.array( [[False for _ in range(data.board_size)] for _ in range(data.board_size)] )
         cor = numpy.array( [[False for _ in range(data.board_size)] for _ in range(data.board_size)] )
+
+        def put(map: NDArray, x, y):
+            SIZE = data.board_size
+            target = data.limit_in_board( (x, y) )
+            map[target[0], target[1]] = True
         
         for pieces in data.pieces_by_player:
-            corner_rule = pieces is data.pieces_by_player[data.turn]
+            enabled_corner_rule = pieces is data.pieces_by_player[data.turn]
             for p in pieces:
-                pass
+                if not p.placed(): continue
+                shape = p.get_rotated_shape()
+                for (y, x), value in numpy.ndenumerate(shape.to_ndarray()):
+                    if value in (Piece.TILED, Piece.CENTER):
+                        px, py = p.get_pos()
 
-        return PlacementRuleMap(
-            
-        )"""
+                        put(
+                            col,
+                            px + x,
+                            py + y
+                        )
 
-    def check(self, piece: TilesMap) -> PlacementResult:
+                        coords = (
+                            (-1, 0),
+                            (0, -1),
+                            (1, 0),
+                            (0, 1),
+                        )
+                        for ay, ax in coords:
+                            put(
+                                sur,
+                                px + x + ax,
+                                py + y + ay
+                            )
+                        
+                        if enabled_corner_rule:
+                            coords = (
+                                (-1, -1),
+                                (1, -1),
+                                (-1, 1),
+                                (1, 1),
+                            )
+                            for ay, ax in coords:
+                                put(
+                                    cor,
+                                    px + x + ax,
+                                    py + y + ay
+                                )
+
+        return PlacementRuleMap(col, sur, cor)
+
+    def check(self, piece: Piece) -> PlacementResult:
+        if not piece.placed(): raise ValueError('ピースが設置されていない。')
+
+        col = True
+        sur = True
+        cor = False
+
+        shape = piece.get_rotated_shape()
+        for (y, x), value in numpy.ndenumerate(shape.to_ndarray()):
+            if value in (Piece.TILED, Piece.CENTER):
+                px, py = piece.get_pos()
+
+                col = col and not self.col[px + x][py + y]
+                sur = sur and not self.sur[px + x][py + y]
+                cor = cor or self.cor[px + x][py + y]
+        
+        if not col: return PlacementResult.COLISION
+        if not sur: return PlacementResult.SURFACE
+        if not cor: return PlacementResult.CORNER
+        
         return PlacementResult.SUCCESS
 
 class RuleVSAI(Rule):
@@ -95,17 +158,29 @@ class RuleVSAI(Rule):
     AI = 1
     def __init__(self, on_change_pieces: Callable[[int, 'GameData'], None]):
         self.set_up(2, on_change_pieces)
-        self.enemy_piece = 0
+
+        self.data.pieces_by_player[0][0].place(0, self.data.board_size - 1, Rotation.DEFAULT)
+        self.data.pieces_by_player[1][0].place(0, 0, Rotation.DEFAULT)
+        self.next_pm = PlacementRuleMap.get_next_pm(self.data)
+        self.on_change_pieces(0, self.data)
+        self.on_change_pieces(1, self.data)
     
     def place(self, shape, rotation, x, y):
-        if self.data.turn == RuleVSAI.AI: raise RuntimeError('ゲームのターンが不正に操作された。')
+        if self.data.turn == RuleVSAI.AI: raise RuntimeError('ゲームのターンが不正。')
 
         result = super().place(shape, rotation, x, y)
+        if not PlacementResult.successes(result): return result
 
-        super().place(self.data.pieces_by_player[RuleVSAI.AI][self.enemy_piece].shape, 0, 0, 0)
-        self.enemy_piece += 1
+        unplaced_piece = tuple(q for q in self.data.pieces_by_player[RuleVSAI.AI] if not q.placed())[0]
+        super().place(unplaced_piece.shape, 0, 0, 0)
 
         return result
 
 if __name__ == '__main__':
-    pass
+    d = GameData(
+        0,
+        [Piece.get_piece_set() for _ in range(2)],
+        Rule.BOARD_SIZE_TILES
+    )
+    m = PlacementRuleMap.get_empty_pm(d)
+    print(m.cor)

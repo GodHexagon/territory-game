@@ -10,7 +10,7 @@ class GameView(Area, View):
     def __init__(self, x, y, w, h):
         super().__init__(x, y, w, h)
         
-        self.game = RuleVSAI(self.on_change_pieces)
+        self.game = RuleVSAI(lambda a, b: {})
         self.rotation = Rotation.DEFAULT
         
         self.cursor = Cursor()
@@ -30,6 +30,8 @@ class GameView(Area, View):
         self.picker.set_piece_rotation(self.rotation)
         self.board.set_piece_rotation(self.rotation)
         self.cursor.set_rotation(self.rotation)
+
+        self.game.on_change_pieces = self.on_change_pieces
     
     def on_change_pieces(self, player: int, data: GameData):
         if RuleVSAI.PLAYER == player:

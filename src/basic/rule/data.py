@@ -99,9 +99,13 @@ class Piece:
     def placed(self):
         return self.position is not None
     
-    def get_rotated_shape(self) -> TilesMap | None:
-        if self.position is None: return None
+    def get_rotated_shape(self) -> TilesMap:
+        if self.position is None: raise RuntimeError('このピースが、いまだ置かれていないので向きが特定できない。')
         return self.shape.rotate(self.position.rotation)
+    
+    def get_pos(self) -> Tuple[int, int]:
+        if self.position is None: raise RuntimeError('このピースが、いまだ置かれていないので位置を特定できない。')
+        return (self.position.x, self.position.y)
         
     def place(self, x, y, rotation):
         self.position = PiecePosition(x, y , rotation)

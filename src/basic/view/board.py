@@ -59,9 +59,10 @@ class BoardView(View, LimitableArea):
 
             for (y, x), value in numpy.ndenumerate(nda):
                 if value in (Piece.TILED, Piece.CENTER):
+                    px, py = p.get_pos()
                     target = limit_in_board(
-                        p.position.x + x,
-                        p.position.y + y
+                        px + x,
+                        py + y
                     )
                     self.commited_tiles_data[target[0]][target[1]] = filler
     

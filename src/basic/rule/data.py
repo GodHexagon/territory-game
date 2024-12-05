@@ -81,6 +81,11 @@ class GameData:
             max(0, min(s, coordinate[0])),
             max(0, min(s, coordinate[1]))
         )
+    
+    def is_in_range(self, coordinate: Tuple[int, int]):
+        s = self.board_size - 1
+        return all((0 <= c and c <= s) for c in coordinate)
+    
 class Piece:
     EMPTY = 0
     TILED = 1
@@ -104,6 +109,7 @@ class Piece:
         return self.shape.rotate(self.position.rotation)
     
     def get_pos(self) -> Tuple[int, int]:
+        """ピースの位置として、x, yを返す。形状に関わらず、左上が基準。"""
         if self.position is None: raise RuntimeError('このピースが、いまだ置かれていないので位置を特定できない。')
         return (self.position.x, self.position.y)
         

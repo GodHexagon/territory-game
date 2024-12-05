@@ -23,7 +23,7 @@ class Rule:
         self.on_change_pieces = on_change_pieces
 
         #self.tmp_board_map = numpy.array( [[0 for _ in range(self.data.board_size)] for _ in range(self.data.board_size)] )
-        self.next_pm = PlacementRuleMap.get_empty_pm(self.data)
+        self.prm = PlacementRuleMap.get_empty_pm(self.data)
     
     def place(self, shape: TilesMap, rotation: Rotation, x: int, y: int) -> 'PlacementResult':
         selectable = self.data.pieces_by_player[self.data.turn]
@@ -37,11 +37,11 @@ class Rule:
 
         future = target.copy()
         future.place(x, y, rotation)
-        result = self.next_pm.check(future)
+        result = self.prm.check(future)
         if not PlacementResult.successes(result): return result
 
         target.place(x, y, rotation)
-        self.next_pm = PlacementRuleMap.get_next_pm(self.data)
+        self.prm = PlacementRuleMap.get_next_pm(self.data)
 
         changed = self.get_turn()
         self.data.turn = (self.get_turn() + 1) % len(self.data.pieces_by_player)
@@ -57,9 +57,10 @@ class Rule:
 
 class PlacementResult(enum.Enum):
     SUCCESS = 0
-    COLISION = 1
+    COLLISION = 1
     SURFACE = 2
     CORNER = 3
+    OUT_OF_BOARD = 4
     
     @staticmethod
     def successes(value: 'PlacementResult'):
@@ -77,18 +78,19 @@ class PlacementRuleMap:
         return PlacementRuleMap(empty_map, empty_map.copy(), empty_map.copy())
 
     @staticmethod
-    def get_next_pm(data: 'GameData'):
+    def get_next_pm(data: 'GameData', turn: Optional[int] = None):
+        if turn is None: turn = (data.turn + 1) % len(data.pieces_by_player)
+
         col = numpy.array( [[False for _ in range(data.board_size)] for _ in range(data.board_size)] )
         sur = numpy.array( [[False for _ in range(data.board_size)] for _ in range(data.board_size)] )
         cor = numpy.array( [[False for _ in range(data.board_size)] for _ in range(data.board_size)] )
 
         def put(map: NDArray, x, y):
-            SIZE = data.board_size
-            target = data.limit_in_board( (x, y) )
-            map[target[0], target[1]] = True
+            if data.is_in_range( (x, y) ):
+                map[y][x] = True
         
         for pieces in data.pieces_by_player:
-            enabled_corner_rule = pieces is data.pieces_by_player[data.turn]
+            enabled_corner_rule = pieces is data.pieces_by_player[turn]
             for p in pieces:
                 if not p.placed(): continue
                 shape = p.get_rotated_shape()
@@ -134,21 +136,24 @@ class PlacementRuleMap:
     def check(self, piece: Piece) -> PlacementResult:
         if not piece.placed(): raise ValueError('ピースが設置されていない。')
 
-        col = True
-        sur = True
         cor = False
 
         shape = piece.get_rotated_shape()
         for (y, x), value in numpy.ndenumerate(shape.to_ndarray()):
             if value in (Piece.TILED, Piece.CENTER):
                 px, py = piece.get_pos()
+                tx = px + x
+                ty = py + y
+                
+                def is_in_range(value: int):
+                    return 0 <= value and value < Rule.BOARD_SIZE_TILES
 
-                col = col and not self.col[px + x][py + y]
-                sur = sur and not self.sur[px + x][py + y]
-                cor = cor or self.cor[px + x][py + y]
+                if not is_in_range(tx) or not is_in_range(ty): return PlacementResult.OUT_OF_BOARD
+                if self.col[ty][tx]: return PlacementResult.COLLISION
+                if self.sur[ty][tx]: return PlacementResult.SURFACE
+
+                cor = cor or self.cor[ty][tx]
         
-        if not col: return PlacementResult.COLISION
-        if not sur: return PlacementResult.SURFACE
         if not cor: return PlacementResult.CORNER
         
         return PlacementResult.SUCCESS
@@ -161,7 +166,7 @@ class RuleVSAI(Rule):
 
         self.data.pieces_by_player[0][0].place(0, self.data.board_size - 1, Rotation.DEFAULT)
         self.data.pieces_by_player[1][0].place(0, 0, Rotation.DEFAULT)
-        self.next_pm = PlacementRuleMap.get_next_pm(self.data)
+        self.prm = PlacementRuleMap.get_next_pm(self.data, 0)
         self.on_change_pieces(0, self.data)
         self.on_change_pieces(1, self.data)
     
@@ -173,10 +178,9 @@ class RuleVSAI(Rule):
 
         import random
 
-        randomed_shape = random.choice(tuple(p for p in self.data.pieces_by_player[RuleVSAI.AI] if not p.placed()))
-        candidate = self.__get_candidate_placements()
-        r = random.randrange(0, len(candidate))
-        randomed_placement = candidate[r]
+        randomed_shape = random.choice( tuple(p.shape for p in self.data.pieces_by_player[RuleVSAI.AI] if not p.placed()) )
+        candidates = self.__get_candidate_placements(randomed_shape)
+        randomed_placement = random.choice(candidates)
         super().place(*randomed_placement)
 
         return result
@@ -187,10 +191,12 @@ class RuleVSAI(Rule):
         piece = Piece(shape)
         for r in (Rotation.DEFAULT, Rotation.RIGHT_90, Rotation.RIGHT_180, Rotation.RIGHT_270):
             _map = numpy.array( [[0 for _ in range(self.data.board_size)] for _ in range(self.data.board_size)] )
-            for (y, x), _ in _map:
+            for (y, x), _ in numpy.ndenumerate(_map):
                 piece.place(x, y, r)
-                if PlacementResult.successes(self.next_pm.check(piece)):
+                if PlacementResult.successes(self.prm.check(piece)):
                     candidates.append([piece.shape.copy(), r, x, y])
+        
+        return candidates
 
 if __name__ == '__main__':
     d = GameData(

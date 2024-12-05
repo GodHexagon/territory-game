@@ -25,7 +25,7 @@ class FollowablePiece:
         images: List[pyxel.Image] = []
 
         for by_direction_sequence in range(4):
-            rotated = piece.rotate_right90(by_direction_sequence)
+            rotated = piece.rotate_left90(by_direction_sequence)
 
             image = pyxel.Image(rotated.width * TILE_SIZE_PX, rotated.height * TILE_SIZE_PX)
             for i in range(TILE_COLOR_PALLETS_NUMBER): image.pal(i + DEFAULT_COLOR_S, i + piece_color_s)

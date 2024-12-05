@@ -41,7 +41,7 @@ class TilesMap:
         """内部の ndarray を取得"""
         return self._map.copy()
 
-    def rotate_right90(self, times: int):
+    def rotate_left90(self, times: int):
         return TilesMap( numpy.rot90(self.to_ndarray(), times) )
 
     def rotate(self, rotation: Rotation):
@@ -50,7 +50,7 @@ class TilesMap:
         elif rotation == Rotation.RIGHT_180: rotation_times = 2
         elif rotation == Rotation.RIGHT_270: rotation_times = 1
         
-        return self.rotate_right90(rotation_times)
+        return self.rotate_left90(rotation_times)
 
     def is_equal(self, other: 'TilesMap') -> bool:
         """

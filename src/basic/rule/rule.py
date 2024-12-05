@@ -22,7 +22,7 @@ class Rule:
         )
         self.on_change_pieces = on_change_pieces
 
-        self.tmp_board_map = numpy.array( [[0 for _ in range(self.data.board_size)] for _ in range(self.data.board_size)] )
+        #self.tmp_board_map = numpy.array( [[0 for _ in range(self.data.board_size)] for _ in range(self.data.board_size)] )
         self.next_pm = PlacementRuleMap.get_empty_pm(self.data)
     
     def place(self, shape: TilesMap, rotation: Rotation, x: int, y: int) -> 'PlacementResult':
@@ -44,7 +44,7 @@ class Rule:
         self.next_pm = PlacementRuleMap.get_next_pm(self.data)
 
         changed = self.get_turn()
-        self.data.turn = (self.data.turn + 1) % len(self.data.pieces_by_player)
+        self.data.turn = (self.get_turn() + 1) % len(self.data.pieces_by_player)
         self.on_change_pieces(changed, self.data)
 
         return result
@@ -171,10 +171,26 @@ class RuleVSAI(Rule):
         result = super().place(shape, rotation, x, y)
         if not PlacementResult.successes(result): return result
 
-        unplaced_piece = tuple(q for q in self.data.pieces_by_player[RuleVSAI.AI] if not q.placed())[0]
-        super().place(unplaced_piece.shape, 0, 0, 0)
+        import random
+
+        randomed_shape = random.choice(tuple(p for p in self.data.pieces_by_player[RuleVSAI.AI] if not p.placed()))
+        candidate = self.__get_candidate_placements()
+        r = random.randrange(0, len(candidate))
+        randomed_placement = candidate[r]
+        super().place(*randomed_placement)
 
         return result
+    
+    def __get_candidate_placements(self, shape: TilesMap):
+        candidates: List[Tuple[TilesMap, Rotation, int, int]] = []
+
+        piece = Piece(shape)
+        for r in (Rotation.DEFAULT, Rotation.RIGHT_90, Rotation.RIGHT_180, Rotation.RIGHT_270):
+            _map = numpy.array( [[0 for _ in range(self.data.board_size)] for _ in range(self.data.board_size)] )
+            for (y, x), _ in _map:
+                piece.place(x, y, r)
+                if PlacementResult.successes(self.next_pm.check(piece)):
+                    candidates.append([piece.shape.copy(), r, x, y])
 
 if __name__ == '__main__':
     d = GameData(

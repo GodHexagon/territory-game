@@ -70,8 +70,9 @@ PiecesBP: TypeAlias =Tuple['Piece']
 
 class GameData:
     """ゲーム進行状況を維持する最低限のデータ"""
-    def __init__(self, turn: int, pieces_by_player: List[PiecesBP], board_size: int):
+    def __init__(self, turn: int, pieces_by_player: List[PiecesBP], start_corner: List[Tuple[bool, bool]], board_size: int):
         self.pieces_by_player = pieces_by_player
+        self.start_corner = start_corner
         self.turn = turn
         self.board_size = board_size
     

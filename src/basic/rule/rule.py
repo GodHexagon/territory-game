@@ -63,8 +63,10 @@ class Rule:
         if all( tuple(not p.placed() for p in self.data.pieces_by_player[turn]) ): self.players_state[turn] = 0
         elif all( tuple(p.placed() for p in self.data.pieces_by_player[turn]) ): self.players_state[turn] = 2
         else: self.players_state[turn] = 1
-
         self.data.turn = (self.get_turn() + 1) % len(self.data.pieces_by_player)
+
+        while self.players_state[self.get_turn()] != 2:
+
         self.prm = PlacementRuleMap.get_current_pm(self.data)
     
     def get_turn(self):
@@ -196,12 +198,6 @@ class RuleVSAI(Rule):
     AI = 1
     def __init__(self, on_change_pieces: Callable[[int, 'GameData'], None]):
         self.set_up(2, [(False, True), (True, False)], on_change_pieces)
-
-        """self.data.pieces_by_player[0][0].place(0, self.data.board_size - 1, Rotation.DEFAULT)
-        self.data.pieces_by_player[1][0].place(0, 0, Rotation.DEFAULT)
-        self.prm = PlacementRuleMap.get_current_pm(self.data)
-        self.on_change_pieces(0, self.data)
-        self.on_change_pieces(1, self.data)"""
     
     def place(self, shape, rotation, x, y):
         if self.data.turn == RuleVSAI.AI: raise RuntimeError('ゲームのターンが不正。')

@@ -123,18 +123,19 @@ class PlacementRuleMap:
                             py + y
                         )
 
-                        coords = (
-                            (-1, 0),
-                            (0, -1),
-                            (1, 0),
-                            (0, 1),
-                        )
-                        for ay, ax in coords:
-                            put(
-                                sur,
-                                px + x + ax,
-                                py + y + ay
+                        if enabled_corner_rule:
+                            coords = (
+                                (-1, 0),
+                                (0, -1),
+                                (1, 0),
+                                (0, 1),
                             )
+                            for ay, ax in coords:
+                                put(
+                                    sur,
+                                    px + x + ax,
+                                    py + y + ay
+                                )
                         
                         if enabled_corner_rule:
                             coords = (

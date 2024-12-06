@@ -8,7 +8,7 @@ from .data import Rotation, GameData, TilesMap, Piece, PiecesBP
 
 class Rule:
     """ゲームルールに基づきデータをアップデートさせ、さらに現在のデータを提供する"""
-    BOARD_SIZE_TILES = 5
+    BOARD_SIZE_TILES = 20
 
     def set_up(
             self, 

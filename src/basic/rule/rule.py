@@ -211,9 +211,16 @@ class RuleVSAI(Rule):
 
         import random
 
-        randomed_shape = random.choice( tuple(p.shape for p in self.data.pieces_by_player[RuleVSAI.AI] if not p.placed()) )
-        candidates = self.__get_candidate_placements(randomed_shape)
-        randomed_placement = random.choice(candidates)
+        cand_shapes = list(p.shape for p in self.data.pieces_by_player[self.get_turn()] if not p.placed())
+        random.shuffle(cand_shapes)
+
+        cand_placements = None
+        for s in cand_shapes:
+            cand_placements = self.__get_candidate_placements(s)
+            if not cand_placements.__len__() == 0: break
+        else: raise RuntimeError('AIは置けるピースを使いつくした。')
+
+        randomed_placement = random.choice(cand_placements)
         super().place(*randomed_placement)
 
         return result
@@ -232,7 +239,7 @@ class RuleVSAI(Rule):
                 result = self.prm.check(piece, c)
 
                 if PlacementResult.successes(result):
-                    candidates.append( (piece.shape.copy(), r, x, y) )
+                    candidates.append( (piece.shape, r, x, y) )
         
         return candidates
 

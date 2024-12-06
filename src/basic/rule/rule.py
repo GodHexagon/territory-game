@@ -8,7 +8,7 @@ from .data import Rotation, GameData, TilesMap, Piece, PiecesBP
 
 class Rule:
     """ゲームルールに基づきデータをアップデートさせ、さらに現在のデータを提供する"""
-    BOARD_SIZE_TILES = 20
+    BOARD_SIZE_TILES = 5
 
     def set_up(
             self, 
@@ -62,9 +62,10 @@ class Rule:
     
     def switch_turn(self):
         turn = self.get_turn()
-        if all( tuple(not p.placed() for p in self.data.pieces_by_player[turn]) ): self.players_state[turn] = 0
-        elif all( tuple(p.placed() for p in self.data.pieces_by_player[turn]) ): self.players_state[turn] = 2
-        else: self.players_state[turn] = 1
+        if self.players_state[turn] != 2:
+            if all( tuple(not p.placed() for p in self.data.pieces_by_player[turn]) ): self.players_state[turn] = 0
+            elif all( tuple(p.placed() for p in self.data.pieces_by_player[turn]) ): self.players_state[turn] = 2
+            else: self.players_state[turn] = 1
 
         if all( tuple(s == 2 for s in self.players_state) ): self.on_end()
 
@@ -85,9 +86,9 @@ class Rule:
     def get_player_number(self):
         return len(self.data.pieces_by_player)
 
-    def skip(self):
-        self.data.turn = (self.get_turn() + 1) % len(self.data.pieces_by_player)
-        self.prm = PlacementRuleMap.get_current_pm(self.data)
+    def give_up(self, player: int):
+        self.players_state[player] = 2
+        self.switch_turn()
 
     def get_turn(self):
         return self.data.turn
@@ -223,8 +224,13 @@ class RuleVSAI(Rule):
         if self.data.turn == RuleVSAI.AI: raise RuntimeError('ゲームのターンが不正。')
 
         result = super().place(shape, rotation, x, y)
-        if not PlacementResult.successes(result): return result
 
+        while(self.get_turn() == RuleVSAI.AI):
+            self.__ai_place()
+
+        return result
+    
+    def __ai_place(self):
         import random
 
         cand_shapes = list(p.shape for p in self.data.pieces_by_player[self.get_turn()] if not p.placed())
@@ -234,12 +240,13 @@ class RuleVSAI(Rule):
         for s in cand_shapes:
             cand_placements = self.__get_candidate_placements(s)
             if not cand_placements.__len__() == 0: break
-        else: raise RuntimeError('AIは置けるピースを使いつくした。')
+        else:
+            self.give_up(RuleVSAI.AI)
+            return
 
         randomed_placement = random.choice(cand_placements)
-        super().place(*randomed_placement)
-
-        return result
+        ai_result = super().place(*randomed_placement)
+        if not PlacementResult.successes(ai_result): raise RuntimeError('AIがピースの設置に失敗した。')
     
     def __get_candidate_placements(self, shape: TilesMap):
         candidates: List[Tuple[TilesMap, Rotation, int, int]] = []

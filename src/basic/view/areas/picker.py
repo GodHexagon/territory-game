@@ -1,8 +1,8 @@
-from .limitter import LimitableArea, LimitedDrawer, LimitableArea
-from .view import Area, View
+from ..limitter import LimitableArea, LimitedDrawer, LimitableArea
+from ..view import Area, View
 from .cursor import Cursor
-from ..rule.rule import TilesMap, Rotation
-from ..key_bind import *
+from ...rule.rule import TilesMap, Rotation
+from ...key_bind import *
 
 from typing import *
 import numpy

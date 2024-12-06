@@ -1,8 +1,8 @@
-from .limitter import LimitableArea, LimitedDrawer, Surface
-from .view import View, CenteredArea
+from ..limitter import LimitableArea, LimitedDrawer, Surface
+from ..view import View, CenteredArea
 from .cursor import Cursor
-from ..rule.rule import Rotation, Rule, Piece, PiecesBP, PlacementResult
-from ..key_bind import Bind, btn, btnp
+from ...rule.rule import Rotation, Rule, Piece, PiecesBP, PlacementResult
+from ...key_bind import Bind, btn, btnp
 
 from typing import *
 
@@ -152,7 +152,7 @@ from pyxres import TILE_SIZE_PX
 
 class DraggableBoard(CenteredArea):
     """移動可能な盤の座標系を表す"""
-    from ..rule.rule import Rule
+    from ...rule.rule import Rule
     BOARD_SIZE_TILES = Rule.BOARD_SIZE_TILES
 
     FRAME_THICKNESS = 10

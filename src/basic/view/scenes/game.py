@@ -1,8 +1,8 @@
-from .rule.rule import RuleVSAI, Rotation
-from .rule.data import GameData
-from .view.view import Area, ParenthoodView
-from .view import *
-from .key_bind import *
+from basic.rule.rule import RuleVSAI, Rotation
+from basic.rule.data import GameData
+from ..view import Area, ParenthoodView, View
+from ..areas import *
+from ...key_bind import *
 from pyxres import BLUE_COLOR_S, RED_COLOR_S
 from typing import Dict
 

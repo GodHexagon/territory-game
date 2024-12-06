@@ -43,10 +43,10 @@ class Rule:
         
         future = target.copy()
         future.place(x, y, rotation)
-        if self.players_state[self.get_turn()] == 0:
-            result = self.prm.check_as_first(future, self.data.start_corner[self.get_turn()])
-        else:
-            result = self.prm.check(future)
+
+        if self.players_state[self.get_turn()] == 0: c = self.data.start_corner[self.get_turn()]
+        else: c = None
+        result = self.prm.check(future, c)
 
         if not PlacementResult.successes(result): return result
 
@@ -153,10 +153,20 @@ class PlacementRuleMap:
 
         return PlacementRuleMap(col, sur, cor)
 
-    def check(self, piece: Piece) -> PlacementResult:
+    def check(self, piece: Piece, corner_pointer: Optional[Tuple[bool, bool]] = None) -> PlacementResult:
         if not piece.placed(): raise ValueError('ピースが設置されていない。')
 
+        if corner_pointer is not None:
+            if not corner_pointer[0]: allowed_x = 0
+            else: allowed_x = Rule.BOARD_SIZE_TILES - 1
+            if not corner_pointer[1]: allowed_y = 0
+            else: allowed_y = Rule.BOARD_SIZE_TILES - 1
+        else:
+            allowed_x = -1
+            allowed_y = -1
+
         cor = False
+        fpr = False
 
         shape = piece.get_rotated_shape()
         for (y, x), value in numpy.ndenumerate(shape.to_ndarray()):
@@ -173,26 +183,13 @@ class PlacementRuleMap:
                 if self.sur[ty][tx]: return PlacementResult.SURFACE_RULE_DENIAL
 
                 cor = cor or self.cor[ty][tx]
+                fpr = fpr or (tx == allowed_x and ty == allowed_y)
         
-        if not cor: return PlacementResult.CORNER_RULE_DENIAL
-        
-        return PlacementResult.SUCCESS
-    
-    def check_as_first(self, piece: Piece, corner_pointer: Tuple[bool, bool]) -> PlacementResult:
-        """Arguments: corner_pointer ... Trueがポジティブ（大きな数字）方向を表す。第一要素がx軸, 第二要素がy軸。"""
-
-        result = self.check(piece)
-        if result == PlacementResult.CORNER_RULE_DENIAL:
-            if not corner_pointer[0]: allowed_x = 0
-            else: allowed_x = Rule.BOARD_SIZE_TILES - piece.get_rotated_shape().width
-            if not corner_pointer[1]: allowed_y = 0
-            else: allowed_y = Rule.BOARD_SIZE_TILES - piece.get_rotated_shape().height
-            
-            x, y = piece.get_pos()
-            if x == allowed_x and y == allowed_y: return PlacementResult.SUCCESS
+        if corner_pointer is not None:
+            if fpr: return PlacementResult.SUCCESS
             else: return PlacementResult.FIRST_PIECE_RULE_DENIAL
-            
-        return result
+        if cor: return PlacementResult.SUCCESS
+        else: return PlacementResult.CORNER_RULE_DENIAL
 
 class RuleVSAI(Rule):
     PLAYER = 0
@@ -229,10 +226,11 @@ class RuleVSAI(Rule):
             _map = numpy.array( [[0 for _ in range(self.data.board_size)] for _ in range(self.data.board_size)] )
             for (y, x), _ in numpy.ndenumerate(_map):
                 piece.place(x, y, r)
-                if self.players_state[self.get_turn()] == 0:
-                    result = self.prm.check_as_first(piece, self.data.start_corner[self.get_turn()])
-                else:
-                    result = self.prm.check(piece)
+                
+                if self.players_state[self.get_turn()] == 0: c = self.data.start_corner[self.get_turn()]
+                else: c = None
+                result = self.prm.check(piece, c)
+
                 if PlacementResult.successes(result):
                     candidates.append( (piece.shape.copy(), r, x, y) )
         

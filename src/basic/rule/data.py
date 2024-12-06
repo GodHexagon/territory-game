@@ -33,6 +33,11 @@ class TilesMap:
         
         self._map = input_array
         self.height, self.width = input_array.shape
+    
+    def get_size(self) -> Tuple[int, int]:
+        """幅, 高さを取得する。"""
+        height, width = self._map.shape
+        return (width, height)
 
     def copy(self):
         return TilesMap(self.to_ndarray())

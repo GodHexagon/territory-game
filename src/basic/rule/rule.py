@@ -14,7 +14,8 @@ class Rule:
             self, 
             players_number: int,
             start_corner: List[Tuple[bool, bool]],
-            on_change_pieces: Callable[[int, 'GameData'], None]
+            on_change_pieces: Callable[[int, 'GameData'], None],
+            on_end: Callable[[], None]
         ):
         if not len(start_corner) == players_number: ValueError('start_corner引数が不正。プレイヤーの数だけリスト要素が存在している必要があります。')
 
@@ -25,6 +26,7 @@ class Rule:
             Rule.BOARD_SIZE_TILES
         )
         self.on_change_pieces = on_change_pieces
+        self.on_end = on_end
         self.players_state = [0 for _ in range(players_number)] # 0: 一つもピースを置いていない, 1: 通常の状態, 2: 全てのピースを置いた
 
         #self.tmp_board_map = numpy.array( [[0 for _ in range(self.data.board_size)] for _ in range(self.data.board_size)] )
@@ -63,12 +65,30 @@ class Rule:
         if all( tuple(not p.placed() for p in self.data.pieces_by_player[turn]) ): self.players_state[turn] = 0
         elif all( tuple(p.placed() for p in self.data.pieces_by_player[turn]) ): self.players_state[turn] = 2
         else: self.players_state[turn] = 1
+
+        if all( tuple(s == 2 for s in self.players_state) ): self.on_end()
+
+        pn = self.get_player_number()
+
+        active_players = tuple(
+            (self.get_turn() + i + 1) % pn
+            for i in range(self.players_state.__len__())
+            if self.players_state[(self.get_turn() + i + 1) % pn] != 2
+        )
+
+        if len(active_players) == 0:
+            self.on_end()
+        else:
+            self.data.turn = active_players[0]
+            self.prm = PlacementRuleMap.get_current_pm(self.data)
+        
+    def get_player_number(self):
+        return len(self.data.pieces_by_player)
+
+    def skip(self):
         self.data.turn = (self.get_turn() + 1) % len(self.data.pieces_by_player)
-
-        while self.players_state[self.get_turn()] != 2:
-
         self.prm = PlacementRuleMap.get_current_pm(self.data)
-    
+
     def get_turn(self):
         return self.data.turn
     
@@ -196,8 +216,8 @@ class PlacementRuleMap:
 class RuleVSAI(Rule):
     PLAYER = 0
     AI = 1
-    def __init__(self, on_change_pieces: Callable[[int, 'GameData'], None]):
-        self.set_up(2, [(False, True), (True, False)], on_change_pieces)
+    def __init__(self, on_change_pieces: Callable[[int, 'GameData'], None], on_end: Callable[[], None]):
+        self.set_up(2, [(False, True), (True, False)], on_change_pieces, on_end)
     
     def place(self, shape, rotation, x, y):
         if self.data.turn == RuleVSAI.AI: raise RuntimeError('ゲームのターンが不正。')

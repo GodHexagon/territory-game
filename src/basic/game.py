@@ -10,7 +10,7 @@ class GameView(Area, View):
     def __init__(self, x, y, w, h):
         super().__init__(x, y, w, h)
         
-        self.game = RuleVSAI(lambda a, b: {})
+        self.game = RuleVSAI(self.on_change_pieces, self.on_end)
         self.rotation = Rotation.DEFAULT
         
         self.cursor = Cursor()
@@ -39,6 +39,9 @@ class GameView(Area, View):
                 p.shape for p in data.pieces_by_player[player] if not p.placed()
             )
         self.board.rewrite_board(tuple(data.pieces_by_player), (BLUE_COLOR_S, RED_COLOR_S))
+
+    def on_end(self):
+        assert False, 'ゲームエンド！'
     
     def update(self):
         if btnp(Bind.ROTATE_LEFT):

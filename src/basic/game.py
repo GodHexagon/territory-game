@@ -10,7 +10,11 @@ class GameView(Area, View):
     def __init__(self, x, y, w, h):
         super().__init__(x, y, w, h)
         
-        self.game = RuleVSAI(self.on_change_pieces, self.on_end)
+        self.game = RuleVSAI()
+        self.game.set_on_change_pieces = self.on_change_pieces
+        self.game.set_on_end = self.on_end
+        self.game.set_on_give_up = self.on_give_up
+
         self.rotation = Rotation.DEFAULT
         
         self.cursor = Cursor()
@@ -42,6 +46,10 @@ class GameView(Area, View):
 
     def on_end(self):
         assert False, 'ゲームエンド！'
+    
+    def on_give_up(self, player: int):
+        if player == RuleVSAI.AI:
+            assert False
     
     def update(self):
         if btnp(Bind.ROTATE_LEFT):

@@ -10,12 +10,19 @@ class Rule:
     """ゲームルールに基づきデータをアップデートさせ、さらに現在のデータを提供する"""
     BOARD_SIZE_TILES = 20
 
+    def set_on_change_pieces(self, value: Callable[[int, 'GameData'], None]):
+        self.on_change_pieces = value
+    
+    def set_on_end(self, value: Callable[[], None]):
+        self.on_end = value
+    
+    def set_on_give_up(self, value: Callable[[int], None]):
+        self.on_give_up = value
+
     def set_up(
             self, 
             players_number: int,
-            start_corner: List[Tuple[bool, bool]],
-            on_change_pieces: Callable[[int, 'GameData'], None],
-            on_end: Callable[[], None]
+            start_corner: List[Tuple[bool, bool]]
         ):
         if not len(start_corner) == players_number: ValueError('start_corner引数が不正。プレイヤーの数だけリスト要素が存在している必要があります。')
 
@@ -25,8 +32,6 @@ class Rule:
             start_corner,
             Rule.BOARD_SIZE_TILES
         )
-        self.on_change_pieces = on_change_pieces
-        self.on_end = on_end
         self.players_state = [0 for _ in range(players_number)] # 0: 一つもピースを置いていない, 1: 通常の状態, 2: 全てのピースを置いた
 
         #self.tmp_board_map = numpy.array( [[0 for _ in range(self.data.board_size)] for _ in range(self.data.board_size)] )
@@ -89,6 +94,7 @@ class Rule:
     def give_up(self, player: int):
         self.players_state[player] = 2
         self.switch_turn()
+        self.on_give_up(player)
 
     def get_turn(self):
         return self.data.turn
@@ -217,8 +223,8 @@ class PlacementRuleMap:
 class RuleVSAI(Rule):
     PLAYER = 0
     AI = 1
-    def __init__(self, on_change_pieces: Callable[[int, 'GameData'], None], on_end: Callable[[], None]):
-        self.set_up(2, [(False, True), (True, False)], on_change_pieces, on_end)
+    def __init__(self):
+        self.set_up(2, [(False, True), (True, False)])
     
     def place(self, shape, rotation, x, y):
         if self.data.turn == RuleVSAI.AI: raise RuntimeError('ゲームのターンが不正。')

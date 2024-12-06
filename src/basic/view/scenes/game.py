@@ -11,9 +11,9 @@ class GameView(Area, View):
         super().__init__(x, y, w, h)
         
         self.game = RuleVSAI()
-        self.game.set_on_change_pieces = self.on_change_pieces
-        self.game.set_on_end = self.on_end
-        self.game.set_on_give_up = self.on_give_up
+        self.game.set_on_change_pieces(self.on_change_pieces)
+        self.game.set_on_end(self.on_end)
+        self.game.set_on_give_up(self.on_give_up)
 
         self.rotation = Rotation.DEFAULT
         

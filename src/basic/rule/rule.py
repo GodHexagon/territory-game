@@ -35,10 +35,11 @@ class Rule:
         )
         self.players_state = [0 for _ in range(players_number)] # 0: 一つもピースを置いていない, 1: 通常の状態, 2: 全てのピースを置いた
 
-        #self.tmp_board_map = numpy.array( [[0 for _ in range(self.data.board_size)] for _ in range(self.data.board_size)] )
         self.prm = PlacementRuleMap.get_empty_pm(self.data)
     
-    def place(self, shape: TilesMap, rotation: Rotation, x: int, y: int) -> 'PlacementResult':
+    def place(self, shape: TilesMap, rotation: Rotation, x: int, y: int, turn: Optional[int] = None) -> 'PlacementResult':
+        if turn is not None and turn != self.get_turn(): return PlacementResult.OTHERS_TURN
+
         selectable = self.data.pieces_by_player[self.get_turn()]
 
         found = [p for p in selectable if shape.is_equal(p.shape)]
@@ -110,10 +111,9 @@ class RuleVSAI(Rule):
     def __init__(self):
         self.set_up(2, [(False, True), (True, False)])
     
-    def place(self, shape, rotation, x, y):
-        if self.data.turn == RuleVSAI.AI: raise RuntimeError('ゲームのターンが不正。')
-
-        result = super().place(shape, rotation, x, y)
+    def place(self, shape: TilesMap, rotation: Rotation, x: int, y: int, _: Optional[int] = None) -> 'PlacementResult':
+        result = super().place(shape, rotation, x, y, RuleVSAI.PLAYER)
+        if result == PlacementResult.OTHERS_TURN: raise RuntimeError('ターンが不正。')
 
         while(self.get_turn() == RuleVSAI.AI):
             self.__ai_place()
@@ -126,7 +126,6 @@ class RuleVSAI(Rule):
         cand_shapes = list(p.shape for p in self.data.pieces_by_player[self.get_turn()] if not p.placed())
         random.shuffle(cand_shapes)
 
-        cand_placements = None
         for s in cand_shapes:
             cand_placements = self.__get_candidate_placements(s)
             if not cand_placements.__len__() == 0: break
@@ -135,7 +134,8 @@ class RuleVSAI(Rule):
             return
 
         randomed_placement = random.choice(cand_placements)
-        ai_result = super().place(*randomed_placement)
+        ai_result = super().place(*randomed_placement, RuleVSAI.AI)
+
         if not PlacementResult.successes(ai_result): raise RuntimeError('AIがピースの設置に失敗した。')
     
     def __get_candidate_placements(self, shape: TilesMap):

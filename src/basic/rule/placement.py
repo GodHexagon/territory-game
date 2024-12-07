@@ -13,6 +13,7 @@ class PlacementResult(enum.Enum):
     CORNER_RULE_DENIAL = 3
     OUT_OF_BOARD = 4
     FIRST_PIECE_RULE_DENIAL = 5
+    OTHERS_TURN = 6
     
     @staticmethod
     def successes(value: 'PlacementResult'):

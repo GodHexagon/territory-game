@@ -33,9 +33,9 @@ class GameView(Area, View):
         )
 
         self.notice = FrontNoticeView(x + w / 2 - 150, y + h * 0.3, 300, 50)
-        self.notice.put('GAME START!')
+        self.notice.put('GAME START!', frame_to_hide=60)
 
-        self.result = ResultSheetView(x + (w - 400) / 2, board_view_end_y - 100, 400, 200)
+        self.result = VSAIResultView(x + (w - 400) / 2, board_view_end_y - 100, 400, 200)
 
         self.picker.set_piece_rotation(self.rotation)
         self.board.set_piece_rotation(self.rotation)
@@ -52,7 +52,7 @@ class GameView(Area, View):
         self.board.rewrite_board(tuple(data.pieces_by_player), (BLUE_COLOR_S, RED_COLOR_S))
 
     def on_end(self):
-        self.result.show()
+        self.result.show( (1, 2), (BLUE_COLOR_S, RED_COLOR_S) )
     
     def on_give_up(self, player: int):
         if player == RuleVSAI.AI:

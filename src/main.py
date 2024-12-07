@@ -1,4 +1,4 @@
-from basic.view.scenes.game import GameView
+from basic.view.scenes.vsai import VSAIGameView
 from typing import List
 import pyxres
 import pyxel
@@ -10,7 +10,7 @@ class App:
         pyxel.mouse(True)
         pyxel.load(pyxres.PYXRES_PATH)
 
-        self.view = GameView(0, 0, pyxel.width, pyxel.height)
+        self.view = VSAIGameView(0, 0, pyxel.width, pyxel.height)
 
         pyxel.run(self.update, self.draw)
 

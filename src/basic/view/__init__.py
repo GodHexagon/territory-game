@@ -1,4 +1,4 @@
-from .scenes.game import GameView
+from .scenes.vsai import VSAIGameView
 from .view import View
 
-__all__ = ['GameView', 'View']
+__all__ = ['VSAIGameView', 'View']

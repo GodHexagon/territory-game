@@ -56,7 +56,10 @@ class VSAIGameView(Area, View):
 
     def on_end(self):
         scores = self.game.get_scores()
-        self.result.show( (scores[0], scores[1]), (BLUE_COLOR_S, RED_COLOR_S), scores[0] > scores[1] )
+        if scores[0] < scores[1]: win = -1
+        elif scores[0] > scores[1]: win = 1
+        else: win = 0
+        self.result.show( (scores[0], scores[1]), (BLUE_COLOR_S, RED_COLOR_S), win )
     
     def on_give_up(self, player: int):
         if player == RuleVSAI.AI:
@@ -94,15 +97,15 @@ class VSAIResultView(Area, View):
 
     def __init__(self, x, y, w, h):
         super().__init__(x, y, w, h)
-        self.title = self.__get_typo_image('RESULT', 0)
+        self.title = self.__get_typo_image('DRAW', 0)
         self.scores: Tuple[Image, Image] | None = None
     
-    def show(self, scores: Tuple[int, int], colors: Tuple[int, int], win: bool):
+    def show(self, scores: Tuple[int, int], colors: Tuple[int, int], win: int):
         self.scores = (self.__get_typo_image(f"YOU: {scores[0]}", colors[0]), self.__get_typo_image(f"ENEMY: {scores[1]}", colors[1]))
 
         from pyxres import COLOR_SUCCESSFULL, COLOR_FAILURE
-        if win: self.title = self.__get_typo_image("VICTORY!", COLOR_SUCCESSFULL)
-        else: self.title = self.__get_typo_image("DEFEAT", COLOR_FAILURE)
+        if win == 1: self.title = self.__get_typo_image("VICTORY!", COLOR_SUCCESSFULL)
+        elif win == -1: self.title = self.__get_typo_image("DEFEAT", COLOR_FAILURE)
     
     def __get_typo_image(self, value: str, color: int):
         self.t_w = max(0, len(value) * CHAR_WIDTH_PX - 1)

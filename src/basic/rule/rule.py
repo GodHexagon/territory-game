@@ -126,6 +126,7 @@ class RuleVSAI(Rule):
     
     def place(self, shape: TilesMap, rotation: Rotation, x: int, y: int, player: Optional[int] = None) -> 'PlacementResult':
         if player is not None and player != RuleVSAI.PLAYER: raise ValueError('敵を操作している。')
+        if all([s == 2 for s in self.players_state]): return PlacementResult.OUT_OF_BOARD
 
         result = super().place(shape, rotation, x, y, RuleVSAI.PLAYER)
 
@@ -135,6 +136,8 @@ class RuleVSAI(Rule):
         return result
     
     def give_up(self, player = None):
+        if all([s == 2 for s in self.players_state]): return PlacementResult.OUT_OF_BOARD
+
         super().give_up(player)
 
         while(self.get_turn() == RuleVSAI.AI):

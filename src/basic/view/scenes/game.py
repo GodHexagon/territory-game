@@ -1,8 +1,9 @@
-from basic.rule.rule import RuleVSAI, Rotation
-from basic.rule.data import GameData
+from ...rule.rule import RuleVSAI, Rotation
+from ...rule.data import GameData
 from ..view import Area, ParenthoodView, View
 from ..areas import *
 from ...key_bind import *
+
 from pyxres import BLUE_COLOR_S, RED_COLOR_S
 from typing import Dict
 
@@ -30,7 +31,10 @@ class GameView(Area, View):
             BLUE_COLOR_S,
             self.cursor
         )
-        
+
+        self.notice = FrontNoticeView(x + w / 2 - 150, y + h * 0.3, 300, 50)
+        self.notice.put('Game Start!')
+
         self.picker.set_piece_rotation(self.rotation)
         self.board.set_piece_rotation(self.rotation)
         self.cursor.set_rotation(self.rotation)
@@ -45,11 +49,11 @@ class GameView(Area, View):
         self.board.rewrite_board(tuple(data.pieces_by_player), (BLUE_COLOR_S, RED_COLOR_S))
 
     def on_end(self):
-        assert False, 'ゲームエンド！'
+        self.notice.put('Game Finish!')
     
     def on_give_up(self, player: int):
         if player == RuleVSAI.AI:
-            assert False
+            self.notice.put('AI exited the game!')
     
     def update(self):
         if btnp(Bind.ROTATE_LEFT):
@@ -63,8 +67,10 @@ class GameView(Area, View):
         self.picker.update()
         self.board.update()
         self.cursor.update()
+        self.notice.update()
     
     def draw(self):
         self.board.draw()
         self.picker.draw()
         self.cursor.draw()
+        self.notice.draw()

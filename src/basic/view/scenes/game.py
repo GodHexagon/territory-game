@@ -38,8 +38,6 @@ class GameView(Area, View):
         self.picker.set_piece_rotation(self.rotation)
         self.board.set_piece_rotation(self.rotation)
         self.cursor.set_rotation(self.rotation)
-
-        self.game.on_change_pieces = self.on_change_pieces
     
     def on_change_pieces(self, player: int, data: GameData):
         if RuleVSAI.PLAYER == player:

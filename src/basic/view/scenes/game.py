@@ -33,7 +33,7 @@ class GameView(Area, View):
         )
 
         self.notice = FrontNoticeView(x + w / 2 - 150, y + h * 0.3, 300, 50)
-        self.notice.put('Game Start!')
+        self.notice.put('GAME START!')
 
         self.result = ResultSheetView(x + (w - 400) / 2, board_view_end_y - 100, 400, 200)
 
@@ -56,9 +56,7 @@ class GameView(Area, View):
     
     def on_give_up(self, player: int):
         if player == RuleVSAI.AI:
-            self.notice.put('The enemy gave up!')
-        elif player == RuleVSAI.PLAYER:
-            self.notice.put('You gave up!')
+            self.notice.put('THE ENEMY GIVING UP!')
     
     def update(self):
         if btnp(Bind.ROTATE_LEFT):

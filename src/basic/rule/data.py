@@ -74,6 +74,8 @@ class TilesMap:
 PiecesBP: TypeAlias =Tuple['Piece']
 
 class GameData:
+    END_STATE_TURN = -1
+
     """ゲーム進行状況を維持する最低限のデータ"""
     def __init__(self, turn: int, pieces_by_player: List[PiecesBP], start_corner: List[Tuple[bool, bool]], board_size: int):
         self.pieces_by_player = pieces_by_player

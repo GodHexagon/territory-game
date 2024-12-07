@@ -74,10 +74,7 @@ class Rule:
             elif all( tuple(p.placed() for p in self.data.pieces_by_player[turn]) ): self.players_state[turn] = 2
             else: self.players_state[turn] = 1
 
-        if all( tuple(s == 2 for s in self.players_state) ): self.on_end()
-
         pn = self.get_player_number()
-
         active_players = tuple(
             (self.get_turn() + i + 1) % pn
             for i in range(self.players_state.__len__())
@@ -85,6 +82,7 @@ class Rule:
         )
 
         if len(active_players) == 0:
+            self.data.turn = GameData.END_STATE_TURN
             self.on_end()
         else:
             self.data.turn = active_players[0]
@@ -93,7 +91,8 @@ class Rule:
     def get_player_number(self):
         return len(self.data.pieces_by_player)
 
-    def give_up(self, player: int):
+    def give_up(self):
+        player = self.get_turn()
         self.players_state[player] = 2
         self.switch_turn()
         self.on_give_up(player)
@@ -111,7 +110,9 @@ class RuleVSAI(Rule):
     def __init__(self):
         self.set_up(2, [(False, True), (True, False)])
     
-    def place(self, shape: TilesMap, rotation: Rotation, x: int, y: int, _: Optional[int] = None) -> 'PlacementResult':
+    def place(self, shape: TilesMap, rotation: Rotation, x: int, y: int, player: Optional[int] = None) -> 'PlacementResult':
+        if player is not None: raise ValueError('VSAIルールでは、プレイヤーを指定できない。')
+
         result = super().place(shape, rotation, x, y, RuleVSAI.PLAYER)
         if result == PlacementResult.OTHERS_TURN: raise RuntimeError('ターンが不正。')
 
@@ -130,7 +131,7 @@ class RuleVSAI(Rule):
             cand_placements = self.__get_candidate_placements(s)
             if not cand_placements.__len__() == 0: break
         else:
-            self.give_up(RuleVSAI.AI)
+            self.give_up()
             return
 
         randomed_placement = random.choice(cand_placements)

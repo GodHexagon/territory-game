@@ -59,6 +59,7 @@ class PickerView(LimitableArea, View):
             pieces,
             self.piece_color_s
         )
+        scroll_state.set_range_px(self.shelf.w - self.window.w)
 
     def update(self):
         # スクロール検知
@@ -90,7 +91,6 @@ class PickerView(LimitableArea, View):
         self.scroll_bar.draw()
 
         for p in self.items:
-            #self.window.drawer.rect(p.surface.x, p.surface.y, p.surface.w, p.surface.h, 2)
             p.draw(self.piece_rotation, self.window.drawer)
 
     def set_piece_rotation(self, rotation: Rotation):
@@ -198,7 +198,6 @@ class Item(LimitableArea, PieceHolder):
             self.held.follow(cursor)
     
     def draw(self, piece_rotation: Rotation, drawer: LimitedDrawer):
-        drawer.rect(self.x, self.y, self.w, self.h, 2)
         if self.held is not None:
             self.move_absolute_pos()
             self.held.draw(piece_rotation, drawer)

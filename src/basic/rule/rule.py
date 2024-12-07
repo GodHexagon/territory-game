@@ -96,12 +96,14 @@ class Rule:
 
     def give_up(self, player: Optional[int] = None):
         """ピースを置く場所がなくなったプレイヤーが、ピースを置く代わりに実行する。"""
-        if player is not None and player != self.get_turn(): raise ValueError('ターンが異なる。')
+        if player is not None and player != self.get_turn():
+            raise ValueError('ターンが異なる。')
+        
+        target = self.get_turn()
 
-        player = self.get_turn()
-        self.players_state[player] = 2
+        self.players_state[target] = 2
         self.__switch_turn()
-        self.on_give_up(player)
+        self.on_give_up(target)
 
     def get_turn(self):
         return self.data.turn

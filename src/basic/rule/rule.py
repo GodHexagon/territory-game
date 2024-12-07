@@ -40,7 +40,7 @@ class Rule:
     
     def place(self, shape: TilesMap, rotation: Rotation, x: int, y: int, player: Optional[int] = None) -> 'PlacementResult':
         """プレイヤーがピースを置く操作"""
-        if player is not None and player != self.get_turn(): raise ValueError('ターンが異なる。')
+        if player is not None and player != self.get_turn(): raise ValueError('他のプレイヤーのターンで操作している。')
 
         selectable = self.data.pieces_by_player[self.get_turn()]
 
@@ -94,7 +94,7 @@ class Rule:
     def give_up(self, player: Optional[int] = None):
         """ピースを置く場所がなくなったプレイヤーが、ピースを置く代わりに実行する。"""
         if player is not None and player != self.get_turn():
-            raise ValueError('ターンが異なる。')
+            raise ValueError('他のプレイヤーのターンで操作している。')
         
         target = self.get_turn()
 
@@ -125,7 +125,7 @@ class RuleVSAI(Rule):
         self.set_up(2, [(False, True), (True, False)])
     
     def place(self, shape: TilesMap, rotation: Rotation, x: int, y: int, player: Optional[int] = None) -> 'PlacementResult':
-        if player is not None: raise ValueError('VSAIルールでは、プレイヤーを指定できない。')
+        if player is not None and player != RuleVSAI.PLAYER: raise ValueError('敵を操作している。')
 
         result = super().place(shape, rotation, x, y, RuleVSAI.PLAYER)
 
@@ -135,9 +135,7 @@ class RuleVSAI(Rule):
         return result
     
     def give_up(self, player = None):
-        if player is not None: raise ValueError('VSAIルールでは、プレイヤーを指定できない。')
-
-        super().give_up()
+        super().give_up(player)
 
         while(self.get_turn() == RuleVSAI.AI):
             self.__ai_place()

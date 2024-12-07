@@ -1,7 +1,7 @@
 from ..limitter import LimitableArea, LimitedDrawer, Surface
 from ..view import View, CenteredArea
 from .cursor import Cursor
-from ...rule.rule import Rotation, Rule, Piece, PiecesBP, PlacementResult
+from ...rule.rule import Rotation, Rule, Piece, PiecesBP, PlacementResult, TilesMap
 from ...key_bind import Bind, btn, btnp
 
 from typing import *
@@ -12,6 +12,7 @@ import numpy
 
 from pyxres import DEFAULT_COLOR_S, RED_COLOR_S, BLUE_COLOR_S
 
+CallableOnPlacePiece: TypeAlias = Callable[[TilesMap, Rotation, int, int], PlacementResult]
 
 def limit_in_board(x, y):
     SIZE = Rule.BOARD_SIZE_TILES
@@ -27,7 +28,7 @@ class BoardView(View, LimitableArea):
     
     TILE_DATA_COLORS = (DEFAULT_COLOR_S, BLUE_COLOR_S, RED_COLOR_S)
 
-    def __init__(self, x, y, w, h, cursor: Cursor, colors_s: int, game: Rule):
+    def __init__(self, x, y, w, h, cursor: Cursor, colors_s: int, on_place_piece: CallableOnPlacePiece):
         super().__init__(x, y, w, h)
         self.set_limiteds()
 
@@ -43,7 +44,7 @@ class BoardView(View, LimitableArea):
 
         self.c_monitor = self.board.ini_b_input(self, cursor)
         self.color_s = colors_s
-        self.game = game
+        self.on_place_piece = on_place_piece
         self.dg: Dragging | None = None
     
     def rewrite_board(self, pieces: Tuple[PiecesBP], color_s_s: Tuple[int]):
@@ -81,7 +82,7 @@ class BoardView(View, LimitableArea):
         
         # マウス入力を反映
         self.c_monitor.monitor_hover(self.piece_rotation)
-        self.c_monitor.monitor_placement(self.game, self.piece_rotation)
+        self.c_monitor.monitor_placement(self.on_place_piece, self.piece_rotation)
         # タイルを再生成
         cursored_tiles_data = self.commited_tiles_data.copy()
         self.c_monitor.write_hover_piece(cursored_tiles_data, 1)
@@ -248,7 +249,7 @@ class CursorMonitor(LimitableArea):
             self.prev_hovered = iir
             if self.cursor.held is not None: self.cursor.held.set_visibility(not iir)
 
-    def monitor_placement(self, game: Rule, rot: Rotation):
+    def monitor_placement(self, on_place_piece: CallableOnPlacePiece, rot: Rotation):
         held = self.cursor.held
         coord = self.hover_piece_start_coord
         if (
@@ -257,7 +258,7 @@ class CursorMonitor(LimitableArea):
             held is not None and 
             coord is not None
         ):
-            result = game.place(held.shape, rot, coord[0], coord[1])
+            result = on_place_piece(held.shape, rot, coord[0], coord[1])
             if PlacementResult.successes(result): held.clear()
 
     def __count_hover_piece(self, rotation: Rotation):

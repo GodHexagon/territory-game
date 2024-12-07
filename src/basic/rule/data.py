@@ -74,10 +74,18 @@ class TilesMap:
 PiecesBP: TypeAlias =Tuple['Piece']
 
 class GameData:
+    """ゲーム進行状況を維持する最低限のデータ"""
+    
     END_STATE_TURN = -1
 
-    """ゲーム進行状況を維持する最低限のデータ"""
     def __init__(self, turn: int, pieces_by_player: List[PiecesBP], start_corner: List[Tuple[bool, bool]], board_size: int):
+        """
+        値の初期化。
+
+        Parameters:
+            start_corner: プレイヤーに割り当てられた四隅を表す。「全プレイヤー[各プレイヤー(x, y)]」を意味し、Trueはポジティブ方向。
+        """
+
         self.pieces_by_player = pieces_by_player
         self.start_corner = start_corner
         self.turn = turn

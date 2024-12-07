@@ -117,6 +117,17 @@ class Rule:
     def get_pieces_shape(self, which_player: int):
         return tuple(p.shape for p in self.data.pieces_by_player[which_player])
 
+class RuleQuad(Rule):
+    def __init__(self):
+        self.set_up(
+            4,
+            [
+                (False, False),
+                (True, False),
+                (True, True),
+                (False, True)
+            ]
+        )
 
 class RuleVSAI(Rule):
     PLAYER = 0
@@ -178,6 +189,3 @@ class RuleVSAI(Rule):
                     candidates.append( (piece.shape, r, x, y) )
         
         return candidates
-
-if __name__ == '__main__':
-    pass

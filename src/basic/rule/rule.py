@@ -25,6 +25,7 @@ class Rule:
             players_number: int,
             start_corner: List[Tuple[bool, bool]]
         ):
+        """子クラスのコンストラクタ内で実行すべきコストラクタ処理"""
         if not len(start_corner) == players_number: ValueError('start_corner引数が不正。プレイヤーの数だけリスト要素が存在している必要があります。')
 
         self.data = GameData(
@@ -37,8 +38,9 @@ class Rule:
 
         self.prm = PlacementRuleMap.get_empty_pm(self.data)
     
-    def place(self, shape: TilesMap, rotation: Rotation, x: int, y: int, turn: Optional[int] = None) -> 'PlacementResult':
-        if turn is not None and turn != self.get_turn(): return PlacementResult.OTHERS_TURN
+    def place(self, shape: TilesMap, rotation: Rotation, x: int, y: int, player: Optional[int] = None) -> 'PlacementResult':
+        """プレイヤーがピースを置く操作"""
+        if player is not None and player != self.get_turn(): raise ValueError('ターンが異なる。')
 
         selectable = self.data.pieces_by_player[self.get_turn()]
 
@@ -62,12 +64,13 @@ class Rule:
         target.place(x, y, rotation)
 
         changed = self.get_turn()
-        self.switch_turn()
+        self.__switch_turn()
         self.on_change_pieces(changed, self.data)
 
         return result
     
-    def switch_turn(self):
+    def __switch_turn(self):
+        """ターンを次へめくる"""
         turn = self.get_turn()
         if self.players_state[turn] != 2:
             if all( tuple(not p.placed() for p in self.data.pieces_by_player[turn]) ): self.players_state[turn] = 0
@@ -91,10 +94,13 @@ class Rule:
     def get_player_number(self):
         return len(self.data.pieces_by_player)
 
-    def give_up(self):
+    def give_up(self, player: Optional[int] = None):
+        """ピースを置く場所がなくなったプレイヤーが、ピースを置く代わりに実行する。"""
+        if player is not None and player != self.get_turn(): raise ValueError('ターンが異なる。')
+
         player = self.get_turn()
         self.players_state[player] = 2
-        self.switch_turn()
+        self.__switch_turn()
         self.on_give_up(player)
 
     def get_turn(self):
@@ -114,7 +120,6 @@ class RuleVSAI(Rule):
         if player is not None: raise ValueError('VSAIルールでは、プレイヤーを指定できない。')
 
         result = super().place(shape, rotation, x, y, RuleVSAI.PLAYER)
-        if result == PlacementResult.OTHERS_TURN: raise RuntimeError('ターンが不正。')
 
         while(self.get_turn() == RuleVSAI.AI):
             self.__ai_place()

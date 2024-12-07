@@ -1,6 +1,6 @@
 from ...rule.rule import RuleVSAI, Rotation
 from ...rule.data import GameData
-from ..view import Area, ParenthoodView, View
+from ..view import Area, View
 from ..areas import *
 from ...key_bind import *
 
@@ -86,7 +86,6 @@ class VSAIGameView(Area, View):
         self.cursor.draw()
         self.notice.draw()
         self.result.draw()
-        from ..view import Area, View
 
 from pyxres import CHAR_HEIGHT_PX, CHAR_WIDTH_PX
 

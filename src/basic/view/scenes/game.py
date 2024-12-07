@@ -56,7 +56,7 @@ class GameView(Area, View):
     
     def on_give_up(self, player: int):
         if player == RuleVSAI.AI:
-            self.notice.put('THE ENEMY GIVING UP!')
+            self.notice.put('THE ENEMY GAVE UP!')
     
     def update(self):
         if btnp(Bind.ROTATE_LEFT):

@@ -90,9 +90,6 @@ class Rule:
         else:
             self.data.turn = active_players[0]
             self.prm = PlacementRuleMap.get_current_pm(self.data)
-        
-    def get_player_number(self):
-        return len(self.data.pieces_by_player)
 
     def give_up(self, player: Optional[int] = None):
         """ピースを置く場所がなくなったプレイヤーが、ピースを置く代わりに実行する。"""
@@ -104,6 +101,15 @@ class Rule:
         self.players_state[target] = 2
         self.__switch_turn()
         self.on_give_up(target)
+
+    def get_scores(self) -> List[int]:
+        scores = []
+        for pbp in self.data.pieces_by_player:
+            scores.append( sum(tuple( p.count_tiles() for p in pbp if p.placed() )) )
+        return scores
+        
+    def get_player_number(self):
+        return len(self.data.pieces_by_player)
 
     def get_turn(self):
         return self.data.turn

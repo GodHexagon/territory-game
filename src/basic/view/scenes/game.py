@@ -52,7 +52,8 @@ class GameView(Area, View):
         self.board.rewrite_board(tuple(data.pieces_by_player), (BLUE_COLOR_S, RED_COLOR_S))
 
     def on_end(self):
-        self.result.show( (1, 2), (BLUE_COLOR_S, RED_COLOR_S), True )
+        scores = self.game.get_scores()
+        self.result.show( (scores[0], scores[1]), (BLUE_COLOR_S, RED_COLOR_S), scores[0] > scores[1] )
     
     def on_give_up(self, player: int):
         if player == RuleVSAI.AI:

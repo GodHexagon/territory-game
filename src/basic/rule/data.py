@@ -120,6 +120,10 @@ class Piece:
         """ピースの位置として、x, yを返す。形状に関わらず、左上が基準。"""
         if self.position is None: raise RuntimeError('このピースが、いまだ置かれていないので位置を特定できない。')
         return (self.position.x, self.position.y)
+    
+    def count_tiles(self) -> int:
+        t = self.shape._map
+        return numpy.sum((t == Piece.TILED) | (t == Piece.CENTER))
         
     def place(self, x, y, rotation):
         self.position = PiecePosition(x, y , rotation)

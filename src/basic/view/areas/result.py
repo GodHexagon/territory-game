@@ -14,8 +14,12 @@ class VSAIResultView(Area, View):
         self.title = self.__get_typo_image('RESULT', 0)
         self.scores: Tuple[Image, Image] | None = None
     
-    def show(self, scores: Tuple[int, int], colors: Tuple[int, int]):
+    def show(self, scores: Tuple[int, int], colors: Tuple[int, int], win: bool):
         self.scores = (self.__get_typo_image(f"YOU: {scores[0]}", colors[0]), self.__get_typo_image(f"ENEMY: {scores[1]}", colors[1]))
+
+        from pyxres import COLOR_SUCCESSFULL, COLOR_FAILURE
+        if win: self.title = self.__get_typo_image("VICTORY!", COLOR_SUCCESSFULL)
+        else: self.title = self.__get_typo_image("DEFEAT", COLOR_FAILURE)
     
     def __get_typo_image(self, value: str, color: int):
         self.t_w = max(0, len(value) * CHAR_WIDTH_PX - 1)
@@ -38,7 +42,7 @@ class VSAIResultView(Area, View):
                 self.title,
                 0, 0, self.title.width, self.title.height,
                 colkey=1,
-                scale=3
+                scale=4
             )
             p, e = self.scores
             pyxel.blt(
@@ -47,7 +51,7 @@ class VSAIResultView(Area, View):
                 p,
                 0, 0, p.width, p.height,
                 colkey=1,
-                scale=2
+                scale=3
             )
             pyxel.blt(
                 self.x + 50,
@@ -55,5 +59,5 @@ class VSAIResultView(Area, View):
                 e,
                 0, 0, e.width, e.height,
                 colkey=1,
-                scale=2
+                scale=3
             )

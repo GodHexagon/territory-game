@@ -128,6 +128,14 @@ class RuleVSAI(Rule):
 
         return result
     
+    def give_up(self, player = None):
+        if player is not None: raise ValueError('VSAIルールでは、プレイヤーを指定できない。')
+
+        super().give_up()
+
+        while(self.get_turn() == RuleVSAI.AI):
+            self.__ai_place()
+    
     def __ai_place(self):
         import random
 

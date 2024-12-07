@@ -44,6 +44,9 @@ class GameView(Area, View):
             self.picker.reset_pieces(
                 p.shape for p in data.pieces_by_player[player] if not p.placed()
             )
+            held = self.cursor.held
+            if held is not None:
+                held.clear()
         self.board.rewrite_board(tuple(data.pieces_by_player), (BLUE_COLOR_S, RED_COLOR_S))
 
     def on_end(self):
@@ -51,7 +54,9 @@ class GameView(Area, View):
     
     def on_give_up(self, player: int):
         if player == RuleVSAI.AI:
-            self.notice.put('AI exited the game!')
+            self.notice.put('The enemy gave up!')
+        elif player == RuleVSAI.PLAYER:
+            self.notice.put('You gave up!')
     
     def update(self):
         if btnp(Bind.ROTATE_LEFT):
@@ -61,6 +66,9 @@ class GameView(Area, View):
         self.picker.set_piece_rotation(self.rotation)
         self.board.set_piece_rotation(self.rotation)
         self.cursor.set_rotation(self.rotation)
+
+        if btnp(Bind.GIVE_UP):
+            self.game.give_up()
 
         self.picker.update()
         self.board.update()

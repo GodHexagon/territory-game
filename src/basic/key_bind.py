@@ -7,6 +7,7 @@ class Bind(enum.Enum):
     ROTATE_RIGHT = 1
     ROTATE_LEFT = 2
     PLACE_PIECE = 3
+    GIVE_UP = 4
 
 def btn(*args):
     return __agent(pyxel.btn, args)
@@ -28,5 +29,8 @@ def __agent(f: Callable[[any], bool], args: Tuple[any]): # type: ignore
         )) or
         (args[0] == Bind.PLACE_PIECE and (
             f(pyxel.MOUSE_BUTTON_LEFT, *a)
+        )) or
+        (args[0] == Bind.GIVE_UP and (
+            f(pyxel.KEY_G, *a) and pyxel.btn(pyxel.KEY_CTRL)
         ))
     )

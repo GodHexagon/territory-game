@@ -122,10 +122,10 @@ class RuleQuad(Rule):
         self.set_up(
             4,
             [
+                (False, True),
                 (False, False),
                 (True, False),
                 (True, True),
-                (False, True)
             ]
         )
 

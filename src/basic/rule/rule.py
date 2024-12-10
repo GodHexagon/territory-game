@@ -30,7 +30,7 @@ class Rule:
 
         self.data = GameData(
             0,
-            [Piece.get_piece_set() for _ in range(players_number)],
+            [Piece.get_piece_set() + Piece.get_piece_set() for _ in range(players_number)],
             start_corner,
             Rule.BOARD_SIZE_TILES
         )
@@ -42,16 +42,11 @@ class Rule:
         """プレイヤーがピースを置く操作"""
         if player is not None and player != self.get_turn(): raise ValueError('他のプレイヤーのターンで操作している。')
 
-        selectable = self.data.pieces_by_player[self.get_turn()]
+        selectable = tuple(p for p in self.data.pieces_by_player[self.get_turn()] if not p.placed() and shape.is_equal(p.shape))
 
-        found = [p for p in selectable if shape.is_equal(p.shape)]
-        if len(found) == 0: raise ValueError('shapeが指し示すピースがゲームに存在しない。')
-        if len(found) > 1: assert False, "'.rule.rule.Piece.SHAPES'に、複数の同じ形状のピースが定義されている。"
-        target = found[0]
-
-        if target.placed(): raise ValueError('shapeが指し示すピースは、すでに盤上にある。')
-
+        if len(selectable) == 0: raise ValueError('shapeが指し示すピースが見つからない。')
         
+        target = selectable[0]
         future = target.copy()
         future.place(x, y, rotation)
 
@@ -117,7 +112,6 @@ class Rule:
     def get_pieces_shape(self, which_player: int):
         return tuple(p.shape for p in self.data.pieces_by_player[which_player])
 
-
 class RuleVSAI(Rule):
     PLAYER = 0
     AI = 1
@@ -178,6 +172,3 @@ class RuleVSAI(Rule):
                     candidates.append( (piece.shape, r, x, y) )
         
         return candidates
-
-if __name__ == '__main__':
-    pass

@@ -10,7 +10,7 @@ import pyxel
 from numpy import ndarray as NDArray
 import numpy
 
-from pyxres import DEFAULT_COLOR_S, RED_COLOR_S, BLUE_COLOR_S
+from pyxres import DEFAULT_COLOR_S, RED_COLOR_S, BLUE_COLOR_S, GREEN_COLOR_S, YELLOW_COLOR_S
 
 CallableOnPlacePiece: TypeAlias = Callable[[TilesMap, Rotation, int, int], PlacementResult]
 
@@ -26,7 +26,7 @@ class BoardView(View, LimitableArea):
     DRAGGABLE_LIMIT_POCKET_PX = 50
     DRAG = pyxel.MOUSE_BUTTON_RIGHT
     
-    TILE_DATA_COLORS = (DEFAULT_COLOR_S, BLUE_COLOR_S, RED_COLOR_S)
+    TILE_DATA_COLORS = (DEFAULT_COLOR_S, BLUE_COLOR_S, RED_COLOR_S, GREEN_COLOR_S, YELLOW_COLOR_S)
 
     def __init__(self, x, y, w, h, cursor: Cursor, colors_s: int, on_place_piece: CallableOnPlacePiece):
         super().__init__(x, y, w, h)

@@ -42,15 +42,11 @@ class Rule:
         """プレイヤーがピースを置く操作"""
         if player is not None and player != self.get_turn(): raise ValueError('他のプレイヤーのターンで操作している。')
 
-        selectable = self.data.pieces_by_player[self.get_turn()]
+        selectables = tuple(p for p in self.data.pieces_by_player[self.get_turn()] if not p.placed() and shape.is_equal(p.shape))
 
-        found = [p for p in selectable if shape.is_equal(p.shape)]
-        if len(found) == 0: raise ValueError('shapeが指し示すピースがゲームに存在しない。')
-        if len(found) > 1: assert False, "'.rule.rule.Piece.SHAPES'に、複数の同じ形状のピースが定義されている。"
-        target = found[0]
-
-        if target.placed(): raise ValueError('shapeが指し示すピースは、すでに盤上にある。')
-
+        if len(selectables) == 0: raise ValueError('shapeが指し示すピースは、存在しない形状か、すでに全て置かれている。')
+        
+        target = selectables[0]
         
         future = target.copy()
         future.place(x, y, rotation)

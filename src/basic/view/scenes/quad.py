@@ -1,7 +1,7 @@
 from ..view import Area, View
 from ..areas import *
-from ...rule.rule import RuleQuad, Rotation, TilesMap
-from pyxres import BLUE_COLOR_S
+from ...rule.rule import RuleQuad, Rotation, TilesMap, GameData
+from pyxres import BLUE_COLOR_S, RED_COLOR_S, GREEN_COLOR_S, YELLOW_COLOR_S
 from ...key_bind import *
 
 class QuadGameView(Area, View):
@@ -9,6 +9,9 @@ class QuadGameView(Area, View):
         super().__init__(x, y, w, h)
 
         self.game = RuleQuad()
+        self.game.set_on_change_pieces(self.hdl_change_pieces)
+        self.game.set_on_end(self.hdl_end)
+        self.game.set_on_give_up(self.hdl_give_up)
 
         self.rotation = Rotation.DEFAULT
         self.player_id = 0
@@ -44,6 +47,27 @@ class QuadGameView(Area, View):
     
     def hdl_place_piece(self, shape: TilesMap, rotation: Rotation, x: int, y: int):
         return self.game.place(shape, rotation, x, y)
+    
+    def hdl_change_pieces(self, player: int, data: GameData):
+        if player == self.player_id:
+            self.picker.reset_pieces(
+                p.shape for p in data.pieces_by_player[player] if not p.placed()
+            )
+            held = self.cursor.held
+            if held is not None:
+                held.clear()
+        self.board.rewrite_board(tuple(data.pieces_by_player), (BLUE_COLOR_S, RED_COLOR_S, GREEN_COLOR_S, YELLOW_COLOR_S))
+
+    def hdl_end(self):
+        scores = self.game.get_scores()
+        if scores[0] < scores[1]: win = -1
+        elif scores[0] > scores[1]: win = 1
+        else: win = 0
+        self.notice.put('Finish!')
+    
+    def hdl_give_up(self, player: int):
+        if player != self.player_id:
+            self.notice.put('THE ENEMY GAVE UP!')
     
     def update(self):
         if btnp(Bind.ROTATE_LEFT):

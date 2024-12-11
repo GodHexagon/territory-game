@@ -82,7 +82,7 @@ class Rule:
         randomed_placement = random.choice(cand_placements)
         ai_result = self.place(*randomed_placement)
 
-        if not PlacementResult.successes(ai_result): raise RuntimeError('AIがピースの設置に失敗した。')
+        if ai_result != PlacementResult.SUCCESS: raise RuntimeError('AIがピースの設置に失敗した。')
     
     def __switch_turn(self):
         """ターンを次へめくる"""
@@ -128,6 +128,9 @@ class Rule:
     
     def get_pieces_shape(self, which_player: int):
         return tuple(p.shape for p in self.data.pieces_by_player[which_player])
+    
+    def is_end(self):
+        return self.get_turn() == GameData.END_STATE_TURN
     
     def find_placements(self, shape: TilesMap, rotation: Rotation):
         candidates: List[Tuple[TilesMap, Rotation, int, int]] = []

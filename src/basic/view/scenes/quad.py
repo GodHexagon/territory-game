@@ -45,6 +45,10 @@ class QuadGameView(Area, View):
         self.notice = FrontNoticeView(x + w / 2 - 150, y + h * 0.3, 300, 50)
         self.notice.put('GAME START!', frame_to_hide=60)
     
+    def __turn_end(self):
+        while self.game.get_turn() != self.player_id and not self.game.is_end():
+            self.game.ai_place()
+    
     def hdl_place_piece(self, shape: TilesMap, rotation: Rotation, x: int, y: int):
         if self.game.get_turn() != self.player_id: raise RuntimeError('ターンが不正である。')
 
@@ -53,14 +57,15 @@ class QuadGameView(Area, View):
             r = self.game.place(shape, rotation, x, y)
             success = r == PlacementResult.SUCCESS
             
-        for _ in range(1, 4):
-            self.game.ai_place()
+        self.__turn_end()
 
         return success
     
     def hdl_give_up(self):
         if self.game.get_turn() == self.player_id:
             self.game.give_up()
+
+            self.__turn_end()
     
     def hdl_changed_pieces(self, player: int, data: GameData):
         if player == self.player_id:
@@ -74,10 +79,10 @@ class QuadGameView(Area, View):
 
     def hdl_end(self):
         scores = self.game.get_scores()
-        if scores[0] < scores[1]: win = -1
-        elif scores[0] > scores[1]: win = 1
-        else: win = 0
-        self.notice.put('Finish!')
+        if scores[0] < scores[1]: win = 'VICTORY!'
+        elif scores[0] > scores[1]: win = 'DEFEAT...'
+        else: win = 'DRAW'
+        self.notice.put(win)
     
     def hdl_gave_up(self, player: int):
         if player != self.player_id:

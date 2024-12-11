@@ -6,7 +6,7 @@ if getattr(sys, 'frozen', False):
     resource_path = os.path.join(sys._MEIPASS, 'art', 'common.pyxpal'), os.path.join(sys._MEIPASS, 'art', 'common.pyxres')
 else:
     # 通常のPython実行時
-    resource_path = os.path.join('art', 'common.pyxpal'), os.path.join('art', 'common.pyxres')
+    resource_path = os.path.join('..', 'art', 'common.pyxpal'), os.path.join('..', 'art', 'common.pyxres')
 
 PYXPAL_PATH = resource_path[0]
 PYXRES_PATH = resource_path[1]

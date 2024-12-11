@@ -38,10 +38,8 @@ class Rule:
 
         self.prm = PlacementRuleMap.get_empty_pm(self.data)
     
-    def place(self, shape: TilesMap, rotation: Rotation, x: int, y: int, player: Optional[int] = None) -> 'PlacementResult':
+    def place(self, shape: TilesMap, rotation: Rotation, x: int, y: int) -> 'PlacementResult':
         """プレイヤーがピースを置く操作"""
-        if player is not None and player != self.get_turn(): raise ValueError('他のプレイヤーのターンで操作している。')
-
         selectables = tuple(p for p in self.data.pieces_by_player[self.get_turn()] if not p.placed() and shape.is_equal(p.shape))
 
         if len(selectables) == 0: raise ValueError('shapeが指し示すピースは、存在しない形状か、すでに全て置かれている。')
@@ -87,11 +85,8 @@ class Rule:
             self.data.turn = active_players[0]
             self.prm = PlacementRuleMap.get_current_pm(self.data)
 
-    def give_up(self, player: Optional[int] = None):
-        """ピースを置く場所がなくなったプレイヤーが、ピースを置く代わりに実行する。"""
-        if player is not None and player != self.get_turn():
-            raise ValueError('他のプレイヤーのターンで操作している。')
-        
+    def give_up(self):
+        """ピースを置く場所がなくなったプレイヤーが、ピースを置く代わりに実行する。"""        
         target = self.get_turn()
 
         self.players_state[target] = 2
@@ -113,7 +108,7 @@ class Rule:
     def get_pieces_shape(self, which_player: int):
         return tuple(p.shape for p in self.data.pieces_by_player[which_player])
 
-class RuleQuad(Rule):
+class Rule4Player(Rule):
     def __init__(self):
         self.set_up(
             4,
@@ -125,7 +120,7 @@ class RuleQuad(Rule):
             ]
         )
 
-class RuleVSAI(Rule):
+class RuleVSAI(Rule): # type: ignore
     PLAYER = 0
     AI = 1
     def __init__(self):

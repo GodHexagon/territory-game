@@ -12,7 +12,7 @@ import numpy
 
 from pyxres import DEFAULT_COLOR_S, RED_COLOR_S, BLUE_COLOR_S, GREEN_COLOR_S, YELLOW_COLOR_S
 
-CallableOnPlacePiece: TypeAlias = Callable[[TilesMap, Rotation, int, int], PlacementResult]
+CallableOnPlacePiece: TypeAlias = Callable[[TilesMap, Rotation, int, int], bool]
 
 def limit_in_board(x, y):
     SIZE = Rule.BOARD_SIZE_TILES
@@ -258,8 +258,8 @@ class CursorMonitor(LimitableArea):
             held is not None and 
             coord is not None
         ):
-            result = on_place_piece(held.shape, rot, coord[0], coord[1])
-            if PlacementResult.successes(result): held.clear()
+            r = on_place_piece(held.shape, rot, coord[0], coord[1])
+            if r: held.clear()
 
     def __count_hover_piece(self, rotation: Rotation):
         if self.cursor.held is None:

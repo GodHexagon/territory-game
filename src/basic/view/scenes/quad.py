@@ -1,6 +1,6 @@
 from ..view import Area, View
 from ..areas import *
-from ...rule.rule import RuleQuad, Rotation, TilesMap, GameData
+from ...rule.rule import Rule4Player, Rotation, TilesMap, GameData, PlacementResult
 from pyxres import BLUE_COLOR_S, RED_COLOR_S, GREEN_COLOR_S, YELLOW_COLOR_S
 from ...key_bind import *
 
@@ -8,10 +8,10 @@ class QuadGameView(Area, View):
     def __init__(self, x, y, w, h):
         super().__init__(x, y, w, h)
 
-        self.game = RuleQuad()
-        self.game.set_on_change_pieces(self.hdl_change_pieces)
+        self.game = Rule4Player()
+        self.game.set_on_change_pieces(self.hdl_changed_pieces)
         self.game.set_on_end(self.hdl_end)
-        self.game.set_on_give_up(self.hdl_give_up)
+        self.game.set_on_give_up(self.hdl_gave_up)
 
         self.rotation = Rotation.DEFAULT
         self.player_id = 0
@@ -46,9 +46,17 @@ class QuadGameView(Area, View):
         self.notice.put('GAME START!', frame_to_hide=60)
     
     def hdl_place_piece(self, shape: TilesMap, rotation: Rotation, x: int, y: int):
-        return self.game.place(shape, rotation, x, y)
+        success = False
+        if self.game.get_turn() == self.player_id:
+            r = self.game.place(shape, rotation, x, y)
+            success = r == PlacementResult.SUCCESS
+        return success
     
-    def hdl_change_pieces(self, player: int, data: GameData):
+    def hdl_give_up(self):
+        if self.game.get_turn() == self.player_id:
+            self.game.give_up()
+    
+    def hdl_changed_pieces(self, player: int, data: GameData):
         if player == self.player_id:
             self.picker.reset_pieces(
                 p.shape for p in data.pieces_by_player[player] if not p.placed()
@@ -65,7 +73,7 @@ class QuadGameView(Area, View):
         else: win = 0
         self.notice.put('Finish!')
     
-    def hdl_give_up(self, player: int):
+    def hdl_gave_up(self, player: int):
         if player != self.player_id:
             self.notice.put('THE ENEMY GAVE UP!')
     
@@ -79,7 +87,7 @@ class QuadGameView(Area, View):
         self.cursor.set_rotation(self.rotation)
 
         if btnp(Bind.GIVE_UP):
-            self.game.give_up()
+            self.hdl_give_up()
 
         self.picker.update()
         self.board.update()

@@ -63,6 +63,27 @@ class Rule:
 
         return result
     
+    def ai_place(self):
+        import random
+
+        cand_shapes = list(p.shape for p in self.data.pieces_by_player[self.get_turn()] if not p.placed())
+        random.shuffle(cand_shapes)
+
+        for s in cand_shapes:
+            cand_placements = []
+            for r in (Rotation.DEFAULT, Rotation.RIGHT_90, Rotation.RIGHT_180, Rotation.RIGHT_270):
+                cand_placements += self.find_placements(s, r)
+            
+            if not cand_placements.__len__() == 0: break
+        else:
+            self.give_up()
+            return
+
+        randomed_placement = random.choice(cand_placements)
+        ai_result = self.place(*randomed_placement)
+
+        if not PlacementResult.successes(ai_result): raise RuntimeError('AIがピースの設置に失敗した。')
+    
     def __switch_turn(self):
         """ターンを次へめくる"""
         turn = self.get_turn()
@@ -107,6 +128,23 @@ class Rule:
     
     def get_pieces_shape(self, which_player: int):
         return tuple(p.shape for p in self.data.pieces_by_player[which_player])
+    
+    def find_placements(self, shape: TilesMap, rotation: Rotation):
+        candidates: List[Tuple[TilesMap, Rotation, int, int]] = []
+
+        r = rotation
+        piece = Piece(shape)
+        _map = numpy.array( [[0 for _ in range(self.data.board_size)] for _ in range(self.data.board_size)] )
+        for (y, x), _ in numpy.ndenumerate(_map):
+            piece.place(x, y, r)
+            
+            if self.players_state[self.get_turn()] == 0: c = self.data.start_corner[self.get_turn()]
+            else: c = None
+            result = self.prm.check(piece, c)
+
+            if PlacementResult.successes(result):
+                candidates.append( (piece.shape, r, x, y) )
+        return candidates
 
 class Rule4Player(Rule):
     def __init__(self):

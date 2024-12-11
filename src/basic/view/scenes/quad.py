@@ -46,10 +46,16 @@ class QuadGameView(Area, View):
         self.notice.put('GAME START!', frame_to_hide=60)
     
     def hdl_place_piece(self, shape: TilesMap, rotation: Rotation, x: int, y: int):
+        if self.game.get_turn() != self.player_id: raise RuntimeError('ターンが不正である。')
+
         success = False
         if self.game.get_turn() == self.player_id:
             r = self.game.place(shape, rotation, x, y)
             success = r == PlacementResult.SUCCESS
+            
+        for _ in range(1, 4):
+            self.game.ai_place()
+
         return success
     
     def hdl_give_up(self):

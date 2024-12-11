@@ -1,3 +1,7 @@
-freeze.txt
-mypy.txt
 __pycache__/
+
+/freeze.txt
+/mypy.txt
+
+/build/
+/dist/

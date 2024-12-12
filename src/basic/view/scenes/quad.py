@@ -92,8 +92,8 @@ class QuadGameView(Area, View):
         )
     
     def hdl_gave_up(self, player: int):
-        if player != self.player_id:
-            self.notice.put('THE ENEMY GAVE UP!')
+        name, color = self.players[player]
+        self.notice.put(f'{name} GAVE UP!', color=color)
     
     def update(self):
         if btnp(Bind.ROTATE_LEFT):

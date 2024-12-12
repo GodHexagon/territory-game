@@ -45,34 +45,40 @@ class QuadGameView(Area, View):
         self.notice = FrontNoticeView(x + w / 2 - 150, y + h * 0.3, 300, 50)
         self.notice.put('GAME START!', frame_to_hide=60)
     
-    def __turn_end(self):
+    def __turn_end(self, log: EventLogger):
         while self.game.get_turn() != self.player_id and not self.game.is_end():
-            self.game.ai_place()
+            _, l = self.game.ai_place()
+            log.append(l)
+        
+        self.__commmon_event_handler(log)
     
     def __commmon_event_handler(self, log: EventLogger):
-        if log.changed_piece_by_player is not None: 
-            player = log.changed_piece_by_player
-            data = log.data
-            if player == self.player_id:
+        data = log.data
+
+        cpbp = log.changed_piece_by_player
+        if cpbp.__len__() > 0: 
+            if self.player_id in cpbp:
                 self.picker.reset_pieces(
-                    p.shape for p in data.pieces_by_player[player] if not p.placed()
+                    p.shape for p in data.pieces_by_player[self.player_id] if not p.placed()
                 )
                 held = self.cursor.held
                 if held is not None:
                     held.clear()
             self.board.rewrite_board(tuple(data.pieces_by_player), tuple(c for _, c in self.players))
         
-        if log.gave_up_player is not None:
-            player = log.gave_up_player
-            name, color = self.players[player]
+        g_p = log.gave_up_player
+        if g_p.__len__() == 1:
+            name, color = self.players[g_p.pop()]
             self.notice.put(f'{name} GAVE UP!', color=color)
+        elif g_p.__len__() > 1:
+            self.notice.put('SOME PEOPLE GAVE UP!')
         
         if log.ended:
             scores = self.game.get_scores()
-            if scores[0] < scores[1]: win = 'VICTORY!'
-            elif scores[0] > scores[1]: win = 'DEFEAT...'
-            else: win = 'DRAW'
-            self.notice.put(win)
+            ps = scores[self.player_id]
+            if any([s > ps for s in scores]): win = -1
+            elif scores.count(ps) > 1: win = 0
+            else: win = 1
             self.result.show(
                 [(f"{name}: {score}", color) for (name, color), score in zip(self.players, scores)],
                 win
@@ -84,18 +90,18 @@ class QuadGameView(Area, View):
 
         success = False
         if self.game.get_turn() == self.player_id:
-            r, r = self.game.place(shape, rotation, x, y)
+            r, l = self.game.place(shape, rotation, x, y)
             success = r == PlacementResult.SUCCESS
             
-        self.__turn_end()
+            self.__turn_end(l)
 
         return success
     
     def hdl_give_up(self):
         if self.game.get_turn() == self.player_id:
-            self.game.give_up()
+            _, l = self.game.give_up()
 
-            self.__turn_end()
+            self.__turn_end(l)
     
     def update(self):
         if btnp(Bind.ROTATE_LEFT):

@@ -51,11 +51,11 @@ class Rule:
 
         changed = self.get_turn()
         self.__switch_turn()
-        self.logger.changed_piece_by_player = changed
+        self.logger.changed_piece_by_player.add(changed)
 
         return result, self.__get_log()
     
-    def ai_place(self):
+    def ai_place(self) -> Tuple[bool, 'EventLogger']:
         import random
 
         cand_shapes = list(p.shape for p in self.data.pieces_by_player[self.get_turn()] if not p.placed())
@@ -69,12 +69,14 @@ class Rule:
             if not cand_placements.__len__() == 0: break
         else:
             self.give_up()
-            return
+            return False, self.__get_log()
 
         randomed_placement = random.choice(cand_placements)
-        pr, _ = self.place(*randomed_placement)
+        pr, ev = self.place(*randomed_placement)
 
         if pr != PlacementResult.SUCCESS: raise RuntimeError('AIがピースの設置に失敗した。')
+
+        return True, ev
         
     def give_up(self) -> Tuple[bool, 'EventLogger']:
         """ピースを置く場所がなくなったプレイヤーが、ピースを置く代わりに実行する。"""        
@@ -84,7 +86,7 @@ class Rule:
 
         self.players_state[target] = 2
         self.__switch_turn()
-        self.logger.gave_up_player = target
+        self.logger.gave_up_player.add(target)
 
         return True, self.__get_log()
     
@@ -165,14 +167,11 @@ class Rule4Player(Rule):
 class EventLogger:
     def __init__(self, data: GameData):
         self.data = data
-        self.changed_piece_by_player: int | None = None
-        self.gave_up_player: int | None = None
+        self.changed_piece_by_player: Set[int] = set()
+        self.gave_up_player: Set[int] = set()
         self.ended: bool = False
     
-    def get_changed_piece_by_player(self):
-        if self.changed_piece_by_player is None: raise ValueError('そのイベントは起こっていない。')
-        return self.changed_piece_by_player
-    
-    def get_gave_up_player(self):
-        if self.gave_up_player is None: raise ValueError('そのイベントは起こっていない。')
-        return self.gave_up_player
+    def append(self, other: 'EventLogger'):
+        self.changed_piece_by_player |= other.changed_piece_by_player
+        self.gave_up_player |= other.gave_up_player
+        self.ended |= other.ended

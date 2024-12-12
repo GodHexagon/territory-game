@@ -39,7 +39,7 @@ class QuadGameView(Area, View):
             self.cursor
         )
         
-        self.result = ResultWindow(x + (w - 300) / 2, board_view_end_y - 100, 300, 150)
+        self.result = ResultWindow(x + (w - 300) / 2, board_view_end_y - 100, 300, 200)
         
         self.picker.set_piece_rotation(self.rotation)
         self.board.set_piece_rotation(self.rotation)

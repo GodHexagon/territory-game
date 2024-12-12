@@ -8,6 +8,8 @@ from typing import *
 
 class ResultWindow(Area, View):
     BORDER_THICKNESS_PX = 5
+    TITLE_SCALE = 4
+    BODY_SCALE = 3
 
     def __init__(self, x, y, w, h):
         super().__init__(x, y, w, h)
@@ -44,14 +46,15 @@ class ResultWindow(Area, View):
                 self.title,
                 0, 0, self.title.width, self.title.height,
                 colkey=1,
-                scale=4
+                scale=ResultWindow.TITLE_SCALE
             )
             for image, i in zip(self.text_imgs, range(self.text_imgs.__len__())):
+                BODY = ResultWindow.BODY_SCALE
                 pyxel.blt(
-                    self.x + 50,
+                    self.x + 30 + (image.width * (BODY - 1)) / 2,
                     self.y + 60 + 30 * i,
                     image,
                     0, 0, image.width, image.height,
                     colkey=1,
-                    scale=3
+                    scale=BODY
                 )

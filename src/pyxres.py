@@ -3,7 +3,7 @@ import os
 
 if getattr(sys, 'frozen', False):
     # PyInstallerで実行されている場合
-    resource_path = os.path.join(sys._MEIPASS, 'art', 'common.pyxpal'), os.path.join(sys._MEIPASS, 'art', 'common.pyxres')
+    resource_path = os.path.join(sys._MEIPASS, 'art', 'common.pyxpal'), os.path.join(sys._MEIPASS, 'art', 'common.pyxres') # type: ignore
 else:
     # 通常のPython実行時
     resource_path = os.path.join('..', 'art', 'common.pyxpal'), os.path.join('..', 'art', 'common.pyxres')

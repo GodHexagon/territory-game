@@ -1,6 +1,6 @@
 from ..view import Area, View
 from ..areas import *
-from ...rule.rule import Rule4Player, Rotation, TilesMap, GameData, PlacementResult
+from ...rule.rule import Rule4Player, Rotation, TilesMap, GameData, PlacementResult, EventLogger
 from pyxres import BLUE_COLOR_S, RED_COLOR_S, GREEN_COLOR_S, YELLOW_COLOR_S
 from ...key_bind import *
 
@@ -9,9 +9,6 @@ class QuadGameView(Area, View):
         super().__init__(x, y, w, h)
 
         self.game = Rule4Player()
-        self.game.set_on_change_pieces(self.hdl_changed_pieces)
-        self.game.set_on_end(self.hdl_end)
-        self.game.set_on_give_up(self.hdl_gave_up)
 
         self.rotation = Rotation.DEFAULT
         self.players = [('YOU', BLUE_COLOR_S), ('RED PLAYER', RED_COLOR_S), ('GREEN PLAYER', GREEN_COLOR_S), ('YELLOW PLAYER', YELLOW_COLOR_S)]
@@ -52,12 +49,42 @@ class QuadGameView(Area, View):
         while self.game.get_turn() != self.player_id and not self.game.is_end():
             self.game.ai_place()
     
+    def __commmon_event_handler(self, log: EventLogger):
+        if log.changed_piece_by_player is not None: 
+            player = log.changed_piece_by_player
+            data = log.data
+            if player == self.player_id:
+                self.picker.reset_pieces(
+                    p.shape for p in data.pieces_by_player[player] if not p.placed()
+                )
+                held = self.cursor.held
+                if held is not None:
+                    held.clear()
+            self.board.rewrite_board(tuple(data.pieces_by_player), tuple(c for _, c in self.players))
+        
+        if log.gave_up_player is not None:
+            player = log.gave_up_player
+            name, color = self.players[player]
+            self.notice.put(f'{name} GAVE UP!', color=color)
+        
+        if log.ended:
+            scores = self.game.get_scores()
+            if scores[0] < scores[1]: win = 'VICTORY!'
+            elif scores[0] > scores[1]: win = 'DEFEAT...'
+            else: win = 'DRAW'
+            self.notice.put(win)
+            self.result.show(
+                [(f"{name}: {score}", color) for (name, color), score in zip(self.players, scores)],
+                win
+            )
+    
     def hdl_place_piece(self, shape: TilesMap, rotation: Rotation, x: int, y: int):
+        if self.game.get_turn() == GameData.END_STATE_TURN: return False
         if self.game.get_turn() != self.player_id: raise RuntimeError('ターンが不正である。')
 
         success = False
         if self.game.get_turn() == self.player_id:
-            r = self.game.place(shape, rotation, x, y)
+            r, r = self.game.place(shape, rotation, x, y)
             success = r == PlacementResult.SUCCESS
             
         self.__turn_end()
@@ -69,31 +96,6 @@ class QuadGameView(Area, View):
             self.game.give_up()
 
             self.__turn_end()
-    
-    def hdl_changed_pieces(self, player: int, data: GameData):
-        if player == self.player_id:
-            self.picker.reset_pieces(
-                p.shape for p in data.pieces_by_player[player] if not p.placed()
-            )
-            held = self.cursor.held
-            if held is not None:
-                held.clear()
-        self.board.rewrite_board(tuple(data.pieces_by_player), tuple(c for _, c in self.players))
-
-    def hdl_end(self):
-        scores = self.game.get_scores()
-        if scores[0] < scores[1]: win = 'VICTORY!'
-        elif scores[0] > scores[1]: win = 'DEFEAT...'
-        else: win = 'DRAW'
-        self.notice.put(win)
-        self.result.show(
-            [(f"{name}: {score}", color) for (name, color), score in zip(self.players, scores)],
-            win
-        )
-    
-    def hdl_gave_up(self, player: int):
-        name, color = self.players[player]
-        self.notice.put(f'{name} GAVE UP!', color=color)
     
     def update(self):
         if btnp(Bind.ROTATE_LEFT):

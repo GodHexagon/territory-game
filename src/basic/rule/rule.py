@@ -11,15 +11,6 @@ class Rule:
     """ゲームルールに基づきデータをアップデートさせ、さらに現在のデータを提供する"""
     BOARD_SIZE_TILES = 20
 
-    def set_on_change_pieces(self, value: Callable[[int, 'GameData'], None]):
-        self.on_change_pieces = value
-    
-    def set_on_end(self, value: Callable[[], None]):
-        self.on_end = value
-    
-    def set_on_give_up(self, value: Callable[[int], None]):
-        self.on_give_up = value
-
     def set_up(
             self, 
             players_number: int,
@@ -35,10 +26,11 @@ class Rule:
             Rule.BOARD_SIZE_TILES
         )
         self.players_state = [0 for _ in range(players_number)] # 0: 一つもピースを置いていない, 1: 通常の状態, 2: 全てのピースを置いた
+        self.logger = EventLogger(self.data)
 
         self.prm = PlacementRuleMap.get_empty_pm(self.data)
     
-    def place(self, shape: TilesMap, rotation: Rotation, x: int, y: int) -> 'PlacementResult':
+    def place(self, shape: TilesMap, rotation: Rotation, x: int, y: int):
         """プレイヤーがピースを置く操作"""
         selectables = tuple(p for p in self.data.pieces_by_player[self.get_turn()] if not p.placed() and shape.is_equal(p.shape))
 
@@ -53,15 +45,15 @@ class Rule:
         else: c = None
         result = self.prm.check(future, c)
 
-        if not PlacementResult.successes(result): return result
+        if not PlacementResult.successes(result): return result, self.__get_log()
 
         target.place(x, y, rotation)
 
         changed = self.get_turn()
         self.__switch_turn()
-        self.on_change_pieces(changed, self.data)
+        self.logger.changed_piece_by_player = changed
 
-        return result
+        return result, self.__get_log()
     
     def ai_place(self):
         import random
@@ -80,9 +72,21 @@ class Rule:
             return
 
         randomed_placement = random.choice(cand_placements)
-        ai_result = self.place(*randomed_placement)
+        pr, _ = self.place(*randomed_placement)
 
-        if ai_result != PlacementResult.SUCCESS: raise RuntimeError('AIがピースの設置に失敗した。')
+        if pr != PlacementResult.SUCCESS: raise RuntimeError('AIがピースの設置に失敗した。')
+        
+    def give_up(self) -> Tuple[bool, 'EventLogger']:
+        """ピースを置く場所がなくなったプレイヤーが、ピースを置く代わりに実行する。"""        
+        target = self.get_turn()
+
+        if self.players_state[target] == 2: return False, self.__get_log()
+
+        self.players_state[target] = 2
+        self.__switch_turn()
+        self.logger.gave_up_player = target
+
+        return True, self.__get_log()
     
     def __switch_turn(self):
         """ターンを次へめくる"""
@@ -101,18 +105,15 @@ class Rule:
 
         if len(active_players) == 0:
             self.data.turn = GameData.END_STATE_TURN
-            self.on_end()
+            self.logger.ended = True
         else:
             self.data.turn = active_players[0]
             self.prm = PlacementRuleMap.get_current_pm(self.data)
-
-    def give_up(self):
-        """ピースを置く場所がなくなったプレイヤーが、ピースを置く代わりに実行する。"""        
-        target = self.get_turn()
-
-        self.players_state[target] = 2
-        self.__switch_turn()
-        self.on_give_up(target)
+    
+    def __get_log(self):
+        curr = self.logger
+        self.logger = EventLogger(self.data)
+        return curr
 
     def get_scores(self) -> List[int]:
         scores = []
@@ -160,3 +161,18 @@ class Rule4Player(Rule):
                 (True, True),
             ]
         )
+    
+class EventLogger:
+    def __init__(self, data: GameData):
+        self.data = data
+        self.changed_piece_by_player: int | None = None
+        self.gave_up_player: int | None = None
+        self.ended: bool = False
+    
+    def get_changed_piece_by_player(self):
+        if self.changed_piece_by_player is None: raise ValueError('そのイベントは起こっていない。')
+        return self.changed_piece_by_player
+    
+    def get_gave_up_player(self):
+        if self.gave_up_player is None: raise ValueError('そのイベントは起こっていない。')
+        return self.gave_up_player

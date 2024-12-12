@@ -68,8 +68,8 @@ class Rule:
             
             if not cand_placements.__len__() == 0: break
         else:
-            self.give_up()
-            return False, self.__get_log()
+            _, ev = self.give_up()
+            return False, ev
 
         randomed_placement = random.choice(cand_placements)
         pr, ev = self.place(*randomed_placement)

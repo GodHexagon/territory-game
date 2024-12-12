@@ -14,6 +14,7 @@ class QuadGameView(Area, View):
         self.game.set_on_give_up(self.hdl_gave_up)
 
         self.rotation = Rotation.DEFAULT
+        self.players = [('YOU', BLUE_COLOR_S), ('RED PLAYER', RED_COLOR_S), ('GREEN PLAYER', GREEN_COLOR_S), ('YELLOW PLAYER', YELLOW_COLOR_S)]
         self.player_id = 0
         
         self.cursor = Cursor()
@@ -25,7 +26,7 @@ class QuadGameView(Area, View):
             w, 
             board_view_end_y, 
             self.cursor, 
-            BLUE_COLOR_S,
+            self.players[self.player_id][1],
             self.hdl_place_piece
         )
         self.picker = PickerView(
@@ -34,9 +35,11 @@ class QuadGameView(Area, View):
             w, 
             h - board_view_end_y - 1, 
             self.game.get_pieces_shape(self.player_id),
-            BLUE_COLOR_S,
+            self.players[self.player_id][1],
             self.cursor
         )
+        
+        self.result = ResultWindow(x + (w - 300) / 2, board_view_end_y - 100, 300, 150)
         
         self.picker.set_piece_rotation(self.rotation)
         self.board.set_piece_rotation(self.rotation)
@@ -75,7 +78,7 @@ class QuadGameView(Area, View):
             held = self.cursor.held
             if held is not None:
                 held.clear()
-        self.board.rewrite_board(tuple(data.pieces_by_player), (BLUE_COLOR_S, RED_COLOR_S, GREEN_COLOR_S, YELLOW_COLOR_S))
+        self.board.rewrite_board(tuple(data.pieces_by_player), tuple(c for _, c in self.players))
 
     def hdl_end(self):
         scores = self.game.get_scores()
@@ -83,6 +86,10 @@ class QuadGameView(Area, View):
         elif scores[0] > scores[1]: win = 'DEFEAT...'
         else: win = 'DRAW'
         self.notice.put(win)
+        self.result.show(
+            [(f"{name}: {score}", color) for (name, color), score in zip(self.players, scores)],
+            win
+        )
     
     def hdl_gave_up(self, player: int):
         if player != self.player_id:
@@ -102,11 +109,13 @@ class QuadGameView(Area, View):
 
         self.picker.update()
         self.board.update()
-        self.cursor.update()
         self.notice.update()
+        self.result.update()
+        self.cursor.update()
     
     def draw(self):
         self.board.draw()
         self.picker.draw()
-        self.cursor.draw()
         self.notice.draw()
+        self.result.draw()
+        self.cursor.draw()

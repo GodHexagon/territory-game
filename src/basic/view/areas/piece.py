@@ -78,7 +78,6 @@ class FollowablePiece:
     
     def clear(self):
         self.holder.hold()
-        self = None
     
 class PieceHolder(CenteredArea):
     def hold(self, piece: Optional[FollowablePiece] = None):

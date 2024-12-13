@@ -19,7 +19,7 @@ class Rotation(enum.Enum):
         return Rotation((rotation.value + 3) % 4)
 
 class TilesMap:
-    def __init__(self, input_array: numpy.ndarray):
+    def __init__(self, input_array: numpy.ndarray | Tuple[Tuple[int, ...], ...]):
         # 入力が ndarray でない場合、自動変換
         if not isinstance(input_array, numpy.ndarray):
             input_array = numpy.array(input_array)

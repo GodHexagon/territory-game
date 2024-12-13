@@ -2,6 +2,7 @@ __pycache__/
 
 /freeze.txt
 /mypy.txt
+/log.txt
 
 /build/
 /dist/

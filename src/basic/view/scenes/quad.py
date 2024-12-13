@@ -52,6 +52,17 @@ class GameView(Area, View, ABC):
         pass
     
     def update(self):
+        if btnp(Bind.ROTATE_LEFT):
+            self.rotation = Rotation.counter_cw(self.rotation)
+        if btnp(Bind.ROTATE_RIGHT):
+            self.rotation = Rotation.cw(self.rotation)
+        self.picker.set_piece_rotation(self.rotation)
+        self.board.set_piece_rotation(self.rotation)
+        self.cursor.set_rotation(self.rotation)
+
+        if btnp(Bind.GIVE_UP):
+            self.hdl_give_up()
+        
         self.picker.update()
         self.board.update()
         self.notice.update()
@@ -136,16 +147,5 @@ class QuadGameView(GameView):
             return s
         return False
     
-    def update(self) -> None:
-        if btnp(Bind.ROTATE_LEFT):
-            self.rotation = Rotation.counter_cw(self.rotation)
-        if btnp(Bind.ROTATE_RIGHT):
-            self.rotation = Rotation.cw(self.rotation)
-        self.picker.set_piece_rotation(self.rotation)
-        self.board.set_piece_rotation(self.rotation)
-        self.cursor.set_rotation(self.rotation)
-
-        if btnp(Bind.GIVE_UP):
-            self.hdl_give_up()
-        
+    def update(self) -> None:        
         super().update()

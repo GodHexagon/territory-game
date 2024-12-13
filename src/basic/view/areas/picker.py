@@ -129,7 +129,7 @@ class Shelf(LimitableArea):
         
         return tuple(pieces)
     
-    def get_a_item(self, piece_res: TilesMap, piece_color_s):
+    def get_a_item(self, piece_res: TilesMap, piece_color_s: int):
         return Item(
             self,
             (0, 0),

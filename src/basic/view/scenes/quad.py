@@ -4,16 +4,14 @@ from ...rule.rule import Rule4Player, Rotation, TilesMap, GameData, PlacementRes
 from pyxres import BLUE_COLOR_S, RED_COLOR_S, GREEN_COLOR_S, YELLOW_COLOR_S
 from ...key_bind import *
 
-class QuadGameView(Area, View):
-    def __init__(self, x, y, w, h):
-        super().__init__(x, y, w, h)
+from abc import ABC, abstractmethod
 
-        self.game = Rule4Player()
-
-        self.rotation = Rotation.DEFAULT
-        self.players = [('YOU', BLUE_COLOR_S), ('RED PLAYER', RED_COLOR_S), ('GREEN PLAYER', GREEN_COLOR_S), ('YELLOW PLAYER', YELLOW_COLOR_S)]
-        self.player_id = 0
+class GameView(Area, View, ABC):
+    def init_view(self, primary_color_s: int, picker_shapes: Tuple[TilesMap]):
+        x, y, w, h = self.x, self.y, self.w, self.h
         
+        self.rotation = Rotation.DEFAULT
+
         self.cursor = Cursor()
 
         board_view_end_y = int(y + h * 0.6)
@@ -23,7 +21,7 @@ class QuadGameView(Area, View):
             w, 
             board_view_end_y, 
             self.cursor, 
-            self.players[self.player_id][1],
+            primary_color_s,
             self.hdl_place_piece
         )
         self.picker = PickerView(
@@ -31,8 +29,8 @@ class QuadGameView(Area, View):
             board_view_end_y + 1, 
             w, 
             h - board_view_end_y - 1, 
-            self.game.get_pieces_shape(self.player_id),
-            self.players[self.player_id][1],
+            picker_shapes,
+            primary_color_s,
             self.cursor
         )
         
@@ -44,6 +42,38 @@ class QuadGameView(Area, View):
 
         self.notice = FrontNoticeView(x + w / 2 - 150, y + h * 0.3, 300, 50)
         self.notice.put('GAME START!', frame_to_hide=60)
+    
+    @abstractmethod
+    def hdl_place_piece(self, shape: TilesMap, rotation: Rotation, x: int, y: int) -> bool:
+        pass
+
+    @abstractmethod
+    def hdl_give_up(self) -> None:
+        pass
+    
+    def update(self):
+        self.picker.update()
+        self.board.update()
+        self.notice.update()
+        self.result.update()
+        self.cursor.update()
+        
+    def draw(self):
+        self.board.draw()
+        self.picker.draw()
+        self.notice.draw()
+        self.result.draw()
+        self.cursor.draw()
+
+class QuadGameView(GameView):
+    def __init__(self, x, y, w, h) -> None:
+        self.game = Rule4Player()
+
+        self.players = [('YOU', BLUE_COLOR_S), ('RED PLAYER', RED_COLOR_S), ('GREEN PLAYER', GREEN_COLOR_S), ('YELLOW PLAYER', YELLOW_COLOR_S)]
+        self.player_id = 0
+
+        super().__init__(x, y, w, h)
+        self.init_view(self.players[self.player_id][1], self.game.get_pieces_shape(self.player_id))
     
     def __turn_end(self, log: EventLogger):
         while self.game.get_turn() != self.player_id and not self.game.is_end():
@@ -59,12 +89,12 @@ class QuadGameView(Area, View):
         if cpbp.__len__() > 0: 
             if self.player_id in cpbp:
                 self.picker.reset_pieces(
-                    p.shape for p in data.pieces_by_player[self.player_id] if not p.placed()
+                    tuple(p.shape for p in data.pieces_by_player[self.player_id] if not p.placed())
                 )
                 held = self.cursor.held
                 if held is not None:
                     held.clear()
-            self.board.rewrite_board(tuple(data.pieces_by_player), tuple(c for _, c in self.players))
+            self.board.rewrite_board(tuple(data.pieces_by_player.copy()), tuple(c for _, c in self.players))
         
         g_p = log.gave_up_player
         if g_p.__len__() == 1:
@@ -114,16 +144,5 @@ class QuadGameView(Area, View):
 
         if btnp(Bind.GIVE_UP):
             self.hdl_give_up()
-
-        self.picker.update()
-        self.board.update()
-        self.notice.update()
-        self.result.update()
-        self.cursor.update()
-    
-    def draw(self):
-        self.board.draw()
-        self.picker.draw()
-        self.notice.draw()
-        self.result.draw()
-        self.cursor.draw()
+        
+        super().update()

@@ -47,7 +47,7 @@ class BoardView(View, LimitableArea):
         self.on_place_piece = on_place_piece
         self.dg: Dragging | None = None
     
-    def rewrite_board(self, pieces: Tuple[PiecesBP, ...], color_s_s: Tuple[int]):
+    def rewrite_board(self, pieces: Tuple[PiecesBP, ...], color_s_s: Tuple[int, ...]) -> None:
         if len(pieces) != len(color_s_s): raise ValueError('プレイヤー数と色指定の要素数が異なる。')
         for pieces_bp, color_s in zip(pieces, color_s_s):
             self.__rewrite_commited_tiles_data(pieces_bp, BoardView.TILE_DATA_COLORS.index(color_s))

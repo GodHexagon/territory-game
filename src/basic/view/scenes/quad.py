@@ -48,7 +48,7 @@ class GameView(Area, View, ABC):
         pass
 
     @abstractmethod
-    def hdl_give_up(self) -> None:
+    def hdl_give_up(self) -> bool:
         pass
     
     def update(self):
@@ -75,14 +75,14 @@ class QuadGameView(GameView):
         super().__init__(x, y, w, h)
         self.init_view(self.players[self.player_id][1], self.game.get_pieces_shape(self.player_id))
     
-    def __turn_end(self, log: EventLogger):
+    def __turn_end(self, log: EventLogger) -> None:
         while self.game.get_turn() != self.player_id and not self.game.is_end():
             _, l = self.game.ai_place()
             log.append(l)
         
         self.__commmon_event_handler(log)
     
-    def __commmon_event_handler(self, log: EventLogger):
+    def __commmon_event_handler(self, log: EventLogger) -> None:
         data = log.data
 
         cpbp = log.changed_piece_by_player
@@ -114,7 +114,7 @@ class QuadGameView(GameView):
                 win
             )
     
-    def hdl_place_piece(self, shape: TilesMap, rotation: Rotation, x: int, y: int):
+    def hdl_place_piece(self, shape: TilesMap, rotation: Rotation, x: int, y: int) -> bool:
         if self.game.get_turn() == GameData.END_STATE_TURN: return False
         if self.game.get_turn() != self.player_id: raise RuntimeError('ターンが不正である。')
 
@@ -127,13 +127,16 @@ class QuadGameView(GameView):
 
         return success
     
-    def hdl_give_up(self):
+    def hdl_give_up(self) -> bool:
         if self.game.get_turn() == self.player_id:
-            _, l = self.game.give_up()
+            s, l = self.game.give_up()
 
             self.__turn_end(l)
+
+            return s
+        return False
     
-    def update(self):
+    def update(self) -> None:
         if btnp(Bind.ROTATE_LEFT):
             self.rotation = Rotation.counter_cw(self.rotation)
         if btnp(Bind.ROTATE_RIGHT):

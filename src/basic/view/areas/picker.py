@@ -52,7 +52,7 @@ class PickerView(LimitableArea, View):
         self.reset_pieces(pieces)
         self.scroll_bar = ScrollBar(self.x, self.y + self.h - SLIDER_HEIGHT + 1, self.w)
     
-    def reset_pieces(self, pieces: Tuple[TilesMap]):
+    def reset_pieces(self, pieces: Tuple[TilesMap, ...]) -> None:
         self.items = list(self.shelf.ini_items(
             pieces,
             self.piece_color_s

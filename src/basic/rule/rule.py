@@ -163,6 +163,25 @@ class Rule4Player(Rule):
                 (True, True),
             ]
         )
+
+class Rule2Player(Rule):
+    def __init__(self):
+        self.set_up(
+            2,
+            [
+                (False, True),
+                (True, False),
+            ]
+        )
+
+        import copy
+
+        ps: List[Piece] = []
+        for p in Piece.get_piece_set():
+            ps.append(p)
+            ps.append(p)
+        self.data.pieces_by_player[0] = tuple(ps)
+        self.data.pieces_by_player[1] = tuple(copy.deepcopy(ps))
     
 class EventLogger:
     def __init__(self, data: GameData):

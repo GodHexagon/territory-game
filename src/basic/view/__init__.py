@@ -1,4 +1,4 @@
-from .scenes.quad import QuadGameView
+from .scenes.quad import SingleplayGameView
 from .view import View
 
-__all__ = ['QuadGameView', 'View']
+__all__ = ['SingleplayGameView', 'View']

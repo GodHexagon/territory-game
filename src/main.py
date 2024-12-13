@@ -10,13 +10,13 @@ class App:
         pyxel.mouse(True)
         pyxel.load(pyxres.PYXRES_PATH)
 
-        self.scene = QuadGameView(0, 0, pyxel.width, pyxel.height)
+        self.scene = SingleplayGameView(0, 0, pyxel.width, pyxel.height)
 
         pyxel.run(self.update, self.draw)
 
     def update(self) -> None:
         if pyxel.btnp(pyxel.KEY_R) and pyxel.btn(pyxel.KEY_CTRL):
-            self.scene = QuadGameView(0, 0, pyxel.width, pyxel.height)
+            self.scene = SingleplayGameView(0, 0, pyxel.width, pyxel.height)
 
         self.scene.update()
 

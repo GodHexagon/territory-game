@@ -1,10 +1,12 @@
 from ..view import Area, View
 from ..areas import *
-from ...rule.rule import Rule4Player, Rotation, TilesMap, GameData, PlacementResult, EventLogger
+from ...rule.rule import Rule, Rule4Player, Rule2Player, Rotation, TilesMap, GameData, PlacementResult, EventLogger
 from pyxres import BLUE_COLOR_S, RED_COLOR_S, GREEN_COLOR_S, YELLOW_COLOR_S
 from ...key_bind import *
 
 from abc import ABC, abstractmethod
+from enum import Enum
+from typing import *
 
 class GameView(Area, View, ABC):
     def init_view(self, primary_color_s: int, picker_shapes: Tuple[TilesMap]):
@@ -76,9 +78,27 @@ class GameView(Area, View, ABC):
         self.result.draw()
         self.cursor.draw()
 
-class QuadGameView(GameView):
-    def __init__(self, x, y, w, h) -> None:
-        self.game = Rule4Player()
+class PlayersType(Enum):
+    PLAYABLE = 0
+    AI = 1
+
+class SingleplayGameView(GameView):
+    def __init__(self, x, y, w, h, 
+        players_data: List[Tuple[PlayersType, str]],
+    ) -> None:
+        if players_data.__len__() == 2:
+            game = Rule2Player()
+        elif players_data.__len__() == 4:
+            game = Rule4Player()
+        else:
+            raise ValueError('そのプレイヤー数ではゲームをできません。')
+        
+        self.game: Rule = game
+        
+        pid = None
+        ps: List[Tuple[str, int]] = []
+        for s in zip(players_data, (BLUE_COLOR_S, RED_COLOR_S, GREEN_COLOR_S, YELLOW_COLOR_S)):
+            ps.append()
 
         self.players = [('YOU', BLUE_COLOR_S), ('RED PLAYER', RED_COLOR_S), ('GREEN PLAYER', GREEN_COLOR_S), ('YELLOW PLAYER', YELLOW_COLOR_S)]
         self.player_id = 0

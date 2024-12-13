@@ -1,5 +1,2 @@
 python .\src\main.py
-pip freeze
-pip freeze > .\freeze.txt
-mypy .\src\main.py
-mypy .\src\main.py > .\mypy.txt
+mypy .\src\main.py --check-untyped-defs

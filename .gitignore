@@ -1,1 +1,7 @@
 __pycache__/
+
+/freeze.txt
+/mypy.txt
+
+/build/
+/dist/

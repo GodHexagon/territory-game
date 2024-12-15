@@ -33,7 +33,7 @@ class BoardView(View, LimitableArea):
         self.set_limiteds()
 
         self.commited_tiles_data = numpy.array( [[0 for _ in range(DraggableBoard.BOARD_SIZE_TILES)] for _ in range(DraggableBoard.BOARD_SIZE_TILES)] )
-        self.displaying_tiles_data = self.commited_tiles_data
+        self.displaying_tiles_data = numpy.array( [[0 for _ in range(DraggableBoard.BOARD_SIZE_TILES)] for _ in range(DraggableBoard.BOARD_SIZE_TILES)] )
 
         self.board = DraggableBoard(
             self.x + self.w // 2, 
@@ -273,12 +273,6 @@ class CursorMonitor(LimitableArea):
             )
 
             shape = self.cursor.held.shape.rotate(rotation)
-            
-            r = rotation
-            rotation_times = 0
-            if r == Rotation.RIGHT_90: rotation_times = 1
-            elif r == Rotation.RIGHT_180: rotation_times = 2
-            elif r == Rotation.RIGHT_270: rotation_times = 3
 
             diff = None
             for (y, x), value in numpy.ndenumerate(shape.to_ndarray()):

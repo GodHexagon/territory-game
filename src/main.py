@@ -10,13 +10,23 @@ class App:
         pyxel.mouse(True)
         pyxel.load(pyxres.PYXRES_PATH)
 
-        self.scene = SingleplayGameView(0, 0, pyxel.width, pyxel.height)
+        self.__init_game()
 
         pyxel.run(self.update, self.draw)
+    
+    def __init_game(self):
+        PT = PlayersType
+        self.scene = SingleplayGameView(
+            0, 0, pyxel.width, pyxel.height,
+            [
+                (PT.PLAYABLE, 'YOU'),
+                (PT.AI, 'ENEMY'),
+            ]
+        )
 
     def update(self) -> None:
         if pyxel.btnp(pyxel.KEY_R) and pyxel.btn(pyxel.KEY_CTRL):
-            self.scene = SingleplayGameView(0, 0, pyxel.width, pyxel.height)
+            self.__init_game()
 
         self.scene.update()
 

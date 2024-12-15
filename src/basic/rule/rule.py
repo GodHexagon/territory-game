@@ -17,11 +17,17 @@ class Rule:
             start_corner: List[Tuple[bool, bool]]
         ):
         """子クラスのコンストラクタ内で実行すべきコストラクタ処理"""
-        if not len(start_corner) == players_number: ValueError('start_corner引数が不正。プレイヤーの数だけリスト要素が存在している必要があります。')
+        if not (2 <= players_number and players_number <= 4): raise ValueError('プレイヤー数が２～４人である必要があります。')
+        if not len(start_corner) == players_number: raise ValueError('start_corner引数が不正。プレイヤーの数だけリスト要素が存在している必要があります。')
+
+        if players_number == 2:
+            pbp = [Piece.get_piece_set() + Piece.get_piece_set() for _ in range(players_number)]
+        else:
+            pbp = [Piece.get_piece_set() for _ in range(players_number)]
 
         self.data = GameData(
             0,
-            [Piece.get_piece_set() for _ in range(players_number)],
+            pbp,
             start_corner,
             Rule.BOARD_SIZE_TILES
         )
@@ -152,36 +158,9 @@ class Rule:
                 candidates.append( (piece.shape, r, x, y) )
         return candidates
 
-class Rule4Player(Rule):
-    def __init__(self):
-        self.set_up(
-            4,
-            [
-                (False, True),
-                (False, False),
-                (True, False),
-                (True, True),
-            ]
-        )
-
-class Rule2Player(Rule):
-    def __init__(self):
-        self.set_up(
-            2,
-            [
-                (False, True),
-                (True, False),
-            ]
-        )
-
-        import copy
-
-        ps: List[Piece] = []
-        for p in Piece.get_piece_set():
-            ps.append(p)
-            ps.append(p)
-        self.data.pieces_by_player[0] = tuple(ps)
-        self.data.pieces_by_player[1] = tuple(copy.deepcopy(ps))
+class BasicRule(Rule):
+    def __init__(self, players_number: int, start_corner: List[Tuple[bool, bool]]):
+        self.set_up(players_number, start_corner)
     
 class EventLogger:
     def __init__(self, data: GameData):

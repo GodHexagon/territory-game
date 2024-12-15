@@ -1,6 +1,6 @@
 from ..view import Area, View
 from ..areas import *
-from ...rule.rule import Rule, Rule4Player, Rule2Player, Rotation, TilesMap, GameData, PlacementResult, EventLogger
+from ...rule.rule import Rule, BasicRule, Rotation, TilesMap, GameData, PlacementResult, EventLogger
 from pyxres import BLUE_COLOR_S, RED_COLOR_S, GREEN_COLOR_S, YELLOW_COLOR_S
 from ...key_bind import *
 
@@ -79,6 +79,7 @@ class GameView(Area, View, ABC):
         self.cursor.draw()
 
 class PlayersType(Enum):
+    UNASSIGNED = -1
     PLAYABLE = 0
     AI = 1
 
@@ -86,28 +87,41 @@ class SingleplayGameView(GameView):
     def __init__(self, x, y, w, h, 
         players_data: List[Tuple[PlayersType, str]],
     ) -> None:
-        if players_data.__len__() == 2:
-            game = Rule2Player()
-        elif players_data.__len__() == 4:
-            game = Rule4Player()
-        else:
-            raise ValueError('そのプレイヤー数ではゲームをできません。')
-        
-        self.game: Rule = game
-        
-        pid = None
-        ps: List[Tuple[str, int]] = []
-        for s in zip(players_data, (BLUE_COLOR_S, RED_COLOR_S, GREEN_COLOR_S, YELLOW_COLOR_S)):
-            ps.append()
+        inidif = (
+            ((False, True), BLUE_COLOR_S, 0),
+            ((False, False), RED_COLOR_S, 1),
+            ((True, False), GREEN_COLOR_S, 2),
+            ((True, True), YELLOW_COLOR_S, 3),
+        )
 
-        self.players = [('YOU', BLUE_COLOR_S), ('RED PLAYER', RED_COLOR_S), ('GREEN PLAYER', GREEN_COLOR_S), ('YELLOW PLAYER', YELLOW_COLOR_S)]
-        self.player_id = 0
+        playable_id = None
+        players: List[Tuple[str, int]] = []
+        corners: List[Tuple[bool, bool]] = []
+        for (type, name), (corner, color, pid)in zip(players_data, inidif):
+            if type != PlayersType.UNASSIGNED:
+                if type == PlayersType.PLAYABLE: playable_id = pid
+
+                players.append((name, color))
+                corners.append(corner)
+        else:
+            if playable_id is None: raise ValueError('プレイヤーのidが指定されていません。')
+        
+        if players_data.__len__() == 2:
+            corners = [inidif[0][0], inidif[2][0]]
+
+        self.playable_id = playable_id
+        self.players = players
+        
+        self.game: Rule = BasicRule(
+            players.__len__(),
+            corners
+        )
 
         super().__init__(x, y, w, h)
-        self.init_view(self.players[self.player_id][1], self.game.get_pieces_shape(self.player_id))
+        self.init_view(self.players[self.playable_id][1], self.game.get_pieces_shape(self.playable_id))
     
     def __turn_end(self, log: EventLogger) -> None:
-        while self.game.get_turn() != self.player_id and not self.game.is_end():
+        while self.game.get_turn() != self.playable_id and not self.game.is_end():
             _, l = self.game.ai_place()
             log.append(l)
         
@@ -118,9 +132,9 @@ class SingleplayGameView(GameView):
 
         cpbp = log.changed_piece_by_player
         if cpbp.__len__() > 0: 
-            if self.player_id in cpbp:
+            if self.playable_id in cpbp:
                 self.picker.reset_pieces(
-                    tuple(p.shape for p in data.pieces_by_player[self.player_id] if not p.placed())
+                    tuple(p.shape for p in data.pieces_by_player[self.playable_id] if not p.placed())
                 )
                 held = self.cursor.held
                 if held is not None:
@@ -136,7 +150,7 @@ class SingleplayGameView(GameView):
         
         if log.ended:
             scores = self.game.get_scores()
-            ps = scores[self.player_id]
+            ps = scores[self.playable_id]
             if any([s > ps for s in scores]): win = -1
             elif scores.count(ps) > 1: win = 0
             else: win = 1
@@ -147,10 +161,10 @@ class SingleplayGameView(GameView):
     
     def hdl_place_piece(self, shape: TilesMap, rotation: Rotation, x: int, y: int) -> bool:
         if self.game.get_turn() == GameData.END_STATE_TURN: return False
-        if self.game.get_turn() != self.player_id: raise RuntimeError('ターンが不正である。')
+        if self.game.get_turn() != self.playable_id: raise RuntimeError('ターンが不正である。')
 
         success = False
-        if self.game.get_turn() == self.player_id:
+        if self.game.get_turn() == self.playable_id:
             r, l = self.game.place(shape, rotation, x, y)
             success = r == PlacementResult.SUCCESS
             
@@ -159,7 +173,7 @@ class SingleplayGameView(GameView):
         return success
     
     def hdl_give_up(self) -> bool:
-        if self.game.get_turn() == self.player_id:
+        if self.game.get_turn() == self.playable_id:
             s, l = self.game.give_up()
 
             self.__turn_end(l)

@@ -119,13 +119,16 @@ class SingleplayGameView(GameView):
 
         super().__init__(x, y, w, h)
         self.init_view(self.players[self.playable_id][1], self.game.get_pieces_shape(self.playable_id))
+
+        self.__turn_end()
     
-    def __turn_end(self, log: EventLogger) -> None:
+    def __turn_end(self, log: Optional[EventLogger] = None) -> None:
         while self.game.get_turn() != self.playable_id and not self.game.is_end():
             _, l = self.game.ai_place()
-            log.append(l)
+            if log is None: log = l
+            else: log.append(l)
         
-        self.__commmon_event_handler(log)
+        if log is not None: self.__commmon_event_handler(log)
     
     def __commmon_event_handler(self, log: EventLogger) -> None:
         data = log.data

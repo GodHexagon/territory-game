@@ -85,7 +85,7 @@ class BoardView(View, LimitableArea):
         self.c_monitor.monitor_placement(self.on_place_piece, self.piece_rotation)
         # タイルを再生成
         cursored_tiles_data = self.commited_tiles_data.copy()
-        self.c_monitor.write_hover_piece(cursored_tiles_data, 1)
+        self.c_monitor.write_hover_piece(cursored_tiles_data, BoardView.TILE_DATA_COLORS.index(self.color_s))
         if not numpy.all(cursored_tiles_data == self.displaying_tiles_data):
             self.displaying_tiles_data = cursored_tiles_data
             self.board.set_tiles(self.__draw_tiles(self.displaying_tiles_data))

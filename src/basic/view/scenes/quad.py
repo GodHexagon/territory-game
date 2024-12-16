@@ -8,7 +8,7 @@ from abc import ABC, abstractmethod
 from enum import Enum
 from typing import *
 
-class GameView(Area, View, ABC):
+class GameScene(Area, View, ABC):
     def init_view(self, primary_color_s: int, picker_shapes: Tuple[TilesMap]):
         x, y, w, h = self.x, self.y, self.w, self.h
         
@@ -83,7 +83,7 @@ class PlayersType(Enum):
     PLAYABLE = 0
     AI = 1
 
-class SingleplayGameView(GameView):
+class SingleplayGameScene(GameScene):
     def __init__(self, x, y, w, h, 
         players_data: List[Tuple[PlayersType, str]],
     ) -> None:

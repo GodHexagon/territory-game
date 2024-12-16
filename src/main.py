@@ -15,24 +15,17 @@ class App:
         pyxel.run(self.update, self.draw)
     
     def __init_game(self):
-        PT = PlayersType
-        self.scene = SingleplayGameView(
-            0, 0, pyxel.width, pyxel.height,
-            [
-                (PT.PLAYABLE, 'YOU'),
-                (PT.AI, 'ENEMY'),
-            ]
-        )
+        self.view = MainView(0, 0, pyxel.width, pyxel.height)
 
     def update(self) -> None:
         if pyxel.btnp(pyxel.KEY_R) and pyxel.btn(pyxel.KEY_CTRL):
             self.__init_game()
 
-        self.scene.update()
+        self.view.update()
 
     def draw(self) -> None:
         pyxel.cls(0)
-        self.scene.draw()
+        self.view.draw()
 
 
 App()

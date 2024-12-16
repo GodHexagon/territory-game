@@ -12,19 +12,26 @@ pyxel: https://github.com/kitao/pyxel
 
 ### .exeファイルを実行する
 
-この方法では、PCのセキュリティが反応して.exeファイルを危険だと判断するようです。責任は負いかねますが、マルウェアが入っているわけではありません。無視してファイルを実行することでゲームを遊べます。
+以下のブランチに移動して、「Download ZIP」を用いてダウンロードします。
 
-以下に示したファイルをダウンロードします。
+https://github.com/GodHexagon/territory-game/tree/dist/alpha/vsai-1-1
 
-https://github.com/GodHexagon/territory-game/blob/dist/alpha/vsai-1-0/territory_game.exe
+以下のように、「<> Code ▼」 -> 「Download ZIP」となっているはずです。
 
-これを実行すると、ゲームが起動します。
+![image](https://github.com/user-attachments/assets/f815076d-25e4-4f16-942e-46c7011ef8a7)
+
+
+ZIP形式でダウンロードされますので、解凍します。
+
+`./territory_game/territory_game.exe`の位置にある.exeファイルを実行すると、ゲームが起動します。
 
 ### Python3インタプリンタで実行する
 
 この方法では、Python3インタプリンタが、環境にインストールされている必要があります。
 
 当該リポジトリをローカルにクローンします。
+
+masterブランチに移動します。
 
 Windowsの場合は、リポジトリルートから、".\run.bat"の位置にあるファイルを実行すると、自動でゲームが起動します。
 

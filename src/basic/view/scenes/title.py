@@ -9,11 +9,11 @@ from typing import *
 
 # タイトルのシーン
 class TitleScene(Area, View):
-    def __init__(self, x, y, w, h, on_clicks: Tuple[Callable[[], None]]):
+    def __init__(self, x, y, w, h, selected_singleplay: Callable[[], None]):
         super().__init__(x, y, w, h)
 
         self.title = TextDrawable.generate_text_image("TERRITORY GAME", 0, COLOR_PRIMARY)
-        self.start_button = Button(x + w / 2, y + h / 3 + 100, "START", on_clicks[0])
+        self.start_button = Button(x + w / 2, y + h / 3 + 100, "START", selected_singleplay)
     
     def update(self):
         self.start_button.update()

@@ -8,7 +8,7 @@ class MainView(View, Area):
     def __init__(self, x, y, w, h):
         super().__init__(x, y, w, h)
         PT = PlayersType
-        self.scene: View = TitleScene(x, y, w, h, (self.on_launch_singleplay,))
+        self.scene: View = TitleScene(x, y, w, h, self.on_launch_singleplay)
     
     def on_launch_singleplay(self):
         PT = PlayersType

@@ -23,7 +23,7 @@ https://github.com/GodHexagon/territory-game/tree/dist/alpha/vsai-1-1
 
 ZIP形式でダウンロードされますので、解凍します。
 
-`./territory_game/territory_game.exe`の位置にある.exeファイルを実行すると、ゲームが起動します。
+中に入っている、`territory_game.exe`というファイルを実行すると、ゲームが起動します。
 
 ### Python3インタプリンタで実行する
 

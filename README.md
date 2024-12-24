@@ -23,7 +23,7 @@ https://github.com/GodHexagon/territory-game/tree/dist/alpha/vsai-1-1
 
 ZIP形式でダウンロードされますので、解凍します。
 
-`./territory_game/territory_game.exe`の位置にある.exeファイルを実行すると、ゲームが起動します。
+中に入っている、`territory_game.exe`というファイルを実行すると、ゲームが起動します。
 
 ### Python3インタプリンタで実行する
 
@@ -35,7 +35,7 @@ masterブランチに移動します。
 
 Windowsの場合は、リポジトリルートから、".\run.bat"の位置にあるファイルを実行すると、自動でゲームが起動します。
 
-それ以外の場合でも、リポジトリルートから、以下のコマンドを実行することで、同様にゲームが起動します。
+それ以外の場合でも、リポジトリルートから、以下のコマンドを実行することで、同様にゲームが起動するはずです（未検証）。
 
 ```
 pip install -r ./requirements.txt

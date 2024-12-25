@@ -1,7 +1,7 @@
 from ..view import View, Area, CenteredArea
 from ..limitter import LimitableArea
 from ..areas.text import WritenText
-from pyxres import COLOR_BLACK, COLOR_WHITE, COLOR_PRIMARY
+from pyxres import COLOR_BLACK, COLOR_WHITE, COLOR_PRIMARY, BLUE_COLOR_S, RED_COLOR_S, GREEN_COLOR_S, YELLOW_COLOR_S
 
 import pyxel
 
@@ -12,15 +12,32 @@ class GameSettingScene(Area, View):
     TEXT_COLOR = COLOR_BLACK
     BACKGROUND_COLOR = COLOR_WHITE
 
+    COMUNM_NAMES_Y = 80
+    PLAYABLE_CENTER_X = 192
+    AI_CENTER_X = 256
+
     def __init__(self, x, y, w, h):
         super().__init__(x, y, w, h)
 
-        l = []
+        self.title = WritenText(0, y + 32, "CHOOSE YOUR COLOR", GameSettingScene.TEXT_COLOR, 5)
+        self.title.x = x + 32
+
+        PCX = self.PLAYABLE_CENTER_X
+        ACX = self.AI_CENTER_X
+        Y = self.COMUNM_NAMES_Y
+        self.column_names = (
+            WritenText(0, y + Y, "NAME", GameSettingScene.TEXT_COLOR),
+            WritenText(PCX, y + Y, "YOU", GameSettingScene.TEXT_COLOR),
+            WritenText(ACX, y + Y, "AI", GameSettingScene.TEXT_COLOR)
+        )
+        self.column_names[0].x = x + 32
+
+        l: List[Player] = []
         for i in range(4):
             callback = lambda type, i=i: self.__hdl_change_player_type(i, type)
             player = Player(
                 self.x + 32,
-                self.y + i * 48 + 32,
+                self.y + i * 48 + 96,
                 self.w - 64,
                 f"PLAYER {i + 1}",
                 callback,
@@ -45,6 +62,9 @@ class GameSettingScene(Area, View):
     
     def draw(self):
         pyxel.cls(self.BACKGROUND_COLOR)
+        self.title.draw()
+        for c in self.column_names:
+            c.draw()
         for p in self.players:
             p.draw()
         
@@ -62,12 +82,13 @@ class Player(LimitableArea):
         self.on_change = on_change
         self.type = default
 
-        self.label = WritenText(x + 128, y + self.h / 2, label, GameSettingScene.TEXT_COLOR, 3)
+        self.label = WritenText(0, y + self.h / 2, label, GameSettingScene.TEXT_COLOR, 3)
+        self.label.x = x + 16
     
     def ini_radios(self) -> Tuple['RadioButton', 'RadioButton']:
         self.buttons = (
-            RadioButton(self.x + self.w - 192, self.y + self.h / 2, self.__hdl_click_playable, self.type == PlayerType.PLAYABLE),
-            RadioButton(self.x + self.w - 128, self.y + self.h / 2, self.__hdl_click_ai, self.type == PlayerType.AI)
+            RadioButton(GameSettingScene.PLAYABLE_CENTER_X, self.y + self.h / 2, self.__hdl_click_playable, self.type == PlayerType.PLAYABLE),
+            RadioButton(GameSettingScene.AI_CENTER_X, self.y + self.h / 2, self.__hdl_click_ai, self.type == PlayerType.AI)
         )
         return self.buttons
     

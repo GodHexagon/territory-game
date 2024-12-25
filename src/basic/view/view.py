@@ -26,6 +26,32 @@ class Area(ABC):
         self.y = y
         self.w = w
         self.h = h
+    
+    def to_x(self, x: float):
+        self.x = x
+    
+    def to_y(self, y: float):
+        self.y = y
+    
+    def to_x_bottom(self, x: float):
+        self.x = x - self.w
+    
+    def to_y_bottom(self, y: float):
+        self.y = y - self.h
+    
+    def resize_to_end_x(self, x: float):
+        self.w = x - self.x
+    
+    def resize_to_end_y(self, y: float):
+        self.h = y - self.y
+    
+    def resize_to_start_x(self, x: float):
+        self.w = self.x - x
+        self.x = x
+    
+    def resize_to_start_y(self, y: float):
+        self.h = self.y - y
+        self.y = y
 
 class CenteredArea(Area):
     def to_center_pos(self, cx: float, cy: float):

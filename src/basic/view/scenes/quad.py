@@ -1,6 +1,8 @@
 from ..view import Area, View
 from ..areas import *
 from ...rule.rule import Rule, BasicRule, Rotation, TilesMap, GameData, PlacementResult, EventLogger
+from .player_type import PlayerType
+
 from pyxres import BLUE_COLOR_S, RED_COLOR_S, GREEN_COLOR_S, YELLOW_COLOR_S
 from ...key_bind import *
 
@@ -78,14 +80,9 @@ class GameScene(Area, View, ABC):
         self.result.draw()
         self.cursor.draw()
 
-class PlayersType(Enum):
-    UNASSIGNED = -1
-    PLAYABLE = 0
-    AI = 1
-
 class SingleplayGameScene(GameScene):
     def __init__(self, x, y, w, h, 
-        players_data: List[Tuple[PlayersType, str]],
+        players_data: List[Tuple[str, PlayerType]],
     ) -> None:
         inidif = (
             ((False, True), BLUE_COLOR_S, 0),
@@ -97,9 +94,9 @@ class SingleplayGameScene(GameScene):
         playable_id = None
         players: List[Tuple[str, int]] = []
         corners: List[Tuple[bool, bool]] = []
-        for (type, name), (corner, color, pid)in zip(players_data, inidif):
-            if type != PlayersType.UNASSIGNED:
-                if type == PlayersType.PLAYABLE: playable_id = pid
+        for (name, type), (corner, color, pid)in zip(players_data, inidif):
+            if type != PlayerType.UNASSIGNED:
+                if type == PlayerType.PLAYABLE: playable_id = pid
 
                 players.append((name, color))
                 corners.append(corner)

@@ -1,17 +1,13 @@
 from ..view import View, Area, CenteredArea
 from ..limitter import LimitableArea
 from ..areas.text import WritenText
-from ..text import TextDrawable
+from .player_type import PlayerType
 from pyxres import COLOR_BLACK, COLOR_WHITE, COLOR_PRIMARY, BLUE_COLOR_S, RED_COLOR_S, GREEN_COLOR_S, YELLOW_COLOR_S
 
 import pyxel
 
 from typing import *
 from enum import Enum
-
-class Gamemode(Enum):
-    SINGLEPLAY = 0
-    MULTIPLAY = 1
 
 class GameSettingScene(Area, View):
     TEXT_COLOR = COLOR_BLACK
@@ -29,7 +25,7 @@ class GameSettingScene(Area, View):
         (3, YELLOW_COLOR_S, "YELLOW")
     )
 
-    def __init__(self, x, y, w, h, on_launch_game: Callable[[Gamemode], None]):
+    def __init__(self, x, y, w, h, on_launch_game: Callable[[List[Tuple[str, PlayerType]]], None]):
         super().__init__(x, y, w, h)
 
         self.on_launch_game = on_launch_game
@@ -49,8 +45,10 @@ class GameSettingScene(Area, View):
         )
         self.column_names[0].x = x + MARGIN
 
+        PCS = GameSettingScene.PLAYER_COLORS
+
         l: List[Player] = []
-        for i, color, color_name in GameSettingScene.PLAYER_COLORS:
+        for i, color, color_name in PCS:
             callback = lambda type, i=i: self.__hdl_change_player_type(i, type)
             player = Player(
                 x + MARGIN,
@@ -67,7 +65,9 @@ class GameSettingScene(Area, View):
         self.buttons = [p.ini_radios() for p in self.players]
 
         self.start_button = StartButton(0, y + 96 + 48 * 4 + 32, 
-            lambda : self.on_launch_game(Gamemode.SINGLEPLAY)
+            lambda : self.on_launch_game(list(
+                (pc[2], p.type) for pc, p in zip(PCS, self.players)
+            ))
         )
         self.start_button.to_x_bottom(w - MARGIN)
         self.start_button.label.to_center_pos(*self.start_button.get_center_pos())
@@ -116,10 +116,6 @@ class StartButton(CenteredArea, LimitableArea):
     def draw(self):
         self.drawer.rectb(self.x, self.y, self.w, self.h, COLOR_PRIMARY)
         self.label.draw()
-
-class PlayerType(Enum):
-    PLAYABLE = 0
-    AI = 1
 
 class Player(LimitableArea):
     HEIGHT_PX = 32

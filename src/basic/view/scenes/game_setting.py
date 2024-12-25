@@ -17,6 +17,7 @@ class GameSettingScene(Area, View):
     LEFT_MARGIN_PX = 32
     PLAYABLE_CENTER_X = 192
     AI_CENTER_X = 256
+    UNASSIGNED_CENTER_X = 320
 
     PLAYER_COLORS = (
         (0, BLUE_COLOR_S, "BLUE"),
@@ -32,16 +33,18 @@ class GameSettingScene(Area, View):
 
         MARGIN = GameSettingScene.LEFT_MARGIN_PX
 
-        self.title = WritenText(0, y + 32, "CHOOSE YOUR COLOR", GameSettingScene.TEXT_COLOR, 5)
+        self.title = WritenText(0, y + 32, "SETTING FOR PLAYING", GameSettingScene.TEXT_COLOR, 5)
         self.title.x = x + MARGIN
 
         PCX = self.PLAYABLE_CENTER_X
         ACX = self.AI_CENTER_X
+        UCX = self.UNASSIGNED_CENTER_X
         Y = self.COMUNM_NAMES_Y
         self.column_names = (
             WritenText(0, y + Y, "NAME", GameSettingScene.TEXT_COLOR),
             WritenText(PCX, y + Y, "YOU", GameSettingScene.TEXT_COLOR),
-            WritenText(ACX, y + Y, "AI", GameSettingScene.TEXT_COLOR)
+            WritenText(ACX, y + Y, "AI", GameSettingScene.TEXT_COLOR),
+            WritenText(UCX, y + Y, "NONE", GameSettingScene.TEXT_COLOR)
         )
         self.column_names[0].x = x + MARGIN
 
@@ -73,10 +76,6 @@ class GameSettingScene(Area, View):
         self.start_button.label.to_center_pos(*self.start_button.get_center_pos())
     
     def __hdl_change_player_type(self, which: int, player_type: 'PlayerType'):
-        if PlayerType.PLAYABLE == player_type:
-            for p in self.players:
-                if p.type == PlayerType.PLAYABLE:
-                    p.set_player_type(PlayerType.AI)
         self.players[which].set_player_type(player_type)
     
     def update(self):
@@ -130,10 +129,11 @@ class Player(LimitableArea):
         self.label = WritenText(0, y + self.h / 2, label, label_color, scale=3)
         self.label.x = x + 16
     
-    def ini_radios(self) -> Tuple['RadioButton', 'RadioButton']:
+    def ini_radios(self) -> Tuple['RadioButton', ...]:
         self.buttons = (
             RadioButton(GameSettingScene.PLAYABLE_CENTER_X, self.y + self.h / 2, self.__hdl_click_playable, self.type == PlayerType.PLAYABLE),
-            RadioButton(GameSettingScene.AI_CENTER_X, self.y + self.h / 2, self.__hdl_click_ai, self.type == PlayerType.AI)
+            RadioButton(GameSettingScene.AI_CENTER_X, self.y + self.h / 2, self.__hdl_click_ai, self.type == PlayerType.AI),
+            RadioButton(GameSettingScene.UNASSIGNED_CENTER_X, self.y + self.h / 2, self.__hdl_click_unassigned, self.type == PlayerType.UNASSIGNED)
         )
         return self.buttons
     
@@ -141,14 +141,16 @@ class Player(LimitableArea):
         self.type = player_type
         self.buttons[0].set_selected(player_type == PlayerType.PLAYABLE)
         self.buttons[1].set_selected(player_type == PlayerType.AI)
+        self.buttons[2].set_selected(player_type == PlayerType.UNASSIGNED)
     
     def __hdl_click_playable(self):
-        self.set_player_type(PlayerType.PLAYABLE)
         self.on_change(PlayerType.PLAYABLE)
     
     def __hdl_click_ai(self):
-        self.set_player_type(PlayerType.AI)
         self.on_change(PlayerType.AI)
+    
+    def __hdl_click_unassigned(self):
+        self.on_change(PlayerType.UNASSIGNED)
     
     def draw(self):
         self.drawer.rect(self.x, self.y, self.w, self.h, COLOR_PRIMARY)

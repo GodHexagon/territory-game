@@ -91,6 +91,8 @@ class SingleplayGameScene(GameScene):
             ((True, True), YELLOW_COLOR_S, 3),
         )
 
+        if players_data.__len__() != 4: raise ValueError(f'players_data引数の要素数は必ず4です。{players_data.__len__()}')
+
         playable_id = None
         players: List[Tuple[str, int]] = []
         corners: List[Tuple[bool, bool]] = []

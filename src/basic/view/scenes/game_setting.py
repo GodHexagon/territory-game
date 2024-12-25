@@ -15,16 +15,28 @@ class GameSettingScene(Area, View):
     def __init__(self, x, y, w, h):
         super().__init__(x, y, w, h)
 
-        self.players = [Player(
-            self.x + 32,
-            self.y + i * 48 + 32,
-            self.w - 64,
-            f"player {i + 1}",
-            lambda _: None,
-            PlayerType.PLAYABLE if i == 0 else PlayerType.AI
-        ) for i in range(4)]
+        l = []
+        for i in range(4):
+            callback = lambda type, i=i: self.__hdl_change_player_type(i, type)
+            player = Player(
+                self.x + 32,
+                self.y + i * 48 + 32,
+                self.w - 64,
+                f"PLAYER {i + 1}",
+                callback,
+                PlayerType.PLAYABLE if i == 0 else PlayerType.AI
+            )
+            l.append(player)
+        self.players = l
 
         self.buttons = [p.ini_radios() for p in self.players]
+    
+    def __hdl_change_player_type(self, which: int, player_type: 'PlayerType'):
+        if PlayerType.PLAYABLE == player_type:
+            for p in self.players:
+                if p.type == PlayerType.PLAYABLE:
+                    p.set_player_type(PlayerType.AI)
+        self.players[which].set_player_type(player_type)
     
     def update(self):
         for rs in self.buttons:
@@ -59,17 +71,18 @@ class Player(LimitableArea):
         )
         return self.buttons
     
+    def set_player_type(self, player_type: PlayerType):
+        self.type = player_type
+        self.buttons[0].set_selected(player_type == PlayerType.PLAYABLE)
+        self.buttons[1].set_selected(player_type == PlayerType.AI)
+    
     def __hdl_click_playable(self):
-        self.type = PlayerType.PLAYABLE
-        self.buttons[0].change_selected(True)
-        self.buttons[1].change_selected(False)
-        self.on_change(self.type)
+        self.set_player_type(PlayerType.PLAYABLE)
+        self.on_change(PlayerType.PLAYABLE)
     
     def __hdl_click_ai(self):
-        self.type = PlayerType.AI
-        self.buttons[0].change_selected(False)
-        self.buttons[1].change_selected(True)
-        self.on_change(self.type)
+        self.set_player_type(PlayerType.AI)
+        self.on_change(PlayerType.AI)
     
     def draw(self):
         self.drawer.rect(self.x, self.y, self.w, self.h, COLOR_PRIMARY)
@@ -88,7 +101,7 @@ class RadioButton(CenteredArea, LimitableArea, View):
         self.selected = default
         self.on_click = on_click
     
-    def change_selected(self, selected: bool):
+    def set_selected(self, selected: bool):
         self.selected = selected
     
     def update(self):

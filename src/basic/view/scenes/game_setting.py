@@ -16,6 +16,13 @@ class GameSettingScene(Area, View):
     PLAYABLE_CENTER_X = 192
     AI_CENTER_X = 256
 
+    PLAYER_COLORS = (
+        (0, BLUE_COLOR_S, "BLUE"),
+        (1, RED_COLOR_S, "RED"),
+        (2, GREEN_COLOR_S, "GREEN"),
+        (3, YELLOW_COLOR_S, "YELLOW")
+    )
+
     def __init__(self, x, y, w, h):
         super().__init__(x, y, w, h)
 
@@ -33,15 +40,16 @@ class GameSettingScene(Area, View):
         self.column_names[0].x = x + 32
 
         l: List[Player] = []
-        for i in range(4):
+        for i, color, color_name in GameSettingScene.PLAYER_COLORS:
             callback = lambda type, i=i: self.__hdl_change_player_type(i, type)
             player = Player(
                 self.x + 32,
                 self.y + i * 48 + 96,
                 self.w - 64,
-                f"PLAYER {i + 1}",
+                color_name,
+                color,
                 callback,
-                PlayerType.PLAYABLE if i == 0 else PlayerType.AI
+                default=PlayerType.PLAYABLE if i == 0 else PlayerType.AI
             )
             l.append(player)
         self.players = l
@@ -75,14 +83,14 @@ class PlayerType(Enum):
 class Player(LimitableArea):
     HEIGHT_PX = 32
 
-    def __init__(self, x, y, w, label: str, on_change: Callable[[PlayerType], None], default: PlayerType = PlayerType.AI):
+    def __init__(self, x, y, w, label: str, label_color: int, on_change: Callable[[PlayerType], None], default: PlayerType = PlayerType.AI):
         super().__init__(x, y, w, Player.HEIGHT_PX)
         self.set_limiteds()
 
         self.on_change = on_change
         self.type = default
 
-        self.label = WritenText(0, y + self.h / 2, label, GameSettingScene.TEXT_COLOR, 3)
+        self.label = WritenText(0, y + self.h / 2, label, label_color, scale=3)
         self.label.x = x + 16
     
     def ini_radios(self) -> Tuple['RadioButton', 'RadioButton']:

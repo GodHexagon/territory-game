@@ -1,7 +1,8 @@
 from ..view import Area, View, CenteredArea
 from ..limitter import LimitableArea
+from ..areas.text import WritenText
 from ..text import TextDrawable
-from pyxres import COLOR_PRIMARY
+from pyxres import COLOR_PRIMARY, COLOR_BLACK, COLOR_WHITE
 
 import pyxel
 
@@ -12,7 +13,7 @@ class TitleScene(Area, View):
     def __init__(self, x, y, w, h, selected_singleplay: Callable[[], None]):
         super().__init__(x, y, w, h)
 
-        self.title = TextDrawable.generate_text_image("TERRITORY GAME", 0, COLOR_PRIMARY)
+        self.title = WritenText(self.x + self.w / 2, self.y + self.h / 3, "TERRITORY GAME", COLOR_BLACK, scale=5)
         self.start_button = Button(x + w / 2, y + h / 3 + 100, "START", selected_singleplay)
     
     def update(self):
@@ -20,14 +21,7 @@ class TitleScene(Area, View):
 
     def draw(self):
         pyxel.rect(self.x, self.y, self.w, self.h, COLOR_PRIMARY)
-        pyxel.blt(
-            *TextDrawable.get_args_draw_text(
-                self.title, 
-                self.x + self.w / 2,
-                self.y + self.h / 3
-            ),
-            scale=5
-        )
+        self.title.draw()
         self.start_button.draw()
         
 # 背景のあるボタン

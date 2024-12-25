@@ -6,13 +6,13 @@ import pyxel
 
 from typing import *
 
-class DrawnText(LimitableArea, CenteredArea):
-    def __init__(self, cx, cy, text: str, color: int, scale: int = 1, parent_surface: Optional[Surface] = None):
-        self.background_color = 0 if color == 0 else 1
+class WritenText(LimitableArea, CenteredArea):
+    def __init__(self, cx, cy, text: str, color: int, scale: float = 3.0, parent_surface: Optional[Surface] = None):
+        self.background_color = 1 if color == 0 else 0
         self.scale = scale
         self.img = self.__draw_text(text, color, self.background_color)
 
-        super().__init__(0, 0, self.img.width, self.img.height)
+        super().__init__(0, 0, self.img.width * scale, self.img.height * scale)
         self.to_center_pos(cx, cy)
         self.set_limiteds(parent_surface)
         

@@ -6,15 +6,15 @@ from .player_type import PlayerType
 
 from typing import *
 
-import pyxel
-
 class MainView(View, Area):
     def __init__(self, x, y, w, h):
         super().__init__(x, y, w, h)
         self.scene: View = TitleScene(x, y, w, h, self.hdl_select_singleplay)
     
     def hdl_select_singleplay(self):
-        self.scene = GameSettingScene(self.x, self.y, self.w, self.h, lambda players: self.hdl_launch_singleplay(players))
+        self.scene = GameSettingScene(self.x, self.y, self.w, self.h, 
+            lambda players: self.hdl_launch_singleplay(players)
+        )
     
     def hdl_launch_singleplay(self, players: List[Tuple[str, PlayerType]]):
         self.scene = SingleplayGameScene(

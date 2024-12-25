@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Dict, Optional
+from typing import *
 
 class View(ABC):
     @abstractmethod
@@ -54,9 +54,9 @@ class Area(ABC):
         self.y = y
 
 class CenteredArea(Area):
-    def to_center_pos(self, cx: float, cy: float):
+    def to_center_pos(self, cx: float, cy: float) -> None:
         self.x = cx - self.w / 2
         self.y = cy - self.h / 2
     
-    def get_center_pos(self):
+    def get_center_pos(self) -> Tuple[float, float]:
         return (self.x + self.w / 2, self.y + self.h / 2)

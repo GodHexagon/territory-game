@@ -2,7 +2,7 @@ from ..view import View, Area, CenteredArea
 from ..limitter import LimitableArea
 from ..areas.text import WritenText
 from .player_type import PlayerType
-from pyxres import COLOR_BLACK, COLOR_WHITE, COLOR_PRIMARY, BLUE_COLOR_S, RED_COLOR_S, GREEN_COLOR_S, YELLOW_COLOR_S
+from pyxres import COLOR_BLACK, COLOR_WHITE, COLOR_PRIMARY, COLOR_GRAY, BLUE_COLOR_S, RED_COLOR_S, GREEN_COLOR_S, YELLOW_COLOR_S
 
 import pyxel
 
@@ -77,6 +77,13 @@ class GameSettingScene(Area, View):
     
     def __hdl_change_player_type(self, which: int, player_type: 'PlayerType'):
         self.players[which].set_player_type(player_type)
+
+        playable_count = 0
+        unassigned_count = 0
+        for p in self.players:
+            if p.type == PlayerType.PLAYABLE: playable_count += 1
+            elif p.type == PlayerType.UNASSIGNED: unassigned_count += 1
+        self.start_button.set_enabled(playable_count == 1 and unassigned_count in range(0, 3))
     
     def update(self):
         for rs in self.buttons:
@@ -100,13 +107,26 @@ class StartButton(CenteredArea, LimitableArea):
     def __init__(self, cx: float, cy: float, on_click: Callable[[], None]):
         self.on_click = on_click
 
-        MARGIN = StartButton.MARGIN_PX
+        super().__init__(0, 0, 0, 0)
+        self.write_label(cx, cy)
 
-        self.label = WritenText(cx, cy, "START", GameSettingScene.TEXT_COLOR)
-
-        super().__init__(0, 0, self.label.w + MARGIN * 2, self.label.h + MARGIN * 2)
-        self.to_center_pos(cx, cy)
         self.set_limiteds()
+    
+    def write_label(self, cx: float, cy: float, color: int = COLOR_BLACK) -> None:
+        self.label = WritenText(cx, cy, "GAME START", color)
+
+        MARGIN = StartButton.MARGIN_PX
+        self.w, self.h = (
+            self.label.w + MARGIN * 2,
+            self.label.h + MARGIN * 2
+        )
+        self.to_center_pos(cx, cy)
+    
+    def set_enabled(self, enabled: bool):
+        self.write_label(
+            *self.get_center_pos(),
+            COLOR_BLACK if enabled else COLOR_GRAY
+        )
     
     def update(self):
         if self.input.btnp(pyxel.MOUSE_BUTTON_LEFT):

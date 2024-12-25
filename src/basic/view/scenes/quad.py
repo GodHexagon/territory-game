@@ -85,10 +85,10 @@ class SingleplayGameScene(GameScene):
         players_data: List[Tuple[str, PlayerType]],
     ) -> None:
         inidif = (
-            ((False, True), BLUE_COLOR_S, 0),
-            ((False, False), RED_COLOR_S, 1),
-            ((True, False), GREEN_COLOR_S, 2),
-            ((True, True), YELLOW_COLOR_S, 3),
+            ((False, True), BLUE_COLOR_S),
+            ((False, False), RED_COLOR_S),
+            ((True, False), GREEN_COLOR_S),
+            ((True, True), YELLOW_COLOR_S),
         )
 
         if players_data.__len__() != 4: raise ValueError(f'players_data引数の要素数は必ず4です。{players_data.__len__()}')
@@ -96,16 +96,16 @@ class SingleplayGameScene(GameScene):
         playable_id = None
         players: List[Tuple[str, int]] = []
         corners: List[Tuple[bool, bool]] = []
-        for (name, type), (corner, color, pid)in zip(players_data, inidif):
+        for (name, type), (corner, color)in zip(players_data, inidif):
             if type != PlayerType.UNASSIGNED:
-                if type == PlayerType.PLAYABLE: playable_id = pid
+                if type == PlayerType.PLAYABLE: playable_id = players.__len__()
 
                 players.append((name, color))
                 corners.append(corner)
         else:
             if playable_id is None: raise ValueError('プレイヤーのidが指定されていません。')
         
-        if players_data.__len__() == 2:
+        if players.__len__() == 2:
             corners = [inidif[0][0], inidif[2][0]]
 
         self.playable_id = playable_id

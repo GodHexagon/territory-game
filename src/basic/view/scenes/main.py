@@ -9,12 +9,12 @@ class MainView(View, Area):
     def __init__(self, x, y, w, h):
         super().__init__(x, y, w, h)
         PT = PlayersType
-        self.scene: View = TitleScene(x, y, w, h, self.on_select_singleplay)
+        self.scene: View = TitleScene(x, y, w, h, self.hdl_select_singleplay)
     
-    def on_select_singleplay(self):
-        self.scene = GameSettingScene(self.x, self.y, self.w, self.h)
+    def hdl_select_singleplay(self):
+        self.scene = GameSettingScene(self.x, self.y, self.w, self.h, lambda _: self.hdl_launch_singleplay())
     
-    def on_launch_singleplay(self):
+    def hdl_launch_singleplay(self):
         PT = PlayersType
         self.scene = SingleplayGameScene(
             self.x, self.y, self.w, self.h,

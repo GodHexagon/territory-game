@@ -1,6 +1,7 @@
 from ..view import View, Area, CenteredArea
 from ..limitter import LimitableArea
 from ..areas.text import WritenText
+from ..text import TextDrawable
 from pyxres import COLOR_BLACK, COLOR_WHITE, COLOR_PRIMARY, BLUE_COLOR_S, RED_COLOR_S, GREEN_COLOR_S, YELLOW_COLOR_S
 
 import pyxel
@@ -8,11 +9,16 @@ import pyxel
 from typing import *
 from enum import Enum
 
+class Gamemode(Enum):
+    SINGLEPLAY = 0
+    MULTIPLAY = 1
+
 class GameSettingScene(Area, View):
     TEXT_COLOR = COLOR_BLACK
     BACKGROUND_COLOR = COLOR_WHITE
 
     COMUNM_NAMES_Y = 80
+    LEFT_MARGIN_PX = 32
     PLAYABLE_CENTER_X = 192
     AI_CENTER_X = 256
 
@@ -23,11 +29,15 @@ class GameSettingScene(Area, View):
         (3, YELLOW_COLOR_S, "YELLOW")
     )
 
-    def __init__(self, x, y, w, h):
+    def __init__(self, x, y, w, h, on_launch_game: Callable[[Gamemode], None]):
         super().__init__(x, y, w, h)
 
+        self.on_launch_game = on_launch_game
+
+        MARGIN = GameSettingScene.LEFT_MARGIN_PX
+
         self.title = WritenText(0, y + 32, "CHOOSE YOUR COLOR", GameSettingScene.TEXT_COLOR, 5)
-        self.title.x = x + 32
+        self.title.x = x + MARGIN
 
         PCX = self.PLAYABLE_CENTER_X
         ACX = self.AI_CENTER_X
@@ -37,15 +47,15 @@ class GameSettingScene(Area, View):
             WritenText(PCX, y + Y, "YOU", GameSettingScene.TEXT_COLOR),
             WritenText(ACX, y + Y, "AI", GameSettingScene.TEXT_COLOR)
         )
-        self.column_names[0].x = x + 32
+        self.column_names[0].x = x + MARGIN
 
         l: List[Player] = []
         for i, color, color_name in GameSettingScene.PLAYER_COLORS:
             callback = lambda type, i=i: self.__hdl_change_player_type(i, type)
             player = Player(
-                self.x + 32,
-                self.y + i * 48 + 96,
-                self.w - 64,
+                x + MARGIN,
+                y + i * 48 + 96,
+                w - 64,
                 color_name,
                 color,
                 callback,
@@ -55,6 +65,12 @@ class GameSettingScene(Area, View):
         self.players = l
 
         self.buttons = [p.ini_radios() for p in self.players]
+
+        self.start_button = StartButton(0, y + 96 + 48 * 4 + 32, 
+            lambda : self.on_launch_game(Gamemode.SINGLEPLAY)
+        )
+        self.start_button.to_x_bottom(w - MARGIN)
+        self.start_button.label.to_center_pos(*self.start_button.get_center_pos())
     
     def __hdl_change_player_type(self, which: int, player_type: 'PlayerType'):
         if PlayerType.PLAYABLE == player_type:
@@ -67,6 +83,7 @@ class GameSettingScene(Area, View):
         for rs in self.buttons:
             for r in rs:
                 r.update()
+        self.start_button.update()
     
     def draw(self):
         pyxel.cls(self.BACKGROUND_COLOR)
@@ -75,7 +92,31 @@ class GameSettingScene(Area, View):
             c.draw()
         for p in self.players:
             p.draw()
-        
+        self.start_button.draw()
+            
+# 背景のあるボタン
+class StartButton(CenteredArea, LimitableArea):
+    MARGIN_PX = 6
+    
+    def __init__(self, cx: float, cy: float, on_click: Callable[[], None]):
+        self.on_click = on_click
+
+        MARGIN = StartButton.MARGIN_PX
+
+        self.label = WritenText(cx, cy, "START", GameSettingScene.TEXT_COLOR)
+
+        super().__init__(0, 0, self.label.w + MARGIN * 2, self.label.h + MARGIN * 2)
+        self.to_center_pos(cx, cy)
+        self.set_limiteds()
+    
+    def update(self):
+        if self.input.btnp(pyxel.MOUSE_BUTTON_LEFT):
+            self.on_click()
+
+    def draw(self):
+        self.drawer.rectb(self.x, self.y, self.w, self.h, COLOR_PRIMARY)
+        self.label.draw()
+
 class PlayerType(Enum):
     PLAYABLE = 0
     AI = 1

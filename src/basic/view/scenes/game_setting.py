@@ -195,10 +195,9 @@ class Player(LimitableArea):
     
     def set_player_type(self, player_type: PlayerType):
         self.type = player_type
-        self.buttons[0].set_selected(player_type == PlayerType.PLAYABLE)
-        self.buttons[1].set_selected(player_type == PlayerType.AI)
-        self.buttons[2].set_selected(player_type == PlayerType.UNASSIGNED)
-        self.buttons[3].set_selected(player_type == PlayerType.MULTIPLAYER)
+        ASSIGNMENT = (PlayerType.PLAYABLE, PlayerType.AI, PlayerType.UNASSIGNED, PlayerType.MULTIPLAYER)
+        for i, b in enumerate(self.buttons):
+            b.set_selected(player_type == ASSIGNMENT[i])
     
     def __hdl_click_playable(self):
         self.on_change(PlayerType.PLAYABLE)

@@ -25,9 +25,16 @@ class MainView(View, Area):
         )
     
     def __launch_game(self, players: List[Tuple[str, PlayerType]]):
-        self.scene = SingleplayGameScene(
-            self.x, self.y, self.w, self.h, players
-        )
+        multiplayer = False
+        for _, type in players:
+            if type == PlayerType.MULTIPLAYER: multiplayer = True
+
+        if multiplayer:
+            pass
+        else: 
+            self.scene = SingleplayGameScene(
+                self.x, self.y, self.w, self.h, players
+            )
     
     def update(self):
         self.scene.update()

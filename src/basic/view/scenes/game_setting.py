@@ -7,7 +7,6 @@ from pyxres import COLOR_BLACK, COLOR_WHITE, COLOR_PRIMARY, COLOR_GRAY, BLUE_COL
 import pyxel
 
 from typing import *
-from enum import Enum
 
 class GameSettingScene(Area, View):
     TEXT_COLOR = COLOR_BLACK
@@ -27,6 +26,7 @@ class GameSettingScene(Area, View):
     )
 
     def __init__(self, x, y, w, h, on_launch_game: Callable[[List[Tuple[str, PlayerType]]], None]):
+        if not (x == 0 and y == 0): raise ValueError('このAreaは画面サイズ依存です。')
         super().__init__(x, y, w, h)
 
         self.on_launch_game = on_launch_game
@@ -99,8 +99,7 @@ class GameSettingScene(Area, View):
         for p in self.players:
             p.draw()
         self.start_button.draw()
-            
-# 背景のあるボタン
+
 class StartButton(CenteredArea, LimitableArea):
     MARGIN_PX = 6
     
@@ -203,4 +202,4 @@ class RadioButton(CenteredArea, LimitableArea, View):
         self.drawer.circ(cx, cy, self.RADIUS_PX // 2, EMPTY)
         self.drawer.circb(cx, cy, self.RADIUS_PX // 2, LINE)
         if self.selected:
-            self.drawer.circ(cx, cy, self.RADIUS_PX // 3, LINE)
+            self.drawer.circ(cx, cy, self.RADIUS_PX // 4, LINE)

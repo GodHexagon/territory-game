@@ -1,5 +1,6 @@
 from ..view import View, Area
-from .game.quad import SingleplayGameScene
+from .game.singleplayer import SingleplayGameScene
+from .game.multiplayer import MultiplayerGameScene
 from .title.title import TitleScene
 from .game_setting.game_setting import GameSettingScene
 from .player_type import PlayerType
@@ -30,7 +31,9 @@ class MainView(View, Area):
             if type == PlayerType.MULTIPLAYER: multiplayer = True
 
         if multiplayer:
-            pass
+            self.scene = MultiplayerGameScene(
+                self.x, self.y, self.w, self.h, players
+            )
         else: 
             self.scene = SingleplayGameScene(
                 self.x, self.y, self.w, self.h, players

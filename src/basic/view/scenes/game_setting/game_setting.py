@@ -1,7 +1,7 @@
-from ..view import View, Area, CenteredArea
-from ..limitter import LimitableArea
-from ..areas.text import WritenText
-from .player_type import PlayerType
+from ...view import View, Area, CenteredArea
+from ...limitter import LimitableArea
+from ...areas.text import WritenText
+from ..player_type import PlayerType
 from pyxres import COLOR_BLACK, COLOR_WHITE, COLOR_PRIMARY, COLOR_GRAY, BLUE_COLOR_S, RED_COLOR_S, GREEN_COLOR_S, YELLOW_COLOR_S
 
 import pyxel

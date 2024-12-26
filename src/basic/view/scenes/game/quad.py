@@ -1,10 +1,10 @@
-from ..view import Area, View
-from ..areas import *
-from ...rule.rule import Rule, BasicRule, Rotation, TilesMap, GameData, PlacementResult, EventLogger
-from .player_type import PlayerType
+from ...view import Area, View
+from ...areas import *
+from ....rule.rule import Rule, BasicRule, Rotation, TilesMap, GameData, PlacementResult, EventLogger
+from ..player_type import PlayerType
 
 from pyxres import BLUE_COLOR_S, RED_COLOR_S, GREEN_COLOR_S, YELLOW_COLOR_S
-from ...key_bind import *
+from ....key_bind import *
 
 from abc import ABC, abstractmethod
 from enum import Enum

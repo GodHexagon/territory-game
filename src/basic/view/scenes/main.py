@@ -1,7 +1,7 @@
 from ..view import View, Area
-from .quad import SingleplayGameScene
-from .title import TitleScene
-from .game_setting import GameSettingScene
+from .game.quad import SingleplayGameScene
+from .title.title import TitleScene
+from .game_setting.game_setting import GameSettingScene
 from .player_type import PlayerType
 
 from typing import *

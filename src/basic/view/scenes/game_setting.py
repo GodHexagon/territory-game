@@ -28,17 +28,24 @@ class GameSettingScene(Area, View):
         (3, YELLOW_COLOR_S, "YELLOW")
     )
 
-    def __init__(self, x, y, w, h, on_launch_game: Callable[[List[Tuple[str, PlayerType]]], None], multiplay: bool = False):
+    def __init__(self, x, y, w, h, 
+            on_launch_game: Callable[[List[Tuple[str, PlayerType]]], None], 
+            on_cancel: Callable[[], None],
+            multiplay: bool = False
+        ):
         if not (x == 0 and y == 0): raise ValueError('このAreaは画面サイズ依存です。')
         super().__init__(x, y, w, h)
 
         self.on_launch_game = on_launch_game
+        self.on_cancel = on_cancel
 
+        # 画面タイトル
         MARGIN = GameSettingScene.LEFT_MARGIN_PX
 
         self.title = WritenText(0, y + 32, "SETTING FOR PLAYING", GameSettingScene.TEXT_COLOR, 5)
         self.title.x = x + MARGIN
 
+        # 列名
         PCX = self.PLAYABLE_CENTER_X
         ACX = self.AI_CENTER_X
         UCX = self.UNASSIGNED_CENTER_X
@@ -54,6 +61,7 @@ class GameSettingScene(Area, View):
 
         self.column_names[0].x = x + MARGIN
 
+        # プレイヤー表（行）
         PCS = GameSettingScene.PLAYER_COLORS
 
         l: List[Player] = []
@@ -73,13 +81,21 @@ class GameSettingScene(Area, View):
 
         self.buttons = [p.ini_radios() for p in self.players]
 
-        self.start_button = StartButton(0, y + 96 + 48 * 4 + 32, 
+        # スタートボタン
+        self.start_button = StartButton(0, y + 96 + 48 * 4 + 32, "GAME START",
             lambda : self.on_launch_game(list(
                 (pc[2], p.type) for pc, p in zip(PCS, self.players)
             ))
         )
-        self.start_button.to_x_bottom(w - MARGIN)
+        self.start_button.to_x_end(x + w - MARGIN)
         self.start_button.label.to_center_pos(*self.start_button.get_center_pos())
+        
+        # 戻るボタン
+        self.cancel_button = StartButton(0, y + 96 + 48 * 4 + 32, "CANCEL",
+            lambda : self.on_cancel()
+        )
+        self.cancel_button.to_x(x + MARGIN)
+        self.cancel_button.label.to_center_pos(*self.cancel_button.get_center_pos())
     
     def __hdl_change_player_type(self, which: int, player_type: 'PlayerType'):
         self.players[which].set_player_type(player_type)
@@ -96,6 +112,7 @@ class GameSettingScene(Area, View):
             for r in rs:
                 r.update()
         self.start_button.update()
+        self.cancel_button.update()
     
     def draw(self):
         pyxel.cls(self.BACKGROUND_COLOR)
@@ -105,11 +122,13 @@ class GameSettingScene(Area, View):
         for p in self.players:
             p.draw()
         self.start_button.draw()
+        self.cancel_button.draw()
 
 class StartButton(CenteredArea, LimitableArea):
     MARGIN_PX = 6
     
-    def __init__(self, cx: float, cy: float, on_click: Callable[[], None]):
+    def __init__(self, cx: float, cy: float, label: str, on_click: Callable[[], None]):
+        self.text = label
         self.on_click = on_click
 
         super().__init__(0, 0, 0, 0)
@@ -118,7 +137,7 @@ class StartButton(CenteredArea, LimitableArea):
         self.set_limiteds()
     
     def write_label(self, cx: float, cy: float, color: int = COLOR_BLACK) -> None:
-        self.label = WritenText(cx, cy, "GAME START", color)
+        self.label = WritenText(cx, cy, self.text, color)
 
         MARGIN = StartButton.MARGIN_PX
         self.w, self.h = (

@@ -33,7 +33,7 @@ class Area(ABC):
     def to_y(self, y: float):
         self.y = y
     
-    def to_x_bottom(self, x: float):
+    def to_x_end(self, x: float):
         self.x = x - self.w
     
     def to_y_bottom(self, y: float):

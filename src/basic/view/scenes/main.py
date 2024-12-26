@@ -9,25 +9,22 @@ from typing import *
 class MainView(View, Area):
     def __init__(self, x, y, w, h):
         super().__init__(x, y, w, h)
-        self.show_title()
+        self.__show_title()
     
-    def show_title(self):
-        self.scene: View = TitleScene(self.x, self.y, self.w, self.h, self.hdl_select_singleplay, self.hdl_select_multiplay)
-    
-    def hdl_select_singleplay(self):
-        self.scene = GameSettingScene(self.x, self.y, self.w, self.h, 
-            lambda players: self.hdl_launch_singleplay(players),
-            lambda : self.show_title()
+    def __show_title(self):
+        self.scene: View = TitleScene(self.x, self.y, self.w, self.h,
+            lambda : self.__show_game_setting(False),
+            lambda : self.__show_game_setting(True)                         
         )
     
-    def hdl_select_multiplay(self):
+    def __show_game_setting(self, multiplayer: bool):
         self.scene = GameSettingScene(self.x, self.y, self.w, self.h, 
-            lambda players: self.hdl_launch_singleplay(players),
-            lambda : self.show_title(),
-            multiplay=True
+            lambda players: self.__launch_game(players),
+            lambda : self.__show_title(),
+            multiplay=multiplayer
         )
     
-    def hdl_launch_singleplay(self, players: List[Tuple[str, PlayerType]]):
+    def __launch_game(self, players: List[Tuple[str, PlayerType]]):
         self.scene = SingleplayGameScene(
             self.x, self.y, self.w, self.h, players
         )

@@ -79,7 +79,7 @@ class GameSettingScene(Area, View):
             l.append(player)
         self.players = l
 
-        self.buttons = [p.ini_radios() for p in self.players]
+        self.buttons = [p.ini_radios(multiplay=multiplay) for p in self.players]
 
         # スタートボタン
         self.start_button = StartButton(0, y + 96 + 48 * 4 + 32, "GAME START",
@@ -163,7 +163,12 @@ class StartButton(CenteredArea, LimitableArea):
 class Player(LimitableArea):
     HEIGHT_PX = 32
 
-    def __init__(self, x, y, w, label: str, label_color: int, on_change: Callable[[PlayerType], None], default: PlayerType = PlayerType.AI):
+    def __init__(self, x, y, w, 
+            label: str, 
+            label_color: int, 
+            on_change: Callable[[PlayerType], None], 
+            default: PlayerType = PlayerType.AI
+        ):
         super().__init__(x, y, w, Player.HEIGHT_PX)
         self.set_limiteds()
 
@@ -173,12 +178,19 @@ class Player(LimitableArea):
         self.label = WritenText(0, y + self.h / 2, label, label_color, scale=3)
         self.label.x = x + 16
     
-    def ini_radios(self) -> Tuple['RadioButton', ...]:
-        self.buttons = (
-            RadioButton(GameSettingScene.PLAYABLE_CENTER_X, self.y + self.h / 2, self.__hdl_click_playable, self.type == PlayerType.PLAYABLE),
-            RadioButton(GameSettingScene.AI_CENTER_X, self.y + self.h / 2, self.__hdl_click_ai, self.type == PlayerType.AI),
-            RadioButton(GameSettingScene.UNASSIGNED_CENTER_X, self.y + self.h / 2, self.__hdl_click_unassigned, self.type == PlayerType.UNASSIGNED)
+    def ini_radios(self, multiplay: bool = False) -> Tuple['RadioButton', ...]:
+        PCX = GameSettingScene.PLAYABLE_CENTER_X
+        ACX = GameSettingScene.AI_CENTER_X
+        UCX = GameSettingScene.UNASSIGNED_CENTER_X
+        MCX = GameSettingScene.MULTIPLAY_CENTER_X
+        Y = self.y + self.h / 2
+        self.buttons: Tuple[RadioButton, ...] = (
+            RadioButton(PCX, Y, self.__hdl_click_playable, self.type == PlayerType.PLAYABLE),
+            RadioButton(ACX, Y, self.__hdl_click_ai, self.type == PlayerType.AI),
+            RadioButton(UCX, Y, self.__hdl_click_unassigned, self.type == PlayerType.UNASSIGNED)
         )
+        if multiplay: self.buttons += (RadioButton(MCX, Y, self.__hdl_click_multiplayer, self.type == PlayerType.MULTIPLAYER), )
+
         return self.buttons
     
     def set_player_type(self, player_type: PlayerType):
@@ -186,6 +198,7 @@ class Player(LimitableArea):
         self.buttons[0].set_selected(player_type == PlayerType.PLAYABLE)
         self.buttons[1].set_selected(player_type == PlayerType.AI)
         self.buttons[2].set_selected(player_type == PlayerType.UNASSIGNED)
+        self.buttons[3].set_selected(player_type == PlayerType.MULTIPLAYER)
     
     def __hdl_click_playable(self):
         self.on_change(PlayerType.PLAYABLE)
@@ -195,6 +208,9 @@ class Player(LimitableArea):
     
     def __hdl_click_unassigned(self):
         self.on_change(PlayerType.UNASSIGNED)
+    
+    def __hdl_click_multiplayer(self):
+        self.on_change(PlayerType.MULTIPLAYER)
     
     def draw(self):
         self.drawer.rect(self.x, self.y, self.w, self.h, COLOR_PRIMARY)

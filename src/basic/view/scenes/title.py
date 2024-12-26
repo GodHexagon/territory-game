@@ -10,19 +10,22 @@ from typing import *
 
 # タイトルのシーン
 class TitleScene(Area, View):
-    def __init__(self, x, y, w, h, selected_singleplay: Callable[[], None]):
+    def __init__(self, x, y, w, h, selected_singleplay: Callable[[], None], selected_multiplay: Callable[[], None]):
         super().__init__(x, y, w, h)
 
         self.title = WritenText(self.x + self.w / 2, self.y + self.h / 3, "TERRITORY GAME", COLOR_BLACK, scale=5)
-        self.start_button = Button(x + w / 2, y + h / 3 + 100, "START", selected_singleplay)
+        self.sp_button = Button(x + w / 2, y + h / 3 + 100, "SINGLEPLAY", selected_singleplay)
+        self.mp_button = Button(x + w / 2, y + h / 3 + 164, "MULTIPLAY", selected_multiplay)
     
     def update(self):
-        self.start_button.update()
+        self.sp_button.update()
+        self.mp_button.update()
 
     def draw(self):
         pyxel.rect(self.x, self.y, self.w, self.h, COLOR_PRIMARY)
         self.title.draw()
-        self.start_button.draw()
+        self.sp_button.draw()
+        self.mp_button.draw()
         
 # 背景のあるボタン
 class Button(CenteredArea, LimitableArea):

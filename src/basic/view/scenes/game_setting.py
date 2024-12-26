@@ -13,10 +13,13 @@ class GameSettingScene(Area, View):
     BACKGROUND_COLOR = COLOR_WHITE
 
     COMUNM_NAMES_Y = 80
+
     LEFT_MARGIN_PX = 32
+
     PLAYABLE_CENTER_X = 192
     AI_CENTER_X = 256
     UNASSIGNED_CENTER_X = 320
+    MULTIPLAY_CENTER_X = 400
 
     PLAYER_COLORS = (
         (0, BLUE_COLOR_S, "BLUE"),
@@ -25,7 +28,7 @@ class GameSettingScene(Area, View):
         (3, YELLOW_COLOR_S, "YELLOW")
     )
 
-    def __init__(self, x, y, w, h, on_launch_game: Callable[[List[Tuple[str, PlayerType]]], None]):
+    def __init__(self, x, y, w, h, on_launch_game: Callable[[List[Tuple[str, PlayerType]]], None], multiplay: bool = False):
         if not (x == 0 and y == 0): raise ValueError('このAreaは画面サイズ依存です。')
         super().__init__(x, y, w, h)
 
@@ -39,13 +42,16 @@ class GameSettingScene(Area, View):
         PCX = self.PLAYABLE_CENTER_X
         ACX = self.AI_CENTER_X
         UCX = self.UNASSIGNED_CENTER_X
+        MCX = self.MULTIPLAY_CENTER_X
         Y = self.COMUNM_NAMES_Y
-        self.column_names = (
+        self.column_names: Tuple[WritenText, ...] = (
             WritenText(0, y + Y, "NAME", GameSettingScene.TEXT_COLOR),
             WritenText(PCX, y + Y, "YOU", GameSettingScene.TEXT_COLOR),
             WritenText(ACX, y + Y, "AI", GameSettingScene.TEXT_COLOR),
             WritenText(UCX, y + Y, "NONE", GameSettingScene.TEXT_COLOR)
         )
+        if multiplay: self.column_names += (WritenText(MCX, y + Y, "ONLINE", GameSettingScene.TEXT_COLOR), )
+
         self.column_names[0].x = x + MARGIN
 
         PCS = GameSettingScene.PLAYER_COLORS

@@ -85,7 +85,7 @@ class GameSettingScene(Area, View):
         # スタートボタン
         self.connecting = False
         self.start_button = StartButton(0, y + 96 + 48 * 4 + 32, "GAME START", 
-                                        self.__hdl_try_to_connecting if multiplay else self.__hdl_launch_game)
+                                        self.__hdl_try_to_connect if multiplay else self.__hdl_launch_game)
         self.start_button.to_x_end(x + w - MARGIN)
         self.start_button.label.to_center_pos(*self.start_button.get_center_pos())
         
@@ -99,7 +99,7 @@ class GameSettingScene(Area, View):
         # 処理中インジケータ
         self.prog = ProgressingIndicator(w / 2, y + 96 + 48 * 4 + 96, scale=5)
         
-    def __hdl_try_to_connecting(self):
+    def __hdl_try_to_connect(self):
         self.connecting = True
 
         self.prog.set_visible(True)
@@ -113,7 +113,8 @@ class GameSettingScene(Area, View):
 
         self.prog.set_visible(False)
 
-        self.start_button.chage_mode("GAME START", self.__hdl_try_to_connecting)
+        self.start_button.set_enabled(False)
+        self.start_button.chage_mode("GAME START", self.__hdl_try_to_connect)
         self.start_button.to_x_end(self.x + self.w - GameSettingScene.LEFT_MARGIN_PX)
         self.start_button.label.to_center_pos(*self.start_button.get_center_pos())
     

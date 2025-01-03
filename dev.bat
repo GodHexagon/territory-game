@@ -1,2 +1,2 @@
-python .\src\main.py
-mypy .\src\main.py
+python -m src
+mypy -m src

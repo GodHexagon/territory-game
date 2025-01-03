@@ -8,7 +8,7 @@ from typing import *
 import numpy
 import pyxel
 
-from pyxres import TILE_SIZE_PX, BLOCK_TILE_COOR, TILE_COLOR_PALLETS_NUMBER, DEFAULT_COLOR_S
+from src.pyxres import TILE_SIZE_PX, BLOCK_TILE_COOR, TILE_COLOR_PALLETS_NUMBER, DEFAULT_COLOR_S
 SLIDER_HEIGHT = 30
 SLIDER_WIDTH = 30
 
@@ -49,16 +49,15 @@ class PickerView(LimitableArea, View):
         F = PickerView.FRAME_THICKNESS_PX
         self.window = Window(self.x + F, self.y + F, self.w - F * 2, self.h - F * 2 - SLIDER_HEIGHT, self)
         self.shelf = self.window.ini_shelf()
-        self.items = list(self.shelf.ini_items(pieces, color_s))
+        self.reset_pieces(pieces)
         self.scroll_bar = ScrollBar(self.x, self.y + self.h - SLIDER_HEIGHT + 1, self.w)
-
-        scroll_state.set_range_px(self.shelf.w - self.window.w)
     
-    def reset_pieces(self, pieces: Tuple[TilesMap]):
-        self.items = self.shelf.ini_items(
+    def reset_pieces(self, pieces: Tuple[TilesMap, ...]) -> None:
+        self.items = list(self.shelf.ini_items(
             pieces,
             self.piece_color_s
-        )
+        ))
+        global scroll_state
         scroll_state.set_range_px(self.shelf.w - self.window.w)
 
     def update(self):
@@ -130,7 +129,7 @@ class Shelf(LimitableArea):
         
         return tuple(pieces)
     
-    def get_a_item(self, piece_res: TilesMap, piece_color_s):
+    def get_a_item(self, piece_res: TilesMap, piece_color_s: int):
         return Item(
             self,
             (0, 0),

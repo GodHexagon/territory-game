@@ -8,7 +8,7 @@ class FrontNoticeView(Area, View):
     FADE_OUT_TIME_FRAME = 30
     BORDER_THICKNESS_PX = 5
 
-    from pyxres import CHAR_HEIGHT_PX, CHAR_WIDTH_PX
+    from src.pyxres import CHAR_HEIGHT_PX, CHAR_WIDTH_PX
 
     def __init__(self, x, y, w, h):
         super().__init__(x, y, w, h)

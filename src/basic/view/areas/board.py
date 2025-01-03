@@ -1,7 +1,7 @@
 from ..limitter import LimitableArea, LimitedDrawer, Surface
 from ..view import View, CenteredArea
 from .cursor import Cursor
-from ...rule.rule import Rotation, Rule, Piece, PiecesBP, PlacementResult
+from ...rule.rule import Rotation, Rule, Piece, PiecesBP, PlacementResult, TilesMap
 from ...key_bind import Bind, btn, btnp
 
 from typing import *
@@ -10,8 +10,9 @@ import pyxel
 from numpy import ndarray as NDArray
 import numpy
 
-from pyxres import DEFAULT_COLOR_S, RED_COLOR_S, BLUE_COLOR_S
+from src.pyxres import DEFAULT_COLOR_S, RED_COLOR_S, BLUE_COLOR_S, GREEN_COLOR_S, YELLOW_COLOR_S
 
+CallableOnPlacePiece: TypeAlias = Callable[[TilesMap, Rotation, int, int], bool]
 
 def limit_in_board(x, y):
     SIZE = Rule.BOARD_SIZE_TILES
@@ -25,14 +26,14 @@ class BoardView(View, LimitableArea):
     DRAGGABLE_LIMIT_POCKET_PX = 50
     DRAG = pyxel.MOUSE_BUTTON_RIGHT
     
-    TILE_DATA_COLORS = (DEFAULT_COLOR_S, BLUE_COLOR_S, RED_COLOR_S)
+    TILE_DATA_COLORS = (DEFAULT_COLOR_S, BLUE_COLOR_S, RED_COLOR_S, GREEN_COLOR_S, YELLOW_COLOR_S)
 
-    def __init__(self, x, y, w, h, cursor: Cursor, colors_s: int, game: Rule):
+    def __init__(self, x, y, w, h, cursor: Cursor, colors_s: int, on_place_piece: CallableOnPlacePiece):
         super().__init__(x, y, w, h)
         self.set_limiteds()
 
         self.commited_tiles_data = numpy.array( [[0 for _ in range(DraggableBoard.BOARD_SIZE_TILES)] for _ in range(DraggableBoard.BOARD_SIZE_TILES)] )
-        self.displaying_tiles_data = self.commited_tiles_data
+        self.displaying_tiles_data = numpy.array( [[0 for _ in range(DraggableBoard.BOARD_SIZE_TILES)] for _ in range(DraggableBoard.BOARD_SIZE_TILES)] )
 
         self.board = DraggableBoard(
             self.x + self.w // 2, 
@@ -43,10 +44,10 @@ class BoardView(View, LimitableArea):
 
         self.c_monitor = self.board.ini_b_input(self, cursor)
         self.color_s = colors_s
-        self.game = game
+        self.on_place_piece = on_place_piece
         self.dg: Dragging | None = None
     
-    def rewrite_board(self, pieces: Tuple[PiecesBP], color_s_s: Tuple[int]):
+    def rewrite_board(self, pieces: Tuple[PiecesBP, ...], color_s_s: Tuple[int, ...]) -> None:
         if len(pieces) != len(color_s_s): raise ValueError('プレイヤー数と色指定の要素数が異なる。')
         for pieces_bp, color_s in zip(pieces, color_s_s):
             self.__rewrite_commited_tiles_data(pieces_bp, BoardView.TILE_DATA_COLORS.index(color_s))
@@ -81,10 +82,10 @@ class BoardView(View, LimitableArea):
         
         # マウス入力を反映
         self.c_monitor.monitor_hover(self.piece_rotation)
-        self.c_monitor.monitor_placement(self.game, self.piece_rotation)
+        self.c_monitor.monitor_placement(self.on_place_piece, self.piece_rotation)
         # タイルを再生成
         cursored_tiles_data = self.commited_tiles_data.copy()
-        self.c_monitor.write_hover_piece(cursored_tiles_data, 1)
+        self.c_monitor.write_hover_piece(cursored_tiles_data, BoardView.TILE_DATA_COLORS.index(self.color_s))
         if not numpy.all(cursored_tiles_data == self.displaying_tiles_data):
             self.displaying_tiles_data = cursored_tiles_data
             self.board.set_tiles(self.__draw_tiles(self.displaying_tiles_data))
@@ -112,7 +113,7 @@ class BoardView(View, LimitableArea):
         
     def __draw_tiles(self, data: NDArray) -> pyxel.Image:
         """タイルマップをもとに画像を生成し、これを返す"""
-        from pyxres import EMPTY_TILE_COOR, BLOCK_TILE_COOR, TILE_COLOR_PALLETS_NUMBER, DEFAULT_COLOR_S
+        from src.pyxres import EMPTY_TILE_COOR, BLOCK_TILE_COOR, TILE_COLOR_PALLETS_NUMBER, DEFAULT_COLOR_S
         image = pyxel.Image(DraggableBoard.BOARD_SIZE_TILES * TILE_SIZE_PX, DraggableBoard.BOARD_SIZE_TILES * TILE_SIZE_PX)
 
         x = 0
@@ -148,7 +149,7 @@ class Dragging:
     def get_board_pos(self, curr_mouse_pos:Tuple[float, float]):
         return tuple(self.board_pos[i] + curr_mouse_pos[i] - self.mouse_pos[i] for i in range(2))
 
-from pyxres import TILE_SIZE_PX
+from src.pyxres import TILE_SIZE_PX
 
 class DraggableBoard(CenteredArea):
     """移動可能な盤の座標系を表す"""
@@ -248,7 +249,7 @@ class CursorMonitor(LimitableArea):
             self.prev_hovered = iir
             if self.cursor.held is not None: self.cursor.held.set_visibility(not iir)
 
-    def monitor_placement(self, game: Rule, rot: Rotation):
+    def monitor_placement(self, on_place_piece: CallableOnPlacePiece, rot: Rotation):
         held = self.cursor.held
         coord = self.hover_piece_start_coord
         if (
@@ -257,8 +258,8 @@ class CursorMonitor(LimitableArea):
             held is not None and 
             coord is not None
         ):
-            result = game.place(held.shape, rot, coord[0], coord[1])
-            if PlacementResult.successes(result): held.clear()
+            r = on_place_piece(held.shape, rot, coord[0], coord[1])
+            if r: held.clear()
 
     def __count_hover_piece(self, rotation: Rotation):
         if self.cursor.held is None:
@@ -272,12 +273,6 @@ class CursorMonitor(LimitableArea):
             )
 
             shape = self.cursor.held.shape.rotate(rotation)
-            
-            r = rotation
-            rotation_times = 0
-            if r == Rotation.RIGHT_90: rotation_times = 1
-            elif r == Rotation.RIGHT_180: rotation_times = 2
-            elif r == Rotation.RIGHT_270: rotation_times = 3
 
             diff = None
             for (y, x), value in numpy.ndenumerate(shape.to_ndarray()):

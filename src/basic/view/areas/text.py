@@ -1,6 +1,6 @@
 from ..view import CenteredArea
 from ..limitter import LimitableArea, Surface
-from pyxres import CHAR_HEIGHT_PX, CHAR_WIDTH_PX
+from src.pyxres import CHAR_HEIGHT_PX, CHAR_WIDTH_PX
 
 import pyxel
 

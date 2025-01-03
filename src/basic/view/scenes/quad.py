@@ -3,7 +3,7 @@ from ..areas import *
 from ...rule.rule import Rule, BasicRule, Rotation, TilesMap, GameData, PlacementResult, EventLogger
 from .player_type import PlayerType
 
-from pyxres import BLUE_COLOR_S, RED_COLOR_S, GREEN_COLOR_S, YELLOW_COLOR_S
+from src.pyxres import BLUE_COLOR_S, RED_COLOR_S, GREEN_COLOR_S, YELLOW_COLOR_S
 from ...key_bind import *
 
 from abc import ABC, abstractmethod

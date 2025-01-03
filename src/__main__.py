@@ -1,6 +1,7 @@
-from basic.view import *
-from typing import List
-import pyxres
+__package__ = "src"
+
+from src.basic.view import *
+from src import pyxres
 import pyxel
 
 

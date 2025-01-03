@@ -1,5 +1,5 @@
 from ..view import Area, View
-from pyxres import *
+from src.pyxres import *
 
 import pyxel
 from pyxel import Image

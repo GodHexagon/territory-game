@@ -10,7 +10,7 @@ import pyxel
 from numpy import ndarray as NDArray
 import numpy
 
-from pyxres import DEFAULT_COLOR_S, RED_COLOR_S, BLUE_COLOR_S, GREEN_COLOR_S, YELLOW_COLOR_S
+from src.pyxres import DEFAULT_COLOR_S, RED_COLOR_S, BLUE_COLOR_S, GREEN_COLOR_S, YELLOW_COLOR_S
 
 CallableOnPlacePiece: TypeAlias = Callable[[TilesMap, Rotation, int, int], bool]
 
@@ -113,7 +113,7 @@ class BoardView(View, LimitableArea):
         
     def __draw_tiles(self, data: NDArray) -> pyxel.Image:
         """タイルマップをもとに画像を生成し、これを返す"""
-        from pyxres import EMPTY_TILE_COOR, BLOCK_TILE_COOR, TILE_COLOR_PALLETS_NUMBER, DEFAULT_COLOR_S
+        from src.pyxres import EMPTY_TILE_COOR, BLOCK_TILE_COOR, TILE_COLOR_PALLETS_NUMBER, DEFAULT_COLOR_S
         image = pyxel.Image(DraggableBoard.BOARD_SIZE_TILES * TILE_SIZE_PX, DraggableBoard.BOARD_SIZE_TILES * TILE_SIZE_PX)
 
         x = 0
@@ -149,7 +149,7 @@ class Dragging:
     def get_board_pos(self, curr_mouse_pos:Tuple[float, float]):
         return tuple(self.board_pos[i] + curr_mouse_pos[i] - self.mouse_pos[i] for i in range(2))
 
-from pyxres import TILE_SIZE_PX
+from src.pyxres import TILE_SIZE_PX
 
 class DraggableBoard(CenteredArea):
     """移動可能な盤の座標系を表す"""

@@ -156,14 +156,14 @@ class GameSettingScene(Area, View):
 
 class ProgressingIndicator(WritenText):
     def __init__(self, cx, cy, scale = 3, parent_surface = None, visible: bool = False):
-        super().__init__(cx, cy, "Connecting to server.", COLOR_FAILURE, scale, parent_surface)
+        super().__init__(cx, cy, "CONNECTING TO SERVER.", COLOR_FAILURE, scale, parent_surface)
         self.animation_sequence = 0
         self.set_visible(visible)
     
     def update(self):
         new_seq = (pyxel.frame_count // 30) % 3
         if self.animation_sequence != new_seq:
-            self.rewrite("Connecting to server" + "."*(new_seq + 1), COLOR_FAILURE)
+            self.rewrite("CONNECTING TO SERVER" + "."*(new_seq + 1), COLOR_FAILURE)
             self.animation_sequence = new_seq
     
     def set_visible(self, visible: bool):

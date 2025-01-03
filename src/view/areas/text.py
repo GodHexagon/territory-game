@@ -1,6 +1,6 @@
 from ..view import CenteredArea
 from ..limitter import LimitableArea, Surface
-from pyxres import CHAR_HEIGHT_PX, CHAR_WIDTH_PX
+from src.pyxres import CHAR_HEIGHT_PX, CHAR_WIDTH_PX
 
 import pyxel
 
@@ -15,6 +15,14 @@ class WritenText(LimitableArea, CenteredArea):
         super().__init__(0, 0, self.img.width * scale, self.img.height * scale)
         self.to_center_pos(cx, cy)
         self.set_limiteds(parent_surface)
+    
+    def rewrite(self, text: str, color: int):
+        self.background_color = 1 if color == 0 else 0
+        self.img = self.__draw_text(text, color, self.background_color)
+
+        cx, cy = self.get_center_pos()
+        self.w, self.h = self.img.width * self.scale, self.img.height * self.scale
+        self.to_center_pos(cx, cy)
         
     @staticmethod
     def __draw_text(text: str, color: int, background_color: int):

@@ -2,7 +2,7 @@ from ...view import Area, View, CenteredArea
 from ...limitter import LimitableArea
 from ...areas.text import WritenText
 from ...text import TextDrawable
-from pyxres import COLOR_PRIMARY, COLOR_BLACK, COLOR_WHITE
+from src.pyxres import COLOR_PRIMARY, COLOR_BLACK, COLOR_WHITE
 
 import pyxel
 

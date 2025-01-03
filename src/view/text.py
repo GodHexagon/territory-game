@@ -3,7 +3,7 @@ import pyxel
 from typing import *
 
 class TextDrawable:
-    from pyxres import CHAR_HEIGHT_PX, CHAR_WIDTH_PX
+    from src.pyxres import CHAR_HEIGHT_PX, CHAR_WIDTH_PX
     
     @staticmethod
     def generate_text_image(value: str, color: int, background_color: int) -> Image:

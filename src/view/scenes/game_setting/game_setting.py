@@ -2,7 +2,7 @@ from ...view import View, Area, CenteredArea
 from ...limitter import LimitableArea
 from ...areas.text import WritenText
 from ..player_type import PlayerType
-from pyxres import COLOR_BLACK, COLOR_WHITE, COLOR_PRIMARY, COLOR_GRAY, BLUE_COLOR_S, RED_COLOR_S, GREEN_COLOR_S, YELLOW_COLOR_S
+from src.pyxres import COLOR_BLACK, COLOR_WHITE, COLOR_PRIMARY, COLOR_GRAY, BLUE_COLOR_S, RED_COLOR_S, GREEN_COLOR_S, YELLOW_COLOR_S, COLOR_FAILURE
 
 import pyxel
 
@@ -38,6 +38,7 @@ class GameSettingScene(Area, View):
 
         self.on_launch_game = on_launch_game
         self.on_cancel = on_cancel
+        self.multiplay = multiplay
 
         # 画面タイトル
         MARGIN = GameSettingScene.LEFT_MARGIN_PX
@@ -82,11 +83,10 @@ class GameSettingScene(Area, View):
         self.buttons = [p.ini_radios(multiplay=multiplay) for p in self.players]
 
         # スタートボタン
-        self.start_button = StartButton(0, y + 96 + 48 * 4 + 32, "GAME START",
-            lambda : self.on_launch_game(list(
-                (pc[2], p.type) for pc, p in zip(PCS, self.players)
-            ))
-        )
+        def hdl_try_to_connect():
+            self.prog.set_visible(True)
+        self.start_button = StartButton(0, y + 96 + 48 * 4 + 32, "GAME START", 
+                                        hdl_try_to_connect if multiplay else self.__hdl_launch_game)
         self.start_button.to_x_end(x + w - MARGIN)
         self.start_button.label.to_center_pos(*self.start_button.get_center_pos())
         
@@ -96,6 +96,15 @@ class GameSettingScene(Area, View):
         )
         self.cancel_button.to_x(x + MARGIN)
         self.cancel_button.label.to_center_pos(*self.cancel_button.get_center_pos())
+
+        # 処理中インジケータ
+        self.prog = ProgressingIndicator(w / 2, y + 96 + 48 * 4 + 96, scale=5)
+    
+    def __hdl_launch_game(self):
+        PCS = GameSettingScene.PLAYER_COLORS
+        self.on_launch_game(list(
+            (pc[2], p.type) for pc, p in zip(PCS, self.players)
+        ))
     
     def __hdl_change_player_type(self, which: int, player_type: 'PlayerType'):
         self.players[which].set_player_type(player_type)
@@ -113,6 +122,7 @@ class GameSettingScene(Area, View):
                 r.update()
         self.start_button.update()
         self.cancel_button.update()
+        self.prog.update()
     
     def draw(self):
         pyxel.cls(self.BACKGROUND_COLOR)
@@ -123,6 +133,25 @@ class GameSettingScene(Area, View):
             p.draw()
         self.start_button.draw()
         self.cancel_button.draw()
+        self.prog.draw()
+
+class ProgressingIndicator(WritenText):
+    def __init__(self, cx, cy, scale = 3, parent_surface = None, visible: bool = False):
+        super().__init__(cx, cy, "Connecting to server.", COLOR_FAILURE, scale, parent_surface)
+        self.animation_sequence = 0
+        self.set_visible(visible)
+    
+    def update(self):
+        new_seq = (pyxel.frame_count // 30) % 3
+        if self.animation_sequence != new_seq:
+            self.rewrite("Connecting to server" + "."*(new_seq + 1), COLOR_FAILURE)
+            self.animation_sequence = new_seq
+    
+    def set_visible(self, visible: bool):
+        self.visible = visible
+    
+    def draw(self):
+        if self.visible: super().draw()
 
 class StartButton(CenteredArea, LimitableArea):
     MARGIN_PX = 6

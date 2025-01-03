@@ -10,7 +10,7 @@ import pyxel
 from typing import *
 from abc import ABC
 
-from pyxres import TILE_SIZE_PX, TILE_COLOR_PALLETS_NUMBER, DEFAULT_COLOR_S, BLOCK_TILE_COOR
+from src.pyxres import TILE_SIZE_PX, TILE_COLOR_PALLETS_NUMBER, DEFAULT_COLOR_S, BLOCK_TILE_COOR
 
 class FollowablePiece:
     TILE_SCALE = 2

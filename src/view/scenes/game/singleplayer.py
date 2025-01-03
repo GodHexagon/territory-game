@@ -1,6 +1,6 @@
 from .game import GameScene
 from ..player_type import PlayerType
-from pyxres import BLUE_COLOR_S, RED_COLOR_S, GREEN_COLOR_S, YELLOW_COLOR_S
+from src.pyxres import BLUE_COLOR_S, RED_COLOR_S, GREEN_COLOR_S, YELLOW_COLOR_S
 from ....rule.rule import GameData, PlacementResult, EventLogger, Rule, BasicRule, Rotation, TilesMap
 
 from typing import *

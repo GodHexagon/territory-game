@@ -83,7 +83,9 @@ class GameSettingScene(Area, View):
         self.buttons = [p.ini_radios(multiplay=multiplay) for p in self.players]
 
         # スタートボタン
+        self.connecting = False
         def hdl_try_to_connect():
+            self.connecting = True
             self.prog.set_visible(True)
         self.start_button = StartButton(0, y + 96 + 48 * 4 + 32, "GAME START", 
                                         hdl_try_to_connect if multiplay else self.__hdl_launch_game)
@@ -117,9 +119,10 @@ class GameSettingScene(Area, View):
         self.start_button.set_enabled(playable_count == 1 and unassigned_count in range(0, 3))
     
     def update(self):
-        for rs in self.buttons:
-            for r in rs:
-                r.update()
+        if not self.connecting:
+            for rs in self.buttons:
+                for r in rs:
+                    r.update()
         self.start_button.update()
         self.cancel_button.update()
         self.prog.update()
@@ -160,6 +163,8 @@ class StartButton(CenteredArea, LimitableArea):
         self.text = label
         self.on_click = on_click
 
+        self.enabled = True
+
         super().__init__(0, 0, 0, 0)
         self.write_label(cx, cy)
 
@@ -176,13 +181,14 @@ class StartButton(CenteredArea, LimitableArea):
         self.to_center_pos(cx, cy)
     
     def set_enabled(self, enabled: bool):
+        self.enabled = enabled
         self.write_label(
             *self.get_center_pos(),
             COLOR_BLACK if enabled else COLOR_GRAY
         )
     
     def update(self):
-        if self.input.btnp(pyxel.MOUSE_BUTTON_LEFT):
+        if self.input.btnp(pyxel.MOUSE_BUTTON_LEFT) and self.enabled:
             self.on_click()
 
     def draw(self):

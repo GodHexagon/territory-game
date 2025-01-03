@@ -58,6 +58,9 @@ class LimitedDrawer:
         self.owner = owner
 
         self.blt = pyxel.blt
+        self.circ = pyxel.circ
+        self.circb = pyxel.circb
+        self.rectb = pyxel.rectb
 
     def rect(self, x:float, y:float, w:float, h:float, col:int):
         s = self.owner.surface

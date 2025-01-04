@@ -10,22 +10,29 @@ from typing import *
 
 # タイトルのシーン
 class TitleScene(Area, View):
-    def __init__(self, x, y, w, h, selected_singleplay: Callable[[], None], selected_multiplay: Callable[[], None]):
+    def __init__(self, x, y, w, h, 
+            on_singleplayer_selected: Callable[[], None], 
+            on_multiplayer_selected: Callable[[], None],
+            on_akst_selected: Callable[[], None]
+        ):
         super().__init__(x, y, w, h)
 
         self.title = WritenText(self.x + self.w / 2, self.y + self.h / 3, "TERRITORY GAME", COLOR_BLACK, scale=5)
-        self.sp_button = Button(x + w / 2, y + h / 3 + 100, "SINGLEPLAY", selected_singleplay)
-        self.mp_button = Button(x + w / 2, y + h / 3 + 164, "MULTIPLAY", selected_multiplay)
+        self.sp_button = Button(x + w / 2, y + h / 3 + 100, "SINGLEPLAY", on_singleplayer_selected)
+        self.mp_button = Button(x + w / 2, y + h / 3 + 164, "MULTIPLAY", on_multiplayer_selected)
+        self.akst_button = Button(x + w / 2, y + h / 3 + 228, "SET ACCESS KEY", on_akst_selected)
     
     def update(self):
         self.sp_button.update()
         self.mp_button.update()
+        self.akst_button.update()
 
     def draw(self):
         pyxel.rect(self.x, self.y, self.w, self.h, COLOR_PRIMARY)
         self.title.draw()
         self.sp_button.draw()
         self.mp_button.draw()
+        self.akst_button.draw()
         
 # 背景のあるボタン
 class Button(CenteredArea, LimitableArea):

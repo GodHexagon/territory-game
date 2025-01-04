@@ -3,6 +3,7 @@ from .game.singleplayer import SingleplayGameScene
 from .game.multiplayer import MultiplayerGameScene
 from .title.title import TitleScene
 from .game_setting.game_setting import GameSettingScene
+from .akst.akst import AccessKeySettingScene
 from .player_type import PlayerType
 
 from typing import *
@@ -15,7 +16,13 @@ class MainView(View, Area):
     def __show_title(self):
         self.scene: View = TitleScene(self.x, self.y, self.w, self.h,
             lambda : self.__show_game_setting(False),
-            lambda : self.__show_game_setting(True)                         
+            lambda : self.__show_game_setting(True),
+            lambda : self.__show_access_key_setting()
+        )
+    
+    def __show_access_key_setting(self):
+        self.scene = AccessKeySettingScene(self.x, self.y, self.w, self.h,
+            lambda ok: self.__show_title()
         )
     
     def __show_game_setting(self, multiplayer: bool):

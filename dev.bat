@@ -1,2 +1,2 @@
 python -m src
-mypy -m src
+mypy --check-untyped-defs -m src

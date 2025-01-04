@@ -13,7 +13,7 @@ class AccessKeySettingScene(View, Area):
         self.window = Window(*self.get_center_pos(), on_complete)
     
     def update(self):
-        pass
+        self.window.update()
 
     def draw(self):
         pyxel.cls(COLOR_WHITE)
@@ -33,13 +33,20 @@ class Window(Area):
         self.title.to_y(self.y + MARGIN)
 
         self.update_b = Button(0, 0, "UPDATE", lambda : on_complete(True))
+        self.update_b.set_colors(backgroud=COLOR_SUCCESSFULL)
         self.update_b.to_x_end(self.x + self.w - MARGIN)
         self.update_b.to_y_bottom(self.y + self.h - MARGIN)
+        
+        self.cancel_b = Button(0, 0, "CANCEL", lambda : on_complete(True))
+        self.cancel_b.to_x(self.x + MARGIN)
+        self.cancel_b.to_y_bottom(self.y + self.h - MARGIN)
     
     def update(self):
         self.update_b.update()
+        self.cancel_b.update()
     
     def draw(self):
         pyxel.rect(self.x, self.y, self.w, self.h, COLOR_PRIMARY)
         self.title.draw()
         self.update_b.draw()
+        self.cancel_b.draw()

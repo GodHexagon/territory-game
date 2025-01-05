@@ -2,6 +2,7 @@ from ...view import View, Area, CenteredArea
 from ...limitter import LimitableArea
 from ...areas.text import WritenText
 from ..player_type import PlayerType
+from ...areas.button import TextButton
 from src.pyxres import COLOR_BLACK, COLOR_WHITE, COLOR_PRIMARY, COLOR_GRAY, BLUE_COLOR_S, RED_COLOR_S, GREEN_COLOR_S, YELLOW_COLOR_S, COLOR_FAILURE
 
 import pyxel
@@ -84,14 +85,14 @@ class GameSettingScene(Area, View):
 
         # スタートボタン
         self.connecting = False
-        self.start_button = StartButton(0, y + 96 + 48 * 4 + 32, "GAME START", 
-                                        self.__hdl_try_to_connect if multiplay else self.__hdl_launch_game)
+        self.start_button = TextButton(0, y + 96 + 48 * 4 + 32, label="GAME START", 
+                                        on_click=self.__hdl_try_to_connect if multiplay else self.__hdl_launch_game)
         self.start_button.to_x_end(x + w - MARGIN)
         self.start_button.label.to_center_pos(*self.start_button.get_center_pos())
         
         # 戻るボタン
-        self.cancel_button = StartButton(0, y + 96 + 48 * 4 + 32, "CANCEL",
-            lambda : self.on_cancel()
+        self.cancel_button = TextButton(0, y + 96 + 48 * 4 + 32, label="CANCEL",
+            on_click=lambda : self.on_cancel()
         )
         self.cancel_button.to_x(x + MARGIN)
         self.cancel_button.label.to_center_pos(*self.cancel_button.get_center_pos())
@@ -104,7 +105,7 @@ class GameSettingScene(Area, View):
 
         self.prog.set_visible(True)
 
-        self.start_button.chage_mode("CANCEL CONNECTING", self.__hdl_cancel_connecting)
+        self.start_button.change_mode("CANCEL CONNECTING", self.__hdl_cancel_connecting)
         self.start_button.to_x_end(self.x + self.w - GameSettingScene.LEFT_MARGIN_PX)
         self.start_button.label.to_center_pos(*self.start_button.get_center_pos())
     
@@ -114,7 +115,7 @@ class GameSettingScene(Area, View):
         self.prog.set_visible(False)
 
         self.start_button.set_enabled(False)
-        self.start_button.chage_mode("GAME START", self.__hdl_try_to_connect)
+        self.start_button.change_mode("GAME START", self.__hdl_try_to_connect)
         self.start_button.to_x_end(self.x + self.w - GameSettingScene.LEFT_MARGIN_PX)
         self.start_button.label.to_center_pos(*self.start_button.get_center_pos())
     
@@ -171,50 +172,6 @@ class ProgressingIndicator(WritenText):
     
     def draw(self):
         if self.visible: super().draw()
-
-class StartButton(CenteredArea, LimitableArea):
-    MARGIN_PX = 6
-    
-    def __init__(self, cx: float, cy: float, label: str, on_click: Callable[[], None]):
-        self.text = label
-        self.on_click = on_click
-
-        self.enabled = True
-
-        super().__init__(0, 0, 0, 0)
-        self.__write_label(cx, cy)
-
-        self.set_limiteds()
-    
-    def chage_mode(self, label: str, on_click: Callable[[], None]):
-        self.text = label
-        self.on_click = on_click
-        
-        self.__write_label(*self.get_center_pos())
-    
-    def set_enabled(self, enabled: bool):
-        self.enabled = enabled
-        self.__write_label(
-            *self.get_center_pos()
-        )
-        
-    def __write_label(self, cx: float, cy: float) -> None:
-        self.label = WritenText(cx, cy, self.text, COLOR_BLACK if self.enabled else COLOR_GRAY)
-
-        MARGIN = StartButton.MARGIN_PX
-        self.w, self.h = (
-            self.label.w + MARGIN * 2,
-            self.label.h + MARGIN * 2
-        )
-        self.to_center_pos(cx, cy)
-    
-    def update(self):
-        if self.input.btnp(pyxel.MOUSE_BUTTON_LEFT) and self.enabled:
-            self.on_click()
-
-    def draw(self):
-        self.drawer.rectb(self.x, self.y, self.w, self.h, COLOR_PRIMARY)
-        self.label.draw()
 
 class Player(LimitableArea):
     HEIGHT_PX = 32

@@ -32,8 +32,8 @@ class Button(CenteredArea, LimitableArea, ABC):
             self.on_click()
 
     def draw(self):
-        self.drawer.rectb(self.x, self.y, self.w, self.h, self.colors[3])
         self.drawer.rect(self.x, self.y, self.w, self.h, self.colors[2])
+        self.drawer.rectb(self.x, self.y, self.w + 1, self.h + 1, self.colors[3])
 
 class TextButton(Button):
     MARGIN_PX = 6

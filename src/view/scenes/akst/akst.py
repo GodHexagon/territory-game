@@ -1,7 +1,7 @@
 from ...view import View, Area
 from src.pyxres import *
 from ...areas.text import WritenText
-from ...areas.button import Button
+from ...areas.button import TextButton
 
 import pyxel
 
@@ -32,12 +32,12 @@ class Window(Area):
         self.title = WritenText(cx, 0, text="SET YOUR ACCESS KEY", color=COLOR_BLACK, scale=5)
         self.title.to_y(self.y + MARGIN)
 
-        self.update_b = Button(0, 0, "UPDATE", lambda : on_complete(True))
+        self.update_b = TextButton(0, 0, lambda : on_complete(True), "UPDATE")
         self.update_b.set_colors(backgroud=COLOR_SUCCESSFULL)
         self.update_b.to_x_end(self.x + self.w - MARGIN)
         self.update_b.to_y_bottom(self.y + self.h - MARGIN)
         
-        self.cancel_b = Button(0, 0, "CANCEL", lambda : on_complete(True))
+        self.cancel_b = TextButton(0, 0, lambda : on_complete(False), "CANCEL")
         self.cancel_b.to_x(self.x + MARGIN)
         self.cancel_b.to_y_bottom(self.y + self.h - MARGIN)
     

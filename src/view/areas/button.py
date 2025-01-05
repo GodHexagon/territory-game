@@ -1,4 +1,5 @@
 import pyxel
+from pyxel import Image
 
 from typing import *
 from abc import ABC
@@ -23,10 +24,6 @@ class Button(CenteredArea, LimitableArea, ABC):
     def set_colors(self, text = COLOR_BLACK, disabled = COLOR_GRAY, backgroud = COLOR_WHITE, border = COLOR_PRIMARY):
         self.colors = (text, disabled, backgroud, border)
     
-    def change_mode(self, label: str, on_click: Callable[[], None]):
-        self.text = label
-        self.on_click = on_click
-    
     def set_enabled(self, enabled: bool):
         self.enabled = enabled
     
@@ -47,12 +44,13 @@ class TextButton(Button):
         super().__init__(cx, cy, on_click)
         self.__write_label(cx, cy)
     
+    def change_mode(self, label: str, on_click: Callable[[], None]):
+        self.text = label
+        self.on_click = on_click
+        self.__write_label()
+
     def set_colors(self, text=COLOR_BLACK, disabled=COLOR_GRAY, backgroud=COLOR_WHITE, border=COLOR_PRIMARY):
         super().set_colors(text, disabled, backgroud, border)
-        self.__write_label()
-    
-    def change_mode(self, label, on_click):
-        super().change_mode(label, on_click)
         self.__write_label()
     
     def set_enabled(self, enabled):
@@ -83,6 +81,34 @@ class TextButton(Button):
         self.label.to_y(y + TextButton.MARGIN_PX)
         return super().to_y(y)
     
+    def set_w(self, w):
+        pass
+
+    def set_h(self, h):
+        pass
+
+class IconButton(Button):
+    def __init__(self, cx: float, cy: float, size: float, on_click: Callable[[], None], img: Image, colkey: int = 0):
+        self.img = img
+        self.colkey = colkey
+        super().__init__(cx, cy, on_click)
+        self.set_size(size)
+    
+    def draw(self):
+        super().draw()
+        scale = min(self.w / self.img.width, self.h / self.img.height)
+        self.drawer.blt(
+            self.x + (self.w - self.img.width) / 2,
+            self.y + (self.h - self.img.height) / 2,
+            self.img, 0, 0, self.img.width, self.img.height, 
+            colkey=self.colkey,
+            scale=scale
+        )
+    
+    def set_size(self, value: float):
+        self.w = value
+        self.h = value
+        
     def set_w(self, w):
         pass
 

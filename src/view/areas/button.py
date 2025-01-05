@@ -13,17 +13,17 @@ class Button(CenteredArea, LimitableArea):
     def __init__(self, cx: float, cy: float, label: str, on_click: Callable[[], None]):
         self.text = label
         self.on_click = on_click
-        self.set_colors()
 
         self.enabled = True
 
         super().__init__(0, 0, 0, 0)
-        self.__write_label(cx, cy)
+        self.set_colors()
 
         self.set_limiteds()
     
     def set_colors(self, text = COLOR_BLACK, disabled = COLOR_GRAY, backgroud = COLOR_WHITE, border = COLOR_PRIMARY):
         self.colors = (text, disabled, backgroud, border)
+        self.__write_label(*self.get_center_pos())
     
     def chage_mode(self, label: str, on_click: Callable[[], None]):
         self.text = label
@@ -38,7 +38,7 @@ class Button(CenteredArea, LimitableArea):
         )
         
     def __write_label(self, cx: float, cy: float) -> None:
-        self.label = WritenText(cx, cy, self.text, self.colors[0] if self.enabled else self.colors[1])
+        self.label = WritenText(cx, cy, self.text, color=self.colors[0] if self.enabled else self.colors[1])
 
         MARGIN = Button.MARGIN_PX
         self.w, self.h = (

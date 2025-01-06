@@ -89,25 +89,58 @@ class TextButton(Button):
         raise ValueError("このコンポーネントは高さを変更できない。")
 
 class IconButton(Button):
-    def __init__(self, cx: float, cy: float, size: float, on_click: Callable[[], None], tile_selector: Tuple[int, int, int, int]):
+    CLICKING_INDICATOR_TIMEOUT_FRAME = 60
+
+    def __init__(self,
+            cx: float, cy: float, size: float, 
+            on_click: Callable[[], None], 
+            tile_selector: Tuple[int, int, int, int]
+    ):
         tx, ty, tw, th = tile_selector
         self.img = Image(tw, th)
         self.img.blt(0, 0, pyxel.images[0], tx, ty, tw, th)
+
+        clicking_indicator_t_s = (*CHECK_ICON_COOR, TILE_SIZE_PX, TILE_SIZE_PX)
+        self.cii: Image | None
+        if clicking_indicator_t_s is not None:
+            tx, ty, tw, th = clicking_indicator_t_s
+            self.cii = Image(tw, th)
+            self.cii.blt(0, 0, pyxel.images[0], tx, ty, tw, th)
+        else:
+            self.cii = None
+
+        self.cit = 0
+
         super().__init__(cx, cy, on_click)
         self.set_size(size)
+    
+    def update(self):
+        if self.cii is not None:
+            self.cit -= 1
+        
+        if self.input.btnp(pyxel.MOUSE_BUTTON_LEFT) and self.enabled and self.cii is not None:
+            self.cit = self.CLICKING_INDICATOR_TIMEOUT_FRAME
+
+        return super().update()
     
     def draw(self):
         super().draw()
 
+        if self.cii is not None and self.cit > 0:
+            img = self.cii
+            pyxel.pal(1, COLOR_SUCCESSFULL)
+        else:
+            img = self.img
+            pyxel.pal(1, self.colors[0] if self.enabled else self.colors[1])
+        
         pyxel.pal(0, self.colors[2])
-        pyxel.pal(1, self.colors[0] if self.enabled else self.colors[1])
         pyxel.pal(2, self.colors[3])
 
-        scale = min(self.w / self.img.width, self.h / self.img.height)
+        scale = min(self.w / img.width, self.h / img.height)
         self.drawer.blt(
-            self.x + (self.w - self.img.width) / 2,
-            self.y + (self.h - self.img.height) / 2,
-            self.img, 0, 0, self.img.width, self.img.height,
+            self.x + (self.w - img.width) / 2,
+            self.y + (self.h - img.height) / 2,
+            img, 0, 0, img.width, img.height,
             scale=scale
         )
         

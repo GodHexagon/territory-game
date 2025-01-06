@@ -66,5 +66,15 @@ class Area(ABC):
     def get_center_pos(self) -> Tuple[float, float]:
         return (self.x + self.w / 2, self.y + self.h / 2)
 
+class MovableArea(Area):
+    def init_area(self, x, y, w, h):
+        self.to_x(x)
+        self.to_y(y)
+        self.set_w(w)
+        self.set_h(h)
+
+    def secrecy_init_area(self):
+        self.x, self.y, self.w, self.h = 0, 0, 0, 0
+
 class CenteredArea(Area):
     pass

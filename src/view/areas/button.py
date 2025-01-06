@@ -82,10 +82,11 @@ class TextButton(Button):
         return super().to_y(y)
     
     def set_w(self, w):
-        raise ValueError("このコンポーネントは大きさを変えられない。")
+        self.label.set_w(w)
+        return super().set_w(w)
 
     def set_h(self, h):
-        raise ValueError("このコンポーネントは大きさを変えられない。")
+        raise ValueError("このコンポーネントは高さを変更できない。")
 
 class IconButton(Button):
     def __init__(self, cx: float, cy: float, size: float, on_click: Callable[[], None], tile_selector: Tuple[int, int, int, int]):

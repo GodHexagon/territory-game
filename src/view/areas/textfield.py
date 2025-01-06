@@ -10,7 +10,7 @@ class TextField(MovableArea):
     ICON_SIZE_PX = 24
     MARGIN_PX = 8
     GAP_PX = 8
-    MIN_WIDTH = 40
+    MIN_WIDTH = 128
 
     def __init__(self, x, y, w, on_changed: Callable[[str], None], default: str = ""):
         IS = TextField.ICON_SIZE_PX

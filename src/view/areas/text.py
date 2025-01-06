@@ -52,21 +52,31 @@ class WritenText(LimitableArea, CenteredArea):
         super().set_w(w)
         
         LW = 6
+
+        if len(self.text) > self.w.__floor__() // (CHAR_WIDTH_PX * self.scale).__floor__():
+            display_length = (self.w - LW).__floor__() // (CHAR_WIDTH_PX * self.scale).__floor__()
+        else:
+            display_length = None
         
-        text_max_length = min(len(self.text), (self.w - LW).__floor__() // CHAR_WIDTH_PX)
-        self.img = self.__draw_text(self.text[:text_max_length], self.color, self.background_color, LW)
-
-        leader = pyxel.Image(LW, 1)
-        leader.set(0, 0, ["010101"])
-
-        self.img.pal(1, self.color)
-        self.img.blt(
-            self.img.width - LW + 1, self.img.height - 1,
-            leader,
-            0, 0, leader.width, leader.height,
-            colkey=1 
+        self.img = self.__draw_text(
+            self.text[:display_length if display_length is not None else len(self.text)],
+            self.color, 
+            self.background_color, 
+            LW
         )
-        self.img.pal()
+
+        if display_length is not None:
+            leader = pyxel.Image(LW, 1)
+            leader.set(0, 0, ["010101"])
+
+            self.img.pal(1, self.color)
+            self.img.blt(
+                self.img.width - LW + 1, self.img.height - 1,
+                leader,
+                0, 0, leader.width, leader.height,
+                colkey=1 
+            )
+            self.img.pal()
     
     def set_h(self, h):
         raise ValueError("このコンポーネントは高さを変更できない。")

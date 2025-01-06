@@ -82,7 +82,7 @@ class TextButton(Button):
         return super().to_y(y)
     
     def set_w(self, w):
-        self.label.set_w(w)
+        self.label.set_w(w - self.MARGIN_PX * 2)
         return super().set_w(w)
 
     def set_h(self, h):

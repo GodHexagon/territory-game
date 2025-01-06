@@ -66,6 +66,9 @@ class TextField(MovableArea):
         self.write_b.set_colors(text=fill, backgroud=background, border=background)
         self.field.set_colors(text=fill, backgroud=COLOR_WHITE, border=COLOR_WHITE)
         self.copy_b.set_colors(text=fill, backgroud=background, border=background)
+        self.to_x(self.x)
+        self.to_y(self.y)
+        self.set_w(self.w)
     
     def __hdl_write(self):
         self.on_changed("test")

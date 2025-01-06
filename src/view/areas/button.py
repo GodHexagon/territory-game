@@ -113,8 +113,10 @@ class IconButton(Button):
         pyxel.pal()
     
     def set_size(self, value: float):
+        pos = self.get_center_pos()
         self.w = value
         self.h = value
+        self.to_center_pos(*pos)
         
     def set_w(self, w):
         raise ValueError("このコンポーネントは大きさを変えられない。set_sizeメソッドを使うべき。")

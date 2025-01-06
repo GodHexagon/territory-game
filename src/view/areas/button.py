@@ -57,7 +57,7 @@ class TextButton(Button):
         super().set_enabled(enabled)
         self.__write_label()
 
-    def __write_label(self, cx: float = None, cy: float = None) -> None:
+    def __write_label(self, cx: Optional[float] = None, cy: Optional[float] = None) -> None:
         if cx is None or cy is None:
             cx, cy = self.get_center_pos()
         self.label = WritenText(cx, cy, self.text, color=self.colors[0] if self.enabled else self.colors[1])

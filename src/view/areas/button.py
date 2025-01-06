@@ -82,35 +82,42 @@ class TextButton(Button):
         return super().to_y(y)
     
     def set_w(self, w):
-        pass
+        raise ValueError("このコンポーネントは大きさを変えられない。")
 
     def set_h(self, h):
-        pass
+        raise ValueError("このコンポーネントは大きさを変えられない。")
 
 class IconButton(Button):
-    def __init__(self, cx: float, cy: float, size: float, on_click: Callable[[], None], img: Image, colkey: int = 0):
-        self.img = img
-        self.colkey = colkey
+    def __init__(self, cx: float, cy: float, size: float, on_click: Callable[[], None], tile_selector: Tuple[int, int, int, int]):
+        tx, ty, tw, th = tile_selector
+        self.img = Image(tw, th)
+        self.img.blt(0, 0, pyxel.images[0], tx, ty, tw, th)
         super().__init__(cx, cy, on_click)
         self.set_size(size)
     
     def draw(self):
         super().draw()
+
+        pyxel.pal(0, self.colors[2])
+        pyxel.pal(1, self.colors[0] if self.enabled else self.colors[1])
+        pyxel.pal(2, self.colors[3])
+
         scale = min(self.w / self.img.width, self.h / self.img.height)
         self.drawer.blt(
             self.x + (self.w - self.img.width) / 2,
             self.y + (self.h - self.img.height) / 2,
-            self.img, 0, 0, self.img.width, self.img.height, 
-            colkey=self.colkey,
+            self.img, 0, 0, self.img.width, self.img.height,
             scale=scale
         )
+        
+        pyxel.pal()
     
     def set_size(self, value: float):
         self.w = value
         self.h = value
         
     def set_w(self, w):
-        pass
+        raise ValueError("このコンポーネントは大きさを変えられない。set_sizeメソッドを使うべき。")
 
     def set_h(self, h):
-        pass
+        raise ValueError("このコンポーネントは大きさを変えられない。set_sizeメソッドを使うべき。")

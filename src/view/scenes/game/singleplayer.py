@@ -41,7 +41,7 @@ class SingleplayGameScene(GameScene):
             corners
         )
 
-        super().__init__(x, y, w, h)
+        super().init_area(x, y, w, h)
         self.init_view(self.players[self.playable_id][1], self.game.get_pieces_shape(self.playable_id))
 
         self.__turn_end()

@@ -9,7 +9,7 @@ import pyxel
 
 class Cursor(View, PieceHolder):
     def __init__(self):
-        super().__init__(pyxel.mouse_x, pyxel.mouse_y, 0, 0)
+        super().init_area(pyxel.mouse_x, pyxel.mouse_y, 0, 0)
         self.hold()
         self.drawer = CursorField(0, 0, pyxel.width, pyxel.height).drawer
     
@@ -25,5 +25,5 @@ class Cursor(View, PieceHolder):
 
 class CursorField(LimitableArea):
     def __init__(self, x, y, w, h):
-        super().__init__(x, y, w, h)
+        super().init_area(x, y, w, h)
         self.set_limiteds()

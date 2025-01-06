@@ -77,7 +77,7 @@ class LimitedDrawer:
 class Surface(Area):
     def __init__(self, owner: LimitableArea, parent: Optional['Surface'] = None):
         o = owner
-        super().__init__(o.x, o.y, o.w, o.h)
+        super().init_area(o.x, o.y, o.w, o.h)
         self.owner = owner
         self.parent = parent
     

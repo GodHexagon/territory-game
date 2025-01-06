@@ -38,7 +38,7 @@ class PickerView(LimitableArea, View):
     FRAME_THICKNESS_PX = 3
 
     def __init__(self, x, y, w, h, pieces: Tuple[TilesMap], color_s: int, cursor: Cursor):
-        super().__init__(x, y, w, h)
+        super().init_area(x, y, w, h)
         self.set_limiteds()
         self.piece_color_s = color_s
         self.cursor = cursor
@@ -98,7 +98,7 @@ class PickerView(LimitableArea, View):
 class Window(LimitableArea):
     """スクロール可能Viewの表示限界。"""
     def __init__(self, x, y, w, h, parent: PickerView):
-        super().__init__(x, y, w, h)
+        super().init_area(x, y, w, h)
         self.set_limiteds(parent.surface)
     
     def ini_shelf(self):
@@ -115,7 +115,7 @@ class Shelf(LimitableArea):
     X_MARGIN_PX = 20
     
     def __init__(self, x, y, h, parent: Window):        
-        super().__init__(x, y, 0, h)
+        super().init_area(x, y, 0, h)
         self.set_limiteds(parent.surface)
     
     def ini_items(self, pieces_res: Tuple[TilesMap], piece_color_s: int):
@@ -168,7 +168,7 @@ class Item(LimitableArea, PieceHolder):
         self.relative_pos = relative_pos
         FollowablePiece(piece, color_s, self)
 
-        super().__init__(0, 0, 0, base.h)
+        super().init_area(0, 0, 0, base.h)
 
         self.set_limiteds(base.surface)
         self.resize_w()
@@ -204,7 +204,7 @@ class Item(LimitableArea, PieceHolder):
 class ScrollBar(LimitableArea, View):
     """スクロールバーが占有する範囲。"""
     def __init__(self, x, y, w):
-        super().__init__(x, y, w, SLIDER_HEIGHT)
+        super().init_area(x, y, w, SLIDER_HEIGHT)
         self.set_limiteds()
         self.slider = Slider(x, y)
         self.is_clicking = False
@@ -231,7 +231,7 @@ class ScrollBar(LimitableArea, View):
 class Slider(Area):
     """ScrollBarの範囲内で移動することで表示領域を示す表示。"""
     def __init__(self, x, y):
-        super().__init__(x, y, SLIDER_WIDTH, SLIDER_HEIGHT)
+        super().init_area(x, y, SLIDER_WIDTH, SLIDER_HEIGHT)
     
     def draw(self):
         pyxel.rect(self.x, self.y, self.w, self.h, 2)

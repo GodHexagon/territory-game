@@ -15,7 +15,7 @@ class Button(CenteredArea, LimitableArea, ABC):
 
         self.enabled = True
 
-        super().__init__(0, 0, 0, 0)
+        super().init_area(0, 0, 0, 0)
         self.to_center_pos(cx, cy)
         self.set_colors()
 

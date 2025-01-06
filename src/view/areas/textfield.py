@@ -15,7 +15,7 @@ class TextField(Area):
         HEIGHT = TextField.HEIGHT_PX
         MARGIN = TextField.MARGIN_PX
 
-        super().__init__(x, y, w, HEIGHT + MARGIN * 2)
+        super().init_area(x, y, w, HEIGHT + MARGIN * 2)
 
         self.on_changed = on_changed
 

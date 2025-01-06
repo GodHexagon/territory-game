@@ -11,7 +11,7 @@ class FrontNoticeView(Area, View):
     from src.pyxres import CHAR_HEIGHT_PX, CHAR_WIDTH_PX
 
     def __init__(self, x, y, w, h):
-        super().__init__(x, y, w, h)
+        super().init_area(x, y, w, h)
         self.__set_text('', 0)
         self.hidden_time = pyxel.frame_count
         self.transparent = 0.0

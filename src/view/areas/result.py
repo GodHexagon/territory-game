@@ -12,7 +12,7 @@ class ResultWindow(Area, View):
     BODY_SCALE = 3
 
     def __init__(self, x, y, w, h):
-        super().__init__(x, y, w, h)
+        super().init_area(x, y, w, h)
         self.title = self.__get_typo_image('DRAW', 0)
         self.text_imgs: List[Image] | None = None
     

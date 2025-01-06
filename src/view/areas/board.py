@@ -29,7 +29,7 @@ class BoardView(View, LimitableArea):
     TILE_DATA_COLORS = (DEFAULT_COLOR_S, BLUE_COLOR_S, RED_COLOR_S, GREEN_COLOR_S, YELLOW_COLOR_S)
 
     def __init__(self, x, y, w, h, cursor: Cursor, colors_s: int, on_place_piece: CallableOnPlacePiece):
-        super().__init__(x, y, w, h)
+        super().init_area(x, y, w, h)
         self.set_limiteds()
 
         self.commited_tiles_data = numpy.array( [[0 for _ in range(DraggableBoard.BOARD_SIZE_TILES)] for _ in range(DraggableBoard.BOARD_SIZE_TILES)] )
@@ -229,7 +229,7 @@ class DraggableBoard(CenteredArea):
 class CursorMonitor(LimitableArea):
     """盤のマウス入力についての座標系であり、DraggableBoardに追従する。"""
     def __init__(self, x, y, w, h, scale: float, limitation_area: BoardView, cursor: Cursor):
-        super().__init__(x, y, w, h)
+        super().init_area(x, y, w, h)
         self.set_limiteds(limitation_area.surface)
         self.scale = scale
         self.prev_hovered = False

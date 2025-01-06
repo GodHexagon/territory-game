@@ -9,7 +9,7 @@ from typing import *
 
 class AccessKeySettingScene(View, Area):
     def __init__(self, x: float, y: float, w: float, h: float, on_complete: Callable[[bool], None]) -> None:
-        super().__init__(x, y, w, h)
+        super().init_area(x, y, w, h)
         self.window = Window(*self.get_center_pos(), on_complete)
     
     def update(self):
@@ -24,7 +24,7 @@ class Window(Area):
     MARGIN_PX = 16
 
     def __init__(self, cx: float, cy: float, on_complete: Callable[[bool], None]) -> None:
-        super().__init__(0, 0, *Window.SIZE_PX)
+        super().init_area(0, 0, *Window.SIZE_PX)
         self.to_center_pos(cx, cy)
 
         MARGIN = Window.MARGIN_PX

@@ -14,7 +14,7 @@ class TitleScene(Area, View):
             on_multiplayer_selected: Callable[[], None],
             on_akst_selected: Callable[[], None]
         ):
-        super().__init__(x, y, w, h)
+        super().init_area(x, y, w, h)
 
         self.title = WritenText(self.x + self.w / 2, self.y + self.h / 3, "TERRITORY GAME", COLOR_BLACK, scale=5)
         self.sp_button = TextButton(x + w / 2, y + h / 3 + 100, on_singleplayer_selected, "SINGLEPLAY")

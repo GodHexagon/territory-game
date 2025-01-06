@@ -14,7 +14,7 @@ class WritenText(LimitableArea, CenteredArea):
         self.scale = scale
         self.img = self.__draw_text(text, color, self.background_color)
 
-        super().__init__(0, 0, self.img.width * scale, self.img.height * scale)
+        super().init_area(0, 0, self.img.width * scale, self.img.height * scale)
         self.to_center_pos(cx, cy)
         self.set_limiteds(parent_surface)
     

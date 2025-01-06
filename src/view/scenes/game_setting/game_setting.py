@@ -35,7 +35,7 @@ class GameSettingScene(Area, View):
             multiplay: bool = False
         ):
         if not (x == 0 and y == 0): raise ValueError('このAreaは画面サイズ依存です。')
-        super().__init__(x, y, w, h)
+        super().init_area(x, y, w, h)
 
         self.on_launch_game = on_launch_game
         self.on_cancel = on_cancel
@@ -182,7 +182,7 @@ class Player(LimitableArea):
             on_change: Callable[[PlayerType], None], 
             default: PlayerType = PlayerType.AI
         ):
-        super().__init__(x, y, w, Player.HEIGHT_PX)
+        super().init_area(x, y, w, Player.HEIGHT_PX)
         self.set_limiteds()
 
         self.on_change = on_change
@@ -235,7 +235,7 @@ class RadioButton(CenteredArea, LimitableArea, View):
     RADIUS_PX = 16
 
     def __init__(self, cx, cy, on_click: Callable[[], None], default: bool = False):
-        super().__init__(0, 0, self.RADIUS_PX, self.RADIUS_PX)
+        super().init_area(0, 0, self.RADIUS_PX, self.RADIUS_PX)
         self.to_center_pos(cx, cy)
         self.set_limiteds()
         self.selected = default

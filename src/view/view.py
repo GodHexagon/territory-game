@@ -21,7 +21,7 @@ class ParenthoodView(View):
         for c in self.childs.values(): c.draw()
 
 class Area(ABC):
-    def __init__(self, x: float, y: float, w: float, h: float):
+    def init_area(self, x: float, y: float, w: float, h: float):
         self.x = x
         self.y = y
         self.w = w

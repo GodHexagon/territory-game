@@ -10,7 +10,7 @@ from typing import *
 
 class MainView(View, Area):
     def __init__(self, x, y, w, h):
-        super().__init__(x, y, w, h)
+        super().init_area(x, y, w, h)
         self.__show_title()
     
     def __show_title(self):

@@ -27,6 +27,7 @@ class TextField(MovableArea):
             tile_selector=(TX, TY, TILE_SIZE_PX, TILE_SIZE_PX)
         )
 
+        self.text = default
         self.field = TextButton(0, 0, lambda: None, default)
         
         TX, TY = COPY_ICON_COOR
@@ -73,14 +74,15 @@ class TextField(MovableArea):
     
     def __hdl_write(self):
         text: str = pyperclip.paste()
-        self.field.change_mode(text, lambda: None)
+        self.text = text    
         self.on_changed(text)
+        self.field.change_mode(text, lambda: None)
         self.to_x(self.x)
         self.to_y(self.y)
         self.set_w(self.w)
-    
+
     def __hdl_copy(self):
-        pass
+        pyperclip.copy(self.text)
 
     def update(self):
         self.write_b.update()

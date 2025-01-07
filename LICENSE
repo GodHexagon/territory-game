@@ -362,6 +362,8 @@ This program includes the following libraries:
   Based on previous work under copyright (c) 2002 McMillan Enterprises, Inc.
   See the full license text at: https://github.com/pyinstaller/pyinstaller/blob/develop/COPYING.txt
 
+- pyperclip - BSD License
+
 
 
 ===========

@@ -1,4 +1,4 @@
-from ..view import View, Area
+from ..base.view import View, Area
 from .game.singleplayer import SingleplayGameScene
 from .game.multiplayer import MultiplayerGameScene
 from .title.title import TitleScene

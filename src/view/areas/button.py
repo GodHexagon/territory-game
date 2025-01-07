@@ -5,8 +5,8 @@ from typing import *
 from abc import ABC
 
 from src.pyxres import *
-from ..view import CenteredArea
-from ..limitter import LimitableArea
+from ..base.view import CenteredArea
+from ..base.limitter import LimitableArea
 from .text import WritenText
 
 class Button(CenteredArea, LimitableArea, ABC):

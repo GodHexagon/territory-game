@@ -1,4 +1,4 @@
-from ...view import Area, View
+from ...base.view import Area, View
 from ...areas.button import TextButton
 from ...areas.text import WritenText
 from src.pyxres import COLOR_PRIMARY, COLOR_BLACK, COLOR_WHITE

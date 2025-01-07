@@ -1,5 +1,5 @@
-from ..limitter import LimitedDrawer
-from ..view import CenteredArea
+from ..base.limitter import LimitedDrawer
+from ..base.view import CenteredArea
 from ...rule.rule import TilesMap, Rotation, Piece
 
 from numpy import ndarray as NDArray

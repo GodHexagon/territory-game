@@ -1,4 +1,4 @@
-from ..view import View
+from ..base.view import View
 
 from pathlib import Path
 import threading

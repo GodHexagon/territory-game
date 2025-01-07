@@ -1,4 +1,4 @@
-from ...view import Area, View
+from ...base.view import Area, View
 from ...areas import *
 from ....rule.rule import Rotation, TilesMap
 

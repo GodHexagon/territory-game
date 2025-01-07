@@ -1,4 +1,4 @@
-from ..view import Area
+from ..base.view import Area
 from .button import IconButton, TextButton
 from src.pyxres import *
 

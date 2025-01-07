@@ -1,5 +1,5 @@
-from ..limitter import LimitableArea, LimitedDrawer, LimitableArea
-from ..view import Area, View
+from ..base.limitter import LimitableArea, LimitedDrawer, LimitableArea
+from ..base.view import Area, View
 from .cursor import Cursor
 from ...rule.rule import TilesMap, Rotation
 from ...key_bind import *

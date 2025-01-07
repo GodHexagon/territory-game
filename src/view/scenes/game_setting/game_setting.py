@@ -1,5 +1,5 @@
-from ...view import View, Area, CenteredArea
-from ...limitter import LimitableArea
+from ...base.view import View, Area, CenteredArea
+from ...base.limitter import LimitableArea
 from ...areas.text import WritenText
 from ..player_type import PlayerType
 from ...areas.button import TextButton

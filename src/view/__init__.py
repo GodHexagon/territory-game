@@ -1,4 +1,4 @@
 from .scenes.main import MainView
-from .view import View
+from .base.view import View
 
 __all__ = ['MainView', 'View']

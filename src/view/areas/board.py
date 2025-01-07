@@ -1,5 +1,5 @@
-from ..limitter import LimitableArea, LimitedDrawer, Surface
-from ..view import View, CenteredArea
+from ..base.limitter import LimitableArea, LimitedDrawer, Surface
+from ..base.view import View, CenteredArea
 from .cursor import Cursor
 from ...rule.rule import Rotation, Rule, Piece, PiecesBP, PlacementResult, TilesMap
 from ...key_bind import Bind, btn, btnp

@@ -1,4 +1,4 @@
-from ...view import View, Area
+from ...base.view import View, Area
 from src.pyxres import *
 from ...areas.text import WritenText
 from ...areas.button import TextButton

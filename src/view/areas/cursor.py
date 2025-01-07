@@ -1,5 +1,5 @@
-from ..view import View, Area
-from ..limitter import LimitableArea
+from ..base.view import View, Area
+from ..base.limitter import LimitableArea
 from .piece import PieceHolder
 from ...rule.rule import Rotation
 

@@ -37,6 +37,9 @@ class TextField(Area):
         )
 
         self.set_colors()
+    
+    def get_text(self):
+        return self.text
         
     def to_x(self, x):
         diff = x - self.x

@@ -29,6 +29,8 @@ class Window(Area):
         self.init_unplaced_area(*Window.SIZE_PX)
         self.to_center_pos(cx, cy)
 
+        self.on_complete = on_complete
+
         MARGIN = Window.MARGIN_PX
 
         self.title = WritenText(cx, 0, text="SET YOUR ACCESS KEY", color=COLOR_BLACK, scale=5)
@@ -36,7 +38,8 @@ class Window(Area):
 
         self.console: WritenText | TextField = WritenText(cx, cy, "PROCESSING...", COLOR_FAILURE)
 
-        self.update_b = TextButton(0, 0, lambda : on_complete(True), "UPDATE")
+        self.update_b = TextButton(0, 0, self.__hdl_try_to_complete, "UPDATE")
+        self.update_b.set_enabled(False)
         self.update_b.set_colors(backgroud=COLOR_SUCCESSFULL)
         self.update_b.to_x_end(self.x + self.w - MARGIN)
         self.update_b.to_y_bottom(self.y + self.h - MARGIN)
@@ -45,21 +48,31 @@ class Window(Area):
         self.cancel_b.to_x(self.x + MARGIN)
         self.cancel_b.to_y_bottom(self.y + self.h - MARGIN)
         
-        self.akm = AccessKeyManager(self.__hdl_throw_error, self.__hdl_load_current_sk)
+        self.akm = AccessKeyManager(self.__hdl_throw_error, self.__hdl_load_current_sk, self.__hdl_save_complete)
         ok = self.akm.load()
-        if not ok: raise AssertionError("Oh no")
+        if not ok: raise RuntimeError("予期しないリソースの競合。画面の開始と完了が非常に近かった可能性がある。")
+    
+    def __hdl_try_to_complete(self):
+        c = self.console
+        if isinstance(c, TextField):
+            ok = self.akm.save(c.get_text())
+        else:
+            RuntimeError("このタイミングの完了ボタン押下は禁止されている。")
+        if not ok: raise RuntimeError("予期しないリソースの競合。画面の開始と完了が非常に近かった可能性がある。")
     
     def __hdl_throw_error(self):
         self.console = WritenText(*self.get_center_pos(), "ERROR", COLOR_FAILURE)
-    
-    def __hdl_change_ak(self):
-        pass
 
     def __hdl_load_current_sk(self, value: str):
+        self.update_b.set_enabled(True)
+
         MARGIN = Window.MARGIN_PX
-        self.console = TextField(lambda s: None, value)
+        self.console = TextField(lambda _: None, value)
         self.console.set_w(self.w - MARGIN * 2)
         self.console.to_center_pos(*self.get_center_pos())
+    
+    def __hdl_save_complete(self):
+        self.on_complete(True)
     
     def update(self):
         if isinstance(self.console, TextField):

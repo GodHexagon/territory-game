@@ -1,4 +1,4 @@
-from ..view import MovableArea
+from ..view import Area
 from .button import IconButton, TextButton
 from src.pyxres import *
 
@@ -7,19 +7,22 @@ from typing import *
 import pyxel
 import pyperclip # type: ignore
 
-class TextField(MovableArea):
+class TextField(Area):
     ICON_SIZE_PX = 24
     MARGIN_PX = 8
     GAP_PX = 8
     MIN_WIDTH = 128
 
-    def __init__(self, x, y, w, on_changed: Callable[[str], None], default: str = ""):
+    def __init__(self, on_changed: Callable[[str], None], default: str = ""):
         IS = TextField.ICON_SIZE_PX
         MARGIN = TextField.MARGIN_PX
 
         self.on_changed = on_changed
-        
-        self.secrecy_init_area()
+
+        self.w = self.MIN_WIDTH
+        self.h = IS + MARGIN * 2
+        self.x = -self.w
+        self.y = -self.h
 
         TX, TY = RIGHT_ALLOW_ICON_COOR
         self.write_b = IconButton(
@@ -35,11 +38,6 @@ class TextField(MovableArea):
             0, 0, size=IS, on_click=self.__hdl_copy,
             tile_selector=(TX, TY, TILE_SIZE_PX, TILE_SIZE_PX)
         )
-
-        self.to_x(x)
-        self.to_y(y)
-        self.set_w(w)
-        self.h = IS + MARGIN * 2
 
         self.set_colors()
         

@@ -3,13 +3,25 @@ __package__ = "src"
 from src.view import *
 from src import pyxres
 import pyxel
+import sys
+import os
 
 
 class App:
     def __init__(self) -> None:
+        if getattr(sys, 'frozen', False):
+            # PyInstallerで実行されている場合
+            resource_path = os.path.join(sys._MEIPASS, 'art', 'common.pyxpal'), os.path.join(sys._MEIPASS, 'art', 'common.pyxres') # type: ignore
+        else:
+            # 通常のPython実行時
+            resource_path = os.path.join('..', 'art', 'common.pyxpal'), os.path.join('..', 'art', 'common.pyxres')
+
+        PYXPAL_PATH = resource_path[0]
+        PYXRES_PATH = resource_path[1]
+
         pyxel.init(768, 512, title="Territory Game", display_scale=1, fps=60)
         pyxel.mouse(True)
-        pyxel.load(pyxres.PYXRES_PATH)
+        pyxel.load(PYXRES_PATH)
 
         self.__init_game()
 

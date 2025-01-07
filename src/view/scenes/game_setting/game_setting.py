@@ -39,7 +39,7 @@ class GameSettingScene(Area, View):
 
         self.on_launch_game = on_launch_game
         self.on_cancel = on_cancel
-        self.multiplay = multiplay
+        self.multiplayer = multiplay
 
         # 画面タイトル
         MARGIN = GameSettingScene.LEFT_MARGIN_PX
@@ -130,10 +130,16 @@ class GameSettingScene(Area, View):
 
         playable_count = 0
         unassigned_count = 0
+        multiplayer_cound = 0
         for p in self.players:
             if p.type == PlayerType.PLAYABLE: playable_count += 1
             elif p.type == PlayerType.UNASSIGNED: unassigned_count += 1
-        self.start_button.set_enabled(playable_count == 1 and unassigned_count in range(0, 3))
+            elif p.type == PlayerType.MULTIPLAYER: multiplayer_cound += 1
+        self.start_button.set_enabled(
+            playable_count == 1 and 
+            unassigned_count in range(0, 3) and
+            (not self.multiplayer or multiplayer_cound in range(1, 4))
+        )
     
     def update(self):
         if not self.connecting:

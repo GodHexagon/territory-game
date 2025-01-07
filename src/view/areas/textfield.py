@@ -5,6 +5,7 @@ from src.pyxres import *
 from typing import *
 
 import pyxel
+import pyperclip # type: ignore
 
 class TextField(MovableArea):
     ICON_SIZE_PX = 24
@@ -71,7 +72,12 @@ class TextField(MovableArea):
         self.set_w(self.w)
     
     def __hdl_write(self):
-        self.on_changed("test")
+        text: str = pyperclip.paste()
+        self.field.change_mode(text, lambda: None)
+        self.on_changed(text)
+        self.to_x(self.x)
+        self.to_y(self.y)
+        self.set_w(self.w)
     
     def __hdl_copy(self):
         pass

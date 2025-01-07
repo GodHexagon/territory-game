@@ -9,16 +9,6 @@ class View(ABC):
     @abstractmethod
     def draw(self):
         pass
-    
-class ParenthoodView(View):
-    def set_childs(self, childs: Dict[str, View]):
-        self.childs = childs
-    
-    def update(self):
-        for c in self.childs.values(): c.update()
-    
-    def draw(self):
-        for c in self.childs.values(): c.draw()
 
 class Area(ABC):
     def init_area(self, x: float, y: float, w: float, h: float):
@@ -26,6 +16,14 @@ class Area(ABC):
         self.y = y
         self.w = w
         self.h = h
+    
+    def init_unplaced_area(self, w: float, h: float):
+        self.w, self.h = w, h
+        self.x = -self.w
+        self.y = -self.h
+
+    def init_unbound_area(self):
+        self.x, self.y, self.w, self.h = 0.0, 0.0, 0.0, 0.0
     
     def to_x(self, x: float):
         self.x = x
@@ -65,16 +63,6 @@ class Area(ABC):
     
     def get_center_pos(self) -> Tuple[float, float]:
         return (self.x + self.w / 2, self.y + self.h / 2)
-
-class MovableArea(Area):
-    def init_area(self, x, y, w, h):
-        self.to_x(x)
-        self.to_y(y)
-        self.set_w(w)
-        self.set_h(h)
-
-    def secrecy_init_area(self):
-        self.x, self.y, self.w, self.h = 0, 0, 0, 0
 
 class CenteredArea(Area):
     pass

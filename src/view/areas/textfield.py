@@ -19,10 +19,7 @@ class TextField(Area):
 
         self.on_changed = on_changed
 
-        self.w = self.MIN_WIDTH
-        self.h = IS + MARGIN * 2
-        self.x = -self.w
-        self.y = -self.h
+        self.init_unplaced_area(self.MIN_WIDTH, IS + MARGIN * 2)
 
         TX, TY = RIGHT_ALLOW_ICON_COOR
         self.write_b = IconButton(
@@ -42,9 +39,11 @@ class TextField(Area):
         self.set_colors()
         
     def to_x(self, x):
+        diff = x - self.x
         super().to_x(x)
         self.write_b.to_x(x + self.MARGIN_PX)
         self.field.to_x(x + self.MARGIN_PX + self.ICON_SIZE_PX + self.GAP_PX)
+        self.copy_b.to_x(self.copy_b.x + diff)
 
     def to_y(self, y):
         super().to_y(y)

@@ -2,7 +2,7 @@ from ...base.view import View, Area
 from ...areas.text import WritenText
 from ..player_type import PlayerType
 from ...areas.button import TextButton
-from .components import Player, ProgressingIndicator, RadioButton
+from .components import Player, ProgressingIndicator, RadioButton, SceneData
 from src.pyxres import *
 
 import pyxel
@@ -10,25 +10,6 @@ import pyxel
 from typing import *
 
 class GameSettingScene(Area, View):
-    TEXT_COLOR = COLOR_BLACK
-    BACKGROUND_COLOR = COLOR_WHITE
-
-    COMUNM_NAMES_Y = 80
-
-    LEFT_MARGIN_PX = 32
-
-    PLAYABLE_CENTER_X = 192
-    AI_CENTER_X = 256
-    UNASSIGNED_CENTER_X = 320
-    MULTIPLAY_CENTER_X = 400
-
-    PLAYER_COLORS = (
-        (0, BLUE_COLOR_S, "BLUE"),
-        (1, RED_COLOR_S, "RED"),
-        (2, GREEN_COLOR_S, "GREEN"),
-        (3, YELLOW_COLOR_S, "YELLOW")
-    )
-
     def __init__(self, x, y, w, h, 
             on_launch_game: Callable[[List[Tuple[str, PlayerType]]], None], 
             on_cancel: Callable[[], None],
@@ -42,29 +23,29 @@ class GameSettingScene(Area, View):
         self.multiplayer = multiplay
 
         # 画面タイトル
-        MARGIN = GameSettingScene.LEFT_MARGIN_PX
+        MARGIN = SceneData.LEFT_MARGIN_PX
 
-        self.title = WritenText(0, y + 32, "SETTING FOR PLAYING", GameSettingScene.TEXT_COLOR, 5)
+        self.title = WritenText(0, y + 32, "SETTING FOR PLAYING", SceneData.TEXT_COLOR, 5)
         self.title.x = x + MARGIN
 
         # 列名
-        PCX = self.PLAYABLE_CENTER_X
-        ACX = self.AI_CENTER_X
-        UCX = self.UNASSIGNED_CENTER_X
-        MCX = self.MULTIPLAY_CENTER_X
-        Y = self.COMUNM_NAMES_Y
+        PCX = SceneData.PLAYABLE_CENTER_X
+        ACX = SceneData.AI_CENTER_X
+        UCX = SceneData.UNASSIGNED_CENTER_X
+        MCX = SceneData.MULTIPLAY_CENTER_X
+        Y = SceneData.COMUNM_NAMES_Y
         self.column_names: Tuple[WritenText, ...] = (
-            WritenText(0, y + Y, "NAME", GameSettingScene.TEXT_COLOR),
-            WritenText(PCX, y + Y, "YOU", GameSettingScene.TEXT_COLOR),
-            WritenText(ACX, y + Y, "AI", GameSettingScene.TEXT_COLOR),
-            WritenText(UCX, y + Y, "NONE", GameSettingScene.TEXT_COLOR)
+            WritenText(0, y + Y, "NAME", SceneData.TEXT_COLOR),
+            WritenText(PCX, y + Y, "YOU", SceneData.TEXT_COLOR),
+            WritenText(ACX, y + Y, "AI", SceneData.TEXT_COLOR),
+            WritenText(UCX, y + Y, "NONE", SceneData.TEXT_COLOR)
         )
-        if multiplay: self.column_names += (WritenText(MCX, y + Y, "ONLINE", GameSettingScene.TEXT_COLOR), )
+        if multiplay: self.column_names += (WritenText(MCX, y + Y, "ONLINE", SceneData.TEXT_COLOR), )
 
         self.column_names[0].x = x + MARGIN
 
         # プレイヤー表（行）
-        PCS = GameSettingScene.PLAYER_COLORS
+        PCS = SceneData.PLAYER_COLORS
 
         l: List[Player] = []
         for i, color, color_name in PCS:
@@ -106,7 +87,7 @@ class GameSettingScene(Area, View):
         self.prog.set_visible(True)
 
         self.start_button.change_mode("CANCEL CONNECTING", self.__hdl_cancel_connecting)
-        self.start_button.to_x_end(self.x + self.w - GameSettingScene.LEFT_MARGIN_PX)
+        self.start_button.to_x_end(self.x + self.w - SceneData.LEFT_MARGIN_PX)
         self.start_button.label.to_center_pos(*self.start_button.get_center_pos())
     
     def __hdl_cancel_connecting(self):
@@ -116,11 +97,11 @@ class GameSettingScene(Area, View):
 
         self.start_button.set_enabled(False)
         self.start_button.change_mode("GAME START", self.__hdl_try_to_connect)
-        self.start_button.to_x_end(self.x + self.w - GameSettingScene.LEFT_MARGIN_PX)
+        self.start_button.to_x_end(self.x + self.w - SceneData.LEFT_MARGIN_PX)
         self.start_button.label.to_center_pos(*self.start_button.get_center_pos())
     
     def __hdl_launch_game(self):
-        PCS = GameSettingScene.PLAYER_COLORS
+        PCS = SceneData.PLAYER_COLORS
         self.on_launch_game(list(
             (pc[2], p.type) for pc, p in zip(PCS, self.players)
         ))
@@ -151,7 +132,7 @@ class GameSettingScene(Area, View):
         self.prog.update()
     
     def draw(self):
-        pyxel.cls(self.BACKGROUND_COLOR)
+        pyxel.cls(SceneData.BACKGROUND_COLOR)
         self.title.draw()
         for c in self.column_names:
             c.draw()

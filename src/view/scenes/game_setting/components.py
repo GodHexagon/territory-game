@@ -8,17 +8,25 @@ import pyxel
 
 from typing import *
 
-TEXT_COLOR = COLOR_BLACK
-BACKGROUND_COLOR = COLOR_WHITE
+class SceneData:
+    TEXT_COLOR = COLOR_BLACK
+    BACKGROUND_COLOR = COLOR_WHITE
 
-COMUNM_NAMES_Y = 80
+    COMUNM_NAMES_Y = 80
 
-LEFT_MARGIN_PX = 32
+    LEFT_MARGIN_PX = 32
 
-PLAYABLE_CENTER_X = 192
-AI_CENTER_X = 256
-UNASSIGNED_CENTER_X = 320
-MULTIPLAY_CENTER_X = 400
+    PLAYABLE_CENTER_X = 192
+    AI_CENTER_X = 256
+    UNASSIGNED_CENTER_X = 320
+    MULTIPLAY_CENTER_X = 400
+    
+    PLAYER_COLORS = (
+        (0, BLUE_COLOR_S, "BLUE"),
+        (1, RED_COLOR_S, "RED"),
+        (2, GREEN_COLOR_S, "GREEN"),
+        (3, YELLOW_COLOR_S, "YELLOW")
+    )
 
 class ProgressingIndicator(WritenText):
     def __init__(self, cx, cy, scale = 3, parent_surface = None, visible: bool = False):
@@ -57,10 +65,10 @@ class Player(LimitableArea):
         self.label.x = x + 16
     
     def ini_radios(self, multiplay: bool = False) -> Tuple['RadioButton', ...]:
-        PCX = PLAYABLE_CENTER_X
-        ACX = AI_CENTER_X
-        UCX = UNASSIGNED_CENTER_X
-        MCX = MULTIPLAY_CENTER_X
+        PCX = SceneData.PLAYABLE_CENTER_X
+        ACX = SceneData.AI_CENTER_X
+        UCX = SceneData.UNASSIGNED_CENTER_X
+        MCX = SceneData.MULTIPLAY_CENTER_X
         Y = self.y + self.h / 2
         self.buttons: Tuple[RadioButton, ...] = (
             RadioButton(PCX, Y, self.__hdl_click_playable, self.type == PlayerType.PLAYABLE),
@@ -114,8 +122,8 @@ class RadioButton(CenteredArea, LimitableArea, View):
             self.on_click()
     
     def draw(self):
-        LINE = TEXT_COLOR
-        EMPTY = BACKGROUND_COLOR
+        LINE = SceneData.TEXT_COLOR
+        EMPTY = SceneData.BACKGROUND_COLOR
         cx, cy = self.get_center_pos()
         self.drawer.circ(cx, cy, self.RADIUS_PX // 2, EMPTY)
         self.drawer.circb(cx, cy, self.RADIUS_PX // 2, LINE)

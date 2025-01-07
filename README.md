@@ -14,6 +14,8 @@ pyxel: https://github.com/kitao/pyxel
 
 以下のブランチに移動して、「Download ZIP」を用いてダウンロードします。
 
+※こちらは現在、古いバージョンとなっております。
+
 https://github.com/GodHexagon/territory-game/tree/dist/alpha/vsai-1-1
 
 以下のように、「<> Code ▼」 -> 「Download ZIP」となっているはずです。
@@ -29,9 +31,7 @@ ZIP形式でダウンロードされますので、解凍します。
 
 この方法では、Python3インタプリンタが、環境にインストールされている必要があります。
 
-当該リポジトリをローカルにクローンします。
-
-masterブランチに移動します。
+Gitを使うか、.exeファイルの方法と同じような方法で、masterブランチをローカルに展開します。
 
 Windowsの場合は、リポジトリルートから、".\run.bat"の位置にあるファイルを実行すると、自動でゲームが起動します。
 
@@ -39,7 +39,7 @@ Windowsの場合は、リポジトリルートから、".\run.bat"の位置に�
 
 ```
 pip install -r ./requirements.txt
-python ./src/main.py
+python -m src
 
 ```
 

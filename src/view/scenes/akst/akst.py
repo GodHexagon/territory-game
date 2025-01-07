@@ -53,6 +53,7 @@ class Window(Area):
         if not ok: raise RuntimeError("予期しないリソースの競合。画面の開始と完了が非常に近かった可能性がある。")
     
     def __hdl_try_to_complete(self):
+        self.update_b.set_enabled(False)
         c = self.console
         if isinstance(c, TextField):
             ok = self.akm.save(c.get_text())

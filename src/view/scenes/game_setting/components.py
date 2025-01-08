@@ -2,9 +2,11 @@ from ...areas.text import WritenText
 from ...base.limitter import LimitableArea
 from ...base.view import View, Area, CenteredArea
 from ..player_type import PlayerType
+from ...areas.button import IconButton, TextButton
 from src.pyxres import *
 
 import pyxel
+import pyperclip # type: ignore
 
 from typing import *
 
@@ -14,12 +16,16 @@ class SceneData:
 
     COMUNM_NAMES_Y = 80
 
+    ROW_HEIGHT_PX = 56
+    ROW_GAP_PX = 8
+
     LEFT_MARGIN_PX = 32
 
     PLAYABLE_CENTER_X = 192
     AI_CENTER_X = 256
     UNASSIGNED_CENTER_X = 320
     MULTIPLAY_CENTER_X = 400
+    PASSWORD_START_X = 470
     
     PLAYER_COLORS = (
         (0, BLUE_COLOR_S, "BLUE"),
@@ -47,7 +53,7 @@ class ProgressingIndicator(WritenText):
         if self.visible: super().draw()
 
 class Player(LimitableArea):
-    HEIGHT_PX = 32
+    HEIGHT_PX = SceneData.ROW_HEIGHT_PX
 
     def __init__(self, x, y, w, 
             label: str, 
@@ -126,3 +132,70 @@ class RadioButton(CenteredArea, LimitableArea, View):
         self.drawer.circb(cx, cy, self.RADIUS_PX // 2, LINE)
         if self.selected:
             self.drawer.circ(cx, cy, self.RADIUS_PX // 4, LINE)
+            
+class ReadonlyText(Area):
+    ICON_SIZE_PX = 24
+    MARGIN_PX = 8
+    GAP_PX = 8
+    MIN_WIDTH = 128
+
+    def __init__(self, on_changed: Callable[[str], None], default: str = ""):
+        IS = ReadonlyText.ICON_SIZE_PX
+        MARGIN = ReadonlyText.MARGIN_PX
+
+        self.on_changed = on_changed
+
+        self.init_unplaced_area(self.MIN_WIDTH, IS + MARGIN * 2)
+
+        self.text = default
+        self.field = TextButton(0, 0, lambda: None, default)
+        
+        TX, TY = COPY_ICON_COOR
+        self.copy_b = IconButton(
+            0, 0, size=IS, on_click=self.__hdl_copy,
+            tile_selector=(TX, TY, TILE_SIZE_PX, TILE_SIZE_PX)
+        )
+
+        self.set_colors()
+    
+    def get_text(self):
+        return self.text
+        
+    def to_x(self, x):
+        diff = x - self.x
+        super().to_x(x)
+        self.field.to_x(x + self.MARGIN_PX)
+        self.copy_b.to_x(self.copy_b.x + diff)
+
+    def to_y(self, y):
+        super().to_y(y)
+        self.field.to_y(y + ((self.MARGIN_PX * 2 + self.ICON_SIZE_PX) - self.field.h) / 2)
+        self.copy_b.to_y(y + self.MARGIN_PX)
+    
+    def set_w(self, w):
+        w = max(w, self.MIN_WIDTH)
+        super().set_w(w)
+        self.field.set_w(w - self.MARGIN_PX * 2 - self.ICON_SIZE_PX)
+        self.copy_b.to_x(self.x + w - self.MARGIN_PX - self.ICON_SIZE_PX)
+    
+    def set_h(self, h):
+        raise ValueError("このコンポーネントは高さを変更できない。")
+    
+    def set_colors(self, fill: int = COLOR_BLACK, background: int = COLOR_PRIMARY):
+        self.background = background
+        self.field.set_colors(text=fill, backgroud=background, border=background)
+        self.copy_b.set_colors(text=fill, backgroud=background, border=background)
+        self.to_x(self.x)
+        self.to_y(self.y)
+        self.set_w(self.w)
+
+    def __hdl_copy(self):
+        pyperclip.copy(self.text)
+
+    def update(self):
+        self.copy_b.update()
+    
+    def draw(self):
+        pyxel.rect(self.x, self.y, self.w, self.h, self.background)
+        self.field.draw()
+        self.copy_b.draw()

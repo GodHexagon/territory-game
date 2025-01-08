@@ -2,7 +2,7 @@ from ...base.view import View, Area
 from ...areas.text import WritenText
 from ..player_type import PlayerType
 from ...areas.button import TextButton
-from .components import Player, ProgressingIndicator, RadioButton, SceneData
+from .components import Player, ProgressingIndicator, RadioButton, SceneData, ReadonlyText
 from src.pyxres import *
 
 import pyxel
@@ -47,13 +47,15 @@ class GameSettingScene(Area, View, ABC):
 
         # プレイヤー表（行）
         PCS = SceneData.PLAYER_COLORS
+        RH = SceneData.ROW_HEIGHT_PX
+        RG = SceneData.ROW_GAP_PX
 
         l: List[Player] = []
         for i, color, color_name in PCS:
             callback = lambda type, i=i: self.hdl_change_player_type(i, type)
             player = Player(
                 x + MARGIN,
-                y + i * 48 + 96,
+                y + i * (RH + RG) + 96,
                 w - 64,
                 color_name,
                 color,
@@ -67,39 +69,24 @@ class GameSettingScene(Area, View, ABC):
 
         # スタートボタン
         self.connecting = False
-        self.start_button = TextButton(0, y + 96 + 48 * 4 + 32, label="GAME START", 
-                                        on_click=self.__hdl_try_to_connect if multiplayer else self.__hdl_launch_game)
+        self.start_button = TextButton(0, y + 96 + (RH + RG) * 4 + 32, label="GAME START", 
+                                        on_click=self.hdl_try_to_connect if multiplayer else self.__hdl_launch_game)
         self.start_button.to_x_end(x + w - MARGIN)
         self.start_button.label.to_center_pos(*self.start_button.get_center_pos())
         
         # 戻るボタン
-        self.cancel_button = TextButton(0, y + 96 + 48 * 4 + 32, label="CANCEL",
+        self.cancel_button = TextButton(0, y + 96 + (RH + RG) * 4 + 32, label="CANCEL",
             on_click=lambda : self.on_cancel()
         )
         self.cancel_button.to_x(x + MARGIN)
         self.cancel_button.label.to_center_pos(*self.cancel_button.get_center_pos())
 
         # 処理中インジケータ
-        self.prog = ProgressingIndicator(w / 2, y + 96 + 48 * 4 + 96, scale=5)
+        self.prog = ProgressingIndicator(w / 2, y + 96 + (RH + RG) * 4 + 96, scale=5)
         
-    def __hdl_try_to_connect(self):
-        self.connecting = True
-
-        self.prog.set_visible(True)
-
-        self.start_button.change_mode("CANCEL CONNECTING", self.__hdl_cancel_connecting)
-        self.start_button.to_x_end(self.x + self.w - SceneData.LEFT_MARGIN_PX)
-        self.start_button.label.to_center_pos(*self.start_button.get_center_pos())
-    
-    def __hdl_cancel_connecting(self):
-        self.connecting = False
-
-        self.prog.set_visible(False)
-
-        self.start_button.set_enabled(False)
-        self.start_button.change_mode("GAME START", self.__hdl_try_to_connect)
-        self.start_button.to_x_end(self.x + self.w - SceneData.LEFT_MARGIN_PX)
-        self.start_button.label.to_center_pos(*self.start_button.get_center_pos())
+    @abstractmethod
+    def hdl_try_to_connect(self):
+        pass
     
     def __hdl_launch_game(self):
         PCS = SceneData.PLAYER_COLORS
@@ -154,6 +141,9 @@ class SingleplayerGameSettingScene(GameSettingScene):
             playable_count == 1 and 
             unassigned_count in range(0, 3)
         )
+    
+    def hdl_try_to_connect(self):
+        pass
 
 class MultiplayerGameSettingScene(GameSettingScene):
     def __init__(self, 
@@ -162,8 +152,11 @@ class MultiplayerGameSettingScene(GameSettingScene):
         on_cancel: Callable[[], None]
     ):
         self.init_scene(x, y, w, h, on_launch_game, on_cancel, multiplayer=True)
+
         for p in self.players[1:]:
             p.set_player_type(PlayerType.MULTIPLAYER)
+        
+        self.p_fields: List[ReadonlyText] | None = None
     
     def hdl_change_player_type(self, which, player_type):
         self.players[which].set_player_type(player_type)
@@ -180,3 +173,44 @@ class MultiplayerGameSettingScene(GameSettingScene):
             unassigned_count in range(0, 3) and
             multiplayer_cound in range(1, 4)
         )
+        
+    def hdl_try_to_connect(self):
+        self.freezed_setting = True
+
+        self.prog.set_visible(True)
+
+        self.start_button.change_mode("CANCEL CONNECTING", self.__hdl_cancel_connecting)
+        self.start_button.to_x_end(self.x + self.w - SceneData.LEFT_MARGIN_PX)
+        self.start_button.label.to_center_pos(*self.start_button.get_center_pos())
+
+    def __hdl_recieved_response(self):
+        l: List[ReadonlyText] = []
+        for p in self.players:
+            if p.type != PlayerType.MULTIPLAYER: continue
+
+            new = ReadonlyText(lambda _: None)
+            new.to_center_pos(*p.get_center_pos())
+            new.to_x(SceneData.PASSWORD_START_X)
+            
+            l.append(new)
+        self.p_fields = l
+    
+    def __hdl_cancel_connecting(self):
+        self.prog.set_visible(False)
+
+        self.start_button.set_enabled(False)
+        self.start_button.change_mode("GAME START", self.hdl_try_to_connect)
+        self.start_button.to_x_end(self.x + self.w - SceneData.LEFT_MARGIN_PX)
+        self.start_button.label.to_center_pos(*self.start_button.get_center_pos())
+        
+    def update(self):
+        if self.p_fields is not None:
+            for f in self.p_fields:
+                f.update()
+        return super().update()
+
+    def draw(self):
+        super().draw()
+        if self.p_fields is not None:
+            for f in self.p_fields:
+                f.draw()

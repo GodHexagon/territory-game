@@ -364,6 +364,10 @@ This program includes the following libraries:
 
 - pyperclip - BSD License
 
+- requests - Apache License Version 2.0 License
+
+- pysher - MIT License
+
 
 
 ===========

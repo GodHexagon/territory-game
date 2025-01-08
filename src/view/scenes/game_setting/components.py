@@ -100,9 +100,6 @@ class Player(LimitableArea):
     def draw(self):
         self.drawer.rect(self.x, self.y, self.w, self.h, COLOR_PRIMARY)
         self.label.draw()
-        for b in self.buttons:
-            b.draw()
-    
 
 class RadioButton(CenteredArea, LimitableArea, View):
     RADIUS_PX = 16

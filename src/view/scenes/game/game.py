@@ -41,7 +41,7 @@ class GameScene(Area, View, ABC):
         self.board.set_piece_rotation(self.rotation)
         self.cursor.set_rotation(self.rotation)
 
-        self.notice = FrontNoticeView(x + w / 2 - 150, y + h * 0.3, 300, 50)
+        self.notice = FrontNotice(x + w / 2 - 150, y + h * 0.3, 300, 50)
         self.notice.put('GAME START!', frame_to_hide=60)
     
     @abstractmethod

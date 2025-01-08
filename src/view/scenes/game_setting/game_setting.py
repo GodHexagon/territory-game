@@ -3,7 +3,7 @@ from ...areas.text import WritenText
 from ..player_type import PlayerType
 from ...areas.button import TextButton
 from ...sequencer.access_key import AccessKeyManager
-from ...areas.notice import FrontNoticeView
+from ...areas.notice import FrontNotice
 from .components import Player, ProgressingIndicator, RadioButton, SceneData, ReadonlyText
 from src.pyxres import *
 
@@ -162,7 +162,7 @@ class MultiplayerGameSettingScene(GameSettingScene):
         
         self.p_fields: List[ReadonlyText] | None = None
 
-        self.notice = FrontNoticeView(x + w / 2 - 150, y + h / 2, 300, 50)
+        self.notice = FrontNotice(x + w / 2 - 150, y + h / 2, 300, 50)
         
         self.akm = AccessKeyManager(self.__hdl_accesskey_error, self.__hdl_get_accesskey, self.__hdl_save_accesskey)
         ok = self.akm.load()

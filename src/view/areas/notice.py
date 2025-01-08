@@ -4,7 +4,7 @@ import pyxel
 
 from typing import *
 
-class FrontNoticeView(Area, View):
+class FrontNotice(Area, View):
     FADE_OUT_TIME_FRAME = 30
     BORDER_THICKNESS_PX = 5
 
@@ -13,7 +13,7 @@ class FrontNoticeView(Area, View):
     def __init__(self, x, y, w, h):
         super().init_area(x, y, w, h)
         self.__set_text('', 0)
-        self.hidden_time = pyxel.frame_count
+        self.hidden_time = -self.FADE_OUT_TIME_FRAME
         self.transparent = 0.0
     
     def put(self, text: str, color: int = 0, frame_to_hide: int = 180):
@@ -22,32 +22,32 @@ class FrontNoticeView(Area, View):
         self.transparent = 1.0
     
     def __set_text(self, value: str, color: int):
-        self.t_w = max(0, len(value) * FrontNoticeView.CHAR_WIDTH_PX - 1)
-        img = pyxel.Image(self.t_w, FrontNoticeView.CHAR_HEIGHT_PX)
+        self.t_w = max(0, len(value) * FrontNotice.CHAR_WIDTH_PX - 1)
+        img = pyxel.Image(self.t_w, FrontNotice.CHAR_HEIGHT_PX)
         img.cls(1)
         img.text(0, 0, value, color, None)
         self.text = img
     
     def update(self):
         now = pyxel.frame_count
-        fadeout = FrontNoticeView.FADE_OUT_TIME_FRAME
+        fadeout = FrontNotice.FADE_OUT_TIME_FRAME
         self.transparent = max(0.0, min(1.0, self.hidden_time / fadeout - now / fadeout + 1))
     
     def draw(self):
         now = pyxel.frame_count
-        fadeout = FrontNoticeView.FADE_OUT_TIME_FRAME
-        border = FrontNoticeView.BORDER_THICKNESS_PX
+        fadeout = FrontNotice.FADE_OUT_TIME_FRAME
+        border = FrontNotice.BORDER_THICKNESS_PX
         if now - self.hidden_time - fadeout < 0:
             pyxel.dither(self.transparent)
             pyxel.rect(self.x, self.y, self.w, self.h, 16)
             pyxel.rect(self.x + border, self.y + border, self.w - border * 2, self.h - border * 2, 1)
             pyxel.blt(
                 self.x + (self.w - self.t_w) / 2,
-                self.y + (self.h - FrontNoticeView.CHAR_HEIGHT_PX) / 2,
+                self.y + (self.h - FrontNotice.CHAR_HEIGHT_PX) / 2,
                 self.text,
                 0, 0,
                 self.t_w,
-                FrontNoticeView.CHAR_HEIGHT_PX,
+                FrontNotice.CHAR_HEIGHT_PX,
                 colkey=1,
                 scale=3
             )

@@ -3,6 +3,7 @@ from ...base.limitter import LimitableArea
 from ..player_type import PlayerType
 from ....data.player_color import PLAYER_COLORS
 from ...base.view import View, Area
+from ...areas.button import TextButton
 from src.pyxres import *
 
 from typing import *
@@ -32,27 +33,41 @@ class Lobby(View, Area):
         RH = SceneData.ROW_HEIGHT_PX
         RG = SceneData.ROW_GAP_PX
 
+        if len(PCS) != len(player_data): raise ValueError("player_dataの要素数は想定されるプレイヤー数の分だけ必要。")
+
         l: List[Player] = []
-        for i, color, color_name in PCS:
+        current_y = 128
+        for (_, color, _), (name, type)in zip(PCS, player_data):
+            if type == PlayerType.UNASSIGNED: continue
+
             player = Player(
                 x + (w - PW) / 2,
-                y + i * (RH + RG) + 128,
+                current_y,
                 PW,
-                color_name,
-                color,
-                lambda _: None,
-                default=PlayerType.PLAYABLE if i == 0 else PlayerType.AI
+                name,
+                color
             )
+
+            current_y = current_y + RH + RG
+
             l.append(player)
+
         self.players = l
+
+        # キャンセルボタン
+        self.cancel_b = TextButton(
+            x + w / 2, y + 128 + (RH + RG) * len(self.players) + 32, label="CANCEL",
+            on_click=lambda : on_cancel()
+        )
     
     def update(self):
-        pass
+        self.cancel_b.update()
 
     def draw(self):
         pyxel.cls(COLOR_WHITE)
         for p in self.players:
             p.draw()
+        self.cancel_b.draw()
 
 
 class Player(LimitableArea):
@@ -61,14 +76,9 @@ class Player(LimitableArea):
     def __init__(self, x, y, w, 
             label: str, 
             label_color: int, 
-            on_change: Callable[[PlayerType], None], 
-            default: PlayerType = PlayerType.AI
         ):
         super().init_area(x, y, w, Player.HEIGHT_PX)
         self.set_limiteds()
-
-        self.on_change = on_change
-        self.type = default
 
         self.label = WritenText(0, y + self.h / 2, label, label_color, scale=3)
         self.label.x = x + 16

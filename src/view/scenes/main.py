@@ -2,7 +2,8 @@ from ..base.view import View, Area
 from .game.singleplayer import SingleplayGameScene
 from .game.multiplayer import MultiplayerGameScene
 from .title.title import TitleScene
-from .game_setting.game_setting import SingleplayerGameSettingScene, MultiplayerGameSettingScene
+from .game_setting.game_setting import SingleplayerGameSettingScene
+from .multiplayer.host import HostScene
 from .akst.akst import AccessKeySettingScene
 from .player_type import PlayerType
 
@@ -14,9 +15,11 @@ class MainView(View, Area):
         self.__show_title()
     
     def __show_title(self):
-        self.scene: View = TitleScene(self.x, self.y, self.w, self.h,
-            lambda : self.__show_game_setting(False),
-            lambda : self.__show_game_setting(True),
+        self.scene: View = TitleScene(
+            self.x, self.y, self.w, self.h,
+            lambda : self.__show_game_setting(),
+            lambda : self.__show_host_mode(),
+            lambda : None,
             lambda : self.__show_access_key_setting()
         )
     
@@ -25,19 +28,18 @@ class MainView(View, Area):
             lambda ok: self.__show_title()
         )
     
-    def __show_game_setting(self, multiplayer: bool):
-        if multiplayer:
-            self.scene = MultiplayerGameSettingScene(
-                self.x, self.y, self.w, self.h, 
-                lambda players: self.__launch_game(players),
-                lambda : self.__show_title()
-            )
-        else:
-            self.scene = SingleplayerGameSettingScene(
-                self.x, self.y, self.w, self.h, 
-                lambda players: self.__launch_game(players),
-                lambda : self.__show_title()
-            )
+    def __show_game_setting(self):
+        self.scene = SingleplayerGameSettingScene(
+            self.x, self.y, self.w, self.h, 
+            lambda players: self.__launch_game(players),
+            lambda : self.__show_title()
+        )
+    
+    def __show_host_mode(self):
+        self.scene = HostScene(
+            self.x, self.y, self.w, self.h,
+            self.__show_title
+        )
     
     def __launch_game(self, players: List[Tuple[str, PlayerType]]):
         multiplayer = False

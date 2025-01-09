@@ -2,6 +2,7 @@ from ...areas.text import WritenText
 from ...base.limitter import LimitableArea
 from ...base.view import View, Area, CenteredArea
 from ..player_type import PlayerType
+from ....data.player_color import PLAYER_COLORS
 from ...areas.button import IconButton, TextButton
 from src.pyxres import *
 
@@ -27,12 +28,7 @@ class SceneData:
     MULTIPLAY_CENTER_X = 400
     PASSWORD_START_X = 470
     
-    PLAYER_COLORS = (
-        (0, BLUE_COLOR_S, "BLUE"),
-        (1, RED_COLOR_S, "RED"),
-        (2, GREEN_COLOR_S, "GREEN"),
-        (3, YELLOW_COLOR_S, "YELLOW")
-    )
+    PLAYER_COLORS = PLAYER_COLORS
 
 class ProgressingIndicator(WritenText):
     def __init__(self, cx, cy, scale = 3, parent_surface = None, visible: bool = False):

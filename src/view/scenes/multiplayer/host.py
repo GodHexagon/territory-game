@@ -1,5 +1,5 @@
 from ...base.view import View, Area
-from ..game_setting.game_setting import MultiplayerGameSettingScene
+from ..game_setting.multiplayer import MultiplayerGameSettingScene
 from .lobby import Lobby
 from ..player_type import PlayerType
 

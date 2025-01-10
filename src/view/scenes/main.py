@@ -2,7 +2,7 @@ from ..base.view import View, Area
 from .game.singleplayer import SingleplayGameScene
 from .game.multiplayer import MultiplayerGameScene
 from .title.title import TitleScene
-from .game_setting.game_setting import SingleplayerGameSettingScene
+from .game_setting.singleplayer import SingleplayerGameSettingScene
 from .multiplayer.host import HostScene
 from .akst.akst import AccessKeySettingScene
 from .player_type import PlayerType

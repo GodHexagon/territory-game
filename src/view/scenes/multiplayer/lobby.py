@@ -18,6 +18,8 @@ class SceneData:
     
     PLAYER_COLORS = PLAYER_COLORS
 
+    LIST_X_GAP_PX = 16
+
 class Lobby(View, Area):
     def __init__(self,
         x: float, y: float, w: float, h: float,
@@ -37,15 +39,16 @@ class Lobby(View, Area):
 
         l: List[Player] = []
         current_y = 128
-        for (_, color, _), (name, type)in zip(PCS, player_data):
-            if type == PlayerType.UNASSIGNED: continue
+        for (_, color, _), (name, pt)in zip(PCS, player_data):
+            if pt == PlayerType.UNASSIGNED: continue
 
             player = Player(
                 x + (w - PW) / 2,
                 current_y,
                 PW,
                 name,
-                color
+                color,
+                pt
             )
 
             current_y = current_y + RH + RG
@@ -75,14 +78,33 @@ class Player(LimitableArea):
 
     def __init__(self, x, y, w, 
             label: str, 
-            label_color: int, 
+            label_color: int,
+            pt: PlayerType
         ):
         super().init_area(x, y, w, Player.HEIGHT_PX)
         self.set_limiteds()
 
+        GAP = SceneData.LIST_X_GAP_PX
+
         self.label = WritenText(0, y + self.h / 2, label, label_color, scale=3)
-        self.label.x = x + 16
+        self.label.x = x + GAP
+        
+        if pt == PlayerType.PLAYABLE: 
+            status = "YOU"
+            c = COLOR_BLACK
+        elif pt == PlayerType.AI: 
+            status = "AI"
+            c = COLOR_BLACK
+        else: 
+            status = "WAITING..."
+            c = COLOR_FAILURE
+        self.status = WritenText(0, y + self.h / 2, status, c, scale=3)
+        self.status.to_x(x + GAP + self.label.x)
+    
+    def joined(self):
+        self.status.rewrite("CONNECTED!", COLOR_SUCCESSFULL)
     
     def draw(self):
         self.drawer.rect(self.x, self.y, self.w, self.h, COLOR_PRIMARY)
         self.label.draw()
+        self.status.draw()

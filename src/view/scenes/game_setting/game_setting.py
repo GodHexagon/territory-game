@@ -68,7 +68,7 @@ class GameSettingScene(Area, View, ABC):
         self.buttons = [p.ini_radios(multiplay=multiplayer) for p in self.players]
 
         # スタートボタン
-        self.connecting = False
+        self.freezed_setting = False
         self.start_button = TextButton(0, y + 96 + (RH + RG) * 4 + 32, label="GAME START", 
                                         on_click=self.hdl_try_to_connect if multiplayer else self.__hdl_launch_game)
         self.start_button.to_x_end(x + w - MARGIN)
@@ -80,9 +80,6 @@ class GameSettingScene(Area, View, ABC):
         )
         self.cancel_button.to_x(x + MARGIN)
         self.cancel_button.label.to_center_pos(*self.cancel_button.get_center_pos())
-
-        # 処理中インジケータ
-        self.prog = ProgressingIndicator(w / 2, y + 96 + (RH + RG) * 4 + 96, scale=5)
         
     @abstractmethod
     def hdl_try_to_connect(self):
@@ -99,13 +96,12 @@ class GameSettingScene(Area, View, ABC):
         pass
     
     def update(self):
-        if not self.connecting:
+        if not self.freezed_setting:
             for rs in self.buttons:
                 for r in rs:
                     r.update()
         self.start_button.update()
         self.cancel_button.update()
-        self.prog.update()
     
     def draw(self):
         pyxel.cls(SceneData.BACKGROUND_COLOR)
@@ -119,4 +115,3 @@ class GameSettingScene(Area, View, ABC):
                 r.draw()
         self.start_button.draw()
         self.cancel_button.draw()
-        self.prog.draw()

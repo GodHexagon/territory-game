@@ -86,9 +86,11 @@ class AccessKeyManager(View):
     def draw(self):
         pass
 
+from ...file_path import *
+
 class Access:
-    ROOT_PATH = "territory_game"
-    LOG_FILE_PATH = "territory_game/log.txt"
+    ROOT_PATH = ROOT_PATH
+    LOG_FILE_PATH = LOG_FILE_PATH
     SECRET_DIRECTORY_PATH = "territory_game/secret"
     SECRET_FILE_PATH = "territory_game/secret/secret.properties"
     PROPERTY_NAME = "ACCESS_KEY"
@@ -126,7 +128,7 @@ class Access:
     
     def __log(self, message: str):
         home = Path.home()
-        directory = home / self.SECRET_DIRECTORY_PATH
+        directory = home / self.ROOT_PATH
         directory.mkdir(parents=True, exist_ok=True)
         log_path = home / self.LOG_FILE_PATH
 

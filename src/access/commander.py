@@ -107,8 +107,13 @@ class Commander:
             secure=True
         )
 
-        pusher.connection.bind('pusher:connection_established', connect_handler)
-        pusher.connect()
+        try:
+            pusher.connection.bind('pusher:connection_established', connect_handler)
+            pusher.connect()
+        except ValueError as e:
+            self.on_errored(PusherError(e))
+        except OSError as e:
+            self.on_errored(e)
     
     def broadcast(self,
         message: str

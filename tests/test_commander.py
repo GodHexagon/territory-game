@@ -230,14 +230,6 @@ class TestCommander(unittest.TestCase):
 
         # hostメソッドの実行
         self.commander.host(player_number=2)
-
-        # Pusherの接続イベントをシミュレート
-        connection_callback = mock_pusher.connection.bind.call_args[0][1]
-        connection_callback(json.dumps({"socket_id": "test_socket_id"}))
-
-        # ゲームメッセージ受信をシミュレート
-        subscribe_callback = mock_channel.bind.call_args[0][1]
-        subscribe_callback("test_game_message")
         
         # エラーコールバックが呼ばれていることを確認
         self.mock_on_errored.assert_called_once()
@@ -262,7 +254,6 @@ class TestCommander(unittest.TestCase):
         # コネクション
         mock_connection = Mock()
         mock_bind = Mock()
-        mock_bind.side_effect = ValueError("test_bind_error")
         mock_connection.bind = mock_bind
         mock_connection.socket_id = "test_socket_id"
         mock_pusher.connection = mock_connection
@@ -273,18 +264,15 @@ class TestCommander(unittest.TestCase):
         mock_subscribe.return_value = mock_channel
         mock_pusher.subscribe = mock_subscribe
 
+        # コネクト
+        mock_connect = Mock()
+        mock_connect.side_effect = ValueError("test connect error")
+        mock_pusher.connect = mock_connect
+
         mock_pusher_class.return_value = mock_pusher
 
         # hostメソッドの実行
         self.commander.host(player_number=2)
-
-        # Pusherの接続イベントをシミュレート
-        connection_callback = mock_pusher.connection.bind.call_args[0][1]
-        connection_callback(json.dumps({"socket_id": "test_socket_id"}))
-
-        # ゲームメッセージ受信をシミュレート
-        subscribe_callback = mock_channel.bind.call_args[0][1]
-        subscribe_callback("test_game_message")
         
         # エラーコールバックが呼ばれていることを確認
         self.mock_on_errored.assert_called_once()

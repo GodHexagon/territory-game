@@ -139,7 +139,7 @@ class TestCommander(unittest.TestCase):
         )
         self.mock_on_responsed.assert_called_with(mock_response)
         self.mock_on_connected_to_pusher.assert_called_once()
-        self.mock_on_recieved.assert_called_once()
+        self.mock_on_recieved.assert_called_with("test_game_message")
 
     @patch('requests.post')
     def test_broadcast(self, mock_post):
@@ -261,6 +261,7 @@ class TestCommander(unittest.TestCase):
 
         # コネクション
         mock_connection = Mock()
+        mock_bind = Mock()
         mock_bind.side_effect = ValueError("test_bind_error")
         mock_connection.bind = mock_bind
         mock_connection.socket_id = "test_socket_id"

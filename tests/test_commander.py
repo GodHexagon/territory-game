@@ -6,7 +6,7 @@ import requests
 import json
 from typing import Dict, Any
 
-from src.access.commander import Commander  # 適切なインポートパスに修正してください
+from src.access.commander import Commander, PusherError
 
 class TestCommander(unittest.TestCase):
     def setUp(self):
@@ -195,6 +195,102 @@ class TestCommander(unittest.TestCase):
         self.mock_on_errored.assert_called_once()
         error = self.mock_on_errored.call_args[0][0]
         self.assertIsInstance(error, OSError)
+    
+    @patch('requests.post')
+    @patch('pysher.Pusher')
+    def test_pusher_connect_bind_error(self, mock_pusher_class, mock_post):
+        # モックレスポンスの設定
+        mock_response = self.create_mock_response({
+            "channel_name": "test_channel",
+            "pusher_auth": "test_auth",
+            "initialization_data": {
+                "owner_password": "test_password"
+            }
+        })
+        mock_post.return_value = mock_response
+
+        # Pusherのモックの設定
+        mock_pusher = Mock()
+
+        # コネクション
+        mock_connection = Mock()
+        mock_bind = Mock()
+        mock_bind.side_effect = ValueError("test_bind_error")
+        mock_connection.bind = mock_bind
+        mock_connection.socket_id = "test_socket_id"
+        mock_pusher.connection = mock_connection
+
+        # サブスクライブ
+        mock_channel = Mock()
+        mock_subscribe = Mock()
+        mock_subscribe.return_value = mock_channel
+        mock_pusher.subscribe = mock_subscribe
+
+        mock_pusher_class.return_value = mock_pusher
+
+        # hostメソッドの実行
+        self.commander.host(player_number=2)
+
+        # Pusherの接続イベントをシミュレート
+        connection_callback = mock_pusher.connection.bind.call_args[0][1]
+        connection_callback(json.dumps({"socket_id": "test_socket_id"}))
+
+        # ゲームメッセージ受信をシミュレート
+        subscribe_callback = mock_channel.bind.call_args[0][1]
+        subscribe_callback("test_game_message")
+        
+        # エラーコールバックが呼ばれていることを確認
+        self.mock_on_errored.assert_called_once()
+        self.assertIsInstance(self.mock_on_errored.call_args[0][0], PusherError)
+        
+    @patch('requests.post')
+    @patch('pysher.Pusher')
+    def test_pusher_connect_error(self, mock_pusher_class, mock_post):
+        # モックレスポンスの設定
+        mock_response = self.create_mock_response({
+            "channel_name": "test_channel",
+            "pusher_auth": "test_auth",
+            "initialization_data": {
+                "owner_password": "test_password"
+            }
+        })
+        mock_post.return_value = mock_response
+
+        # Pusherのモックの設定
+        mock_pusher = Mock()
+
+        # コネクション
+        mock_connection = Mock()
+        mock_bind = Mock()
+        mock_bind.side_effect = ValueError("test_bind_error")
+        mock_connection.bind = mock_bind
+        mock_connection.socket_id = "test_socket_id"
+        mock_pusher.connection = mock_connection
+
+        # サブスクライブ
+        mock_channel = Mock()
+        mock_subscribe = Mock()
+        mock_subscribe.return_value = mock_channel
+        mock_pusher.subscribe = mock_subscribe
+
+        mock_pusher_class.return_value = mock_pusher
+
+        # hostメソッドの実行
+        self.commander.host(player_number=2)
+
+        # Pusherの接続イベントをシミュレート
+        connection_callback = mock_pusher.connection.bind.call_args[0][1]
+        connection_callback(json.dumps({"socket_id": "test_socket_id"}))
+
+        # ゲームメッセージ受信をシミュレート
+        subscribe_callback = mock_channel.bind.call_args[0][1]
+        subscribe_callback("test_game_message")
+        
+        # エラーコールバックが呼ばれていることを確認
+        self.mock_on_errored.assert_called_once()
+        self.assertIsInstance(self.mock_on_errored.call_args[0][0], PusherError)
+
+
 
 if __name__ == '__main__':
     unittest.main()

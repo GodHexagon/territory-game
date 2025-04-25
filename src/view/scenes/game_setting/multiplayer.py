@@ -6,6 +6,8 @@ from .components import Player, ProgressingIndicator, RadioButton, SceneData, Re
 from src.pyxres import *
 
 from typing import *
+import tkinter as tk
+from tkinter import messagebox
 
 class MultiplayerGameSettingScene(GameSettingScene):
     def __init__(self, 
@@ -31,6 +33,11 @@ class MultiplayerGameSettingScene(GameSettingScene):
     
     def __hdl_accesskey_error(self):
         self.notice.put("FAILED TO GET ACCESS KEY", COLOR_FAILURE, 6000)
+        
+        root = tk.Tk()
+        root.withdraw()  # メインウィンドウを表示しない
+        messagebox.showerror("Error", self.akm.error_message)
+        root.destroy()
     
     def __hdl_get_accesskey(self, key: str):
         if len(key) < 512:

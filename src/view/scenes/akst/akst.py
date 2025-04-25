@@ -8,6 +8,8 @@ from ...sequencer.access_key import AccessKeyManager
 import pyxel
 
 from typing import *
+import tkinter as tk
+from tkinter import messagebox
 
 class AccessKeySettingScene(View, Area):
     def __init__(self, x: float, y: float, w: float, h: float, on_complete: Callable[[bool], None]) -> None:
@@ -63,6 +65,11 @@ class Window(Area):
     
     def __hdl_throw_error(self):
         self.console = WritenText(*self.get_center_pos(), "ERROR", COLOR_FAILURE)
+        
+        root = tk.Tk()
+        root.withdraw()  # メインウィンドウを表示しない
+        messagebox.showerror("Error", self.akm.error_message)
+        root.destroy()
 
     def __hdl_load_current_sk(self, value: str):
         self.update_b.set_enabled(True)

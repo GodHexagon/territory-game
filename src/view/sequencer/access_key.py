@@ -2,11 +2,10 @@ from ..base.view import View
 
 from pathlib import Path
 import threading
+import tkinter as tk
+from tkinter import messagebox
 
 from typing import *
-from enum import Enum
-import os
-import platform
 
 class AccessKeyManager(View):
     def __init__(self,
@@ -17,6 +16,8 @@ class AccessKeyManager(View):
         self.on_error_throwed = on_error_throwed
         self.on_load_complete = on_load_complete
         self.on_save_completed = on_save_completed
+
+        self.error_message = ""
 
         self.manager = Access()
 
@@ -68,10 +69,14 @@ class AccessKeyManager(View):
             processed = False 
         
         return processed
+    
+    def get_error_message(self):
+        return self.error_message
 
     def update(self):
         if self._common_lock.acquire(blocking=False):
             if self._errored:
+                self.error_message = "ファイルへのアクセスに失敗しました。プログラムとディレクトリの権限が影響している可能性があります。"
                 self.on_error_throwed()
                 self._errored = False
             if self._ak is not None:
@@ -105,7 +110,6 @@ class Access:
             file_path.write_text(f'{self.PROPERTY_NAME}={key}', encoding='utf-8')
             return 0
         except OSError:
-            self.__log("ファイルへのアクセスに失敗しました。プログラムとディレクトリの権限が影響している可能性があります。")
             return -1
 
     def read(self) -> str | None | int:
@@ -123,21 +127,4 @@ class Access:
             return content.split("=")[1]
             
         except OSError as e:
-            self.__log("ファイルへのアクセスに失敗しました。プログラムとディレクトリの権限が影響している可能性があります。")
             return -1
-    
-    def __log(self, message: str):
-        home = Path.home()
-        directory = home / self.ROOT_PATH
-        directory.mkdir(parents=True, exist_ok=True)
-        log_path = home / self.LOG_FILE_PATH
-
-        log_path.write_text(f'エラー：{message}', encoding='utf-8')
-
-        # OSによって異なるコマンドを使用してファイルを開く
-        if platform.system() == 'Windows':
-            os.startfile(log_path)
-        elif platform.system() == 'Darwin':  # macOS
-            os.system(f'open {log_path}')
-        else:  # Linux
-            os.system(f'xdg-open {log_path}')

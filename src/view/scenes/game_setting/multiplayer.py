@@ -9,6 +9,8 @@ from src.dialog.error import ErrorDialog
 
 from typing import *
 
+import pyxel
+
 class MultiplayerGameSettingScene(GameSettingScene):
     def __init__(self, 
         x: float, y: float, w: float, h: float,
@@ -17,6 +19,12 @@ class MultiplayerGameSettingScene(GameSettingScene):
     ):
         self.init_scene(x, y, w, h, on_launch_game, on_cancel, multiplayer=True)
 
+        # キャンセル状態
+        self.cancel_flag = False
+
+        # 連打禁止
+        self.restriction_end_frame = 0
+
         # ラジオボタンの初期値設定
         for p in self.players[1:]:
             p.set_player_type(PlayerType.MULTIPLAYER)
@@ -24,7 +32,7 @@ class MultiplayerGameSettingScene(GameSettingScene):
         # アクセスキーが取得できるまで禁止
         self.start_button.set_enabled(False)
         
-        # 多分パスワードテキストフィールド
+        # パスワードテキストフィールド
         self.p_fields: List[ReadonlyText] | None = None
 
         # 状態表示
@@ -97,33 +105,33 @@ class MultiplayerGameSettingScene(GameSettingScene):
         self.start_button.change_mode("GAME START", self.hdl_try_to_connect)
         self.start_button.to_x_end(self.x + self.w - SceneData.LEFT_MARGIN_PX)
         self.start_button.label.to_center_pos(*self.start_button.get_center_pos())
+
+        self.cancel_flag = True
     
     def __hdl_access_error(self, e: Error):
+        if e == Error.IMPLEMENTATION_ERROR: raise ValueError("通信中の予期しないエラー。")
+        elif e == Error.NETWORK_ERROR: self.notice.put("NETWORK ERROR", COLOR_FAILURE)
+        elif e == Error.PUSHER_ERROR: self.notice.put("SERVER ERROR", COLOR_FAILURE)
+        elif e == Error.SERVER_ERROR: self.notice.put("SERVER ERROR", COLOR_FAILURE)
+        
+        if not self.start_button.enabled:
+            self.restriction_end_frame = pyxel.frame_count + 30
+
         user_message = {
             Error.IMPLEMENTATION_ERROR : "IMPLEMENTATION_ERROR: 予期しないエラーが発生しました。よろしければ開発者に報告をお願いします。",
             Error.NETWORK_ERROR : "NETWORK_ERROR: ネットワークに接続できませんでした。お使いのネットワークを確認してください。",
             Error.PUSHER_ERROR : "PUSHER_ERROR: サーバに問題が発生しました。しばらく待ってからお試しください。",
             Error.SERVER_ERROR : "SERVER_ERROR: サーバに問題が発生しました。しばらく待ってからお試しください。",
         }
-
-        if e == Error.IMPLEMENTATION_ERROR: raise ValueError("通信中の予期しないエラー。")
-        elif e == Error.NETWORK_ERROR: self.notice.put("NETWORK ERROR", COLOR_FAILURE)
-        elif e == Error.PUSHER_ERROR: self.notice.put("SERVER ERROR", COLOR_FAILURE)
-        elif e == Error.SERVER_ERROR: self.notice.put("SERVER ERROR", COLOR_FAILURE)
-
         ErrorDialog(user_message[e])
         
     def __hdl_hosted_to_server(self, players_password: List[str]):
-        l: List[ReadonlyText] = []
-        for p, password in zip(self.players, players_password):
-            if p.type != PlayerType.MULTIPLAYER: continue
-
-            new = ReadonlyText(lambda _: None, password)
-            new.to_center_pos(*p.get_center_pos())
-            new.to_x(SceneData.PASSWORD_START_X)
-            
-            l.append(new)
-        self.p_fields = l
+        if self.cancel_flag:
+            self.restriction_end_frame = pyxel.frame_count + 30
+        else:
+            self.on_launch_game([
+                .
+            ])
     
     def __hdl_player_joined(self, password: str):
         raise RuntimeError("not implement")
@@ -132,6 +140,10 @@ class MultiplayerGameSettingScene(GameSettingScene):
         raise RuntimeError("not implement")
         
     def update(self):
+        if self.restriction_end_frame == pyxel.frame_count:
+            self.start_button.set_enabled(True)
+            self.connecting = False
+
         if self.p_fields is not None:
             for f in self.p_fields:
                 f.update()

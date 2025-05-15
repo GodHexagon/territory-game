@@ -2,10 +2,8 @@ from .game_setting import GameSettingScene
 from ..player_type import PlayerType
 from ...sequencer.access_key import AccessKeyManager
 from ...sequencer.game_access import HostAccessSequencer, Error
-from ...areas.notice import FrontNotice
 from .components import SceneData, ReadonlyText
 from src.pyxres import *
-from src.dialog.error import ErrorDialog
 
 from typing import *
 
@@ -35,8 +33,6 @@ class MultiplayerGameSettingScene(GameSettingScene):
         # パスワードテキストフィールド
         self.p_fields: List[ReadonlyText] | None = None
 
-        # 状態表示
-        self.notice = FrontNotice(x + w / 2 - 150, y + h / 2, 300, 50)
         
         # アクセスキー管理
         self.akm = AccessKeyManager(self.__hdl_accesskey_error, self.__hdl_get_accesskey, self.__hdl_save_accesskey)
@@ -107,23 +103,6 @@ class MultiplayerGameSettingScene(GameSettingScene):
         self.start_button.label.to_center_pos(*self.start_button.get_center_pos())
 
         self.cancel_flag = True
-    
-    def __hdl_access_error(self, e: Error):
-        if e == Error.IMPLEMENTATION_ERROR: raise ValueError("通信中の予期しないエラー。")
-        elif e == Error.NETWORK_ERROR: self.notice.put("NETWORK ERROR", COLOR_FAILURE)
-        elif e == Error.PUSHER_ERROR: self.notice.put("SERVER ERROR", COLOR_FAILURE)
-        elif e == Error.SERVER_ERROR: self.notice.put("SERVER ERROR", COLOR_FAILURE)
-        
-        if not self.start_button.enabled:
-            self.restriction_end_frame = pyxel.frame_count + 30
-
-        user_message = {
-            Error.IMPLEMENTATION_ERROR : "IMPLEMENTATION_ERROR: 予期しないエラーが発生しました。よろしければ開発者に報告をお願いします。",
-            Error.NETWORK_ERROR : "NETWORK_ERROR: ネットワークに接続できませんでした。お使いのネットワークを確認してください。",
-            Error.PUSHER_ERROR : "PUSHER_ERROR: サーバに問題が発生しました。しばらく待ってからお試しください。",
-            Error.SERVER_ERROR : "SERVER_ERROR: サーバに問題が発生しました。しばらく待ってからお試しください。",
-        }
-        ErrorDialog(user_message[e])
         
     def __hdl_hosted_to_server(self, players_password: List[str]):
         if self.cancel_flag:

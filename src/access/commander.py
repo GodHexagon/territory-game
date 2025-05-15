@@ -46,9 +46,11 @@ class Commander:
             try:
                 self.prev = requests.post(URI, json=sample_data, verify=True)
 
-                self.p = self.prev.json()["initialization_data"]["owner_password"]
                 self.on_responsed(self.prev)
-                return self.prev.json()["channel_name"], self.prev.json()["pusher_auth"]
+
+                if self.prev.status_code == 200:
+                    self.p = self.prev.json()["initialization_data"]["owner_password"]
+                    return self.prev.json()["channel_name"], self.prev.json()["pusher_auth"]
             except OSError as e:
                 self.on_errored(e)
 
@@ -74,9 +76,11 @@ class Commander:
             try:
                 self.prev = requests.post(URI, json=sample_data, verify=True)
                 
-                self.p = password
                 self.on_responsed(self.prev)
-                return self.prev.json()["channel_name"], self.prev.json()["pusher_auth"]
+                
+                if self.prev.status_code == 200:
+                    self.p = password
+                    return self.prev.json()["channel_name"], self.prev.json()["pusher_auth"]
             except OSError as e:
                 self.on_errored(e)
 

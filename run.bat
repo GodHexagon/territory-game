@@ -5,7 +5,7 @@ pip install -r .\requirements.txt
 
 :: Pythonスクリプト実行時の標準出力とエラー出力をlog.txtに追記
 echo ======= Running main.py ======= %DATE% %TIME% > .\log.txt
-python .\src\main.py >> .\log.txt 2>&1
+python -m src >> .\log.txt 2>&1
 
 :: 改行を追加
 echo. >> .\log.txt  

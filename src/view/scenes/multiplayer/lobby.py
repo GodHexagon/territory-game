@@ -44,16 +44,17 @@ class Lobby(View, Area):
 
         l: List[Player] = []
         current_y = 128
-        for (_, color, _), (name, pt)in zip(PCS, player_data):
+        for (_, color, color_name), (pp, pt)in zip(PCS, player_data):
             if pt == PlayerType.UNASSIGNED: continue
 
             player = Player(
                 x + (w - PW) / 2,
                 current_y,
                 PW,
-                name,
+                color_name,
                 color,
-                pt
+                pt,
+                pp
             )
 
             current_y = current_y + RH + RG
@@ -87,7 +88,8 @@ class Player(LimitableArea, View):
     def __init__(self, x, y, w, 
             label: str, 
             label_color: int,
-            pt: PlayerType
+            pt: PlayerType,
+            pp: str
         ):
         super().init_area(x, y, w, Player.HEIGHT_PX)
         self.set_limiteds()
@@ -109,7 +111,7 @@ class Player(LimitableArea, View):
         self.status = WritenText(0, y + self.h / 2, status, c, scale=3)
         self.status.to_x(x + GAP + self.label.x)
 
-        self.pw = ReadonlyText("test")
+        self.pw = ReadonlyText(pp)
         self.pw.to_center_pos(*self.get_center_pos())
         self.pw.to_x(x + w - GAP - SceneData.PASSWORD_WIDTH_PX)
         self.pw.set_w(SceneData.PASSWORD_WIDTH_PX)

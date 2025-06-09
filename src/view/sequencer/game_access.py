@@ -16,7 +16,7 @@ class Error(Enum):
     PUSHER_ERROR = 3
 
 class GameAccessSequencer(View, ABC):
-    def init_sequencer(self,
+    def create_commander(self,
         on_error_throwed: Callable[['Error'], None],
         access_key: str
     ):
@@ -99,7 +99,7 @@ class HostAccessSequencer(GameAccessSequencer):
     OnAllPlayersHereCallable: TypeAlias = Callable[[bool], None]
     
     def __init__(self, access_key: str, on_error_throwed: Callable[[Error], None]):
-        super().init_sequencer(on_error_throwed, access_key)
+        super().create_commander(on_error_throwed, access_key)
 
         self.hosted_to_server_event: SequencerEvent["HostAccessSequencer.OnHostedToServerArg"] | None = None
         self.player_joined_event: SequencerEvent["HostAccessSequencer.OnPlayerJoinedArg"] | None = None
@@ -163,5 +163,12 @@ class HostAccessSequencer(GameAccessSequencer):
             self.all_player_here_event.update()
 
 class JoinAccessSequencer(GameAccessSequencer):
-    # TODO
-    pass
+    OnJoinedArg: TypeAlias = 
+    OnPlayerJoinedArg: TypeAlias = str
+    OnAllPlayersHereArg: TypeAlias = bool
+    OnJoinedCallable: TypeAlias = Callable[[List[str]], None]
+    OnPlayerJoinedCallable: TypeAlias = Callable[[str], None]
+    OnAllPlayersHereCallable: TypeAlias = Callable[[bool], None]
+
+    def __init__(self, access_key: str, on_error_throwed: Callable[[Error], None]):
+        super().create_commander(on_error_throwed, access_key)

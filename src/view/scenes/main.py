@@ -4,6 +4,7 @@ from .game.multiplayer import MultiplayerGameScene
 from .title.title import TitleScene
 from .game_setting.singleplayer import SingleplayerGameSettingScene
 from .multiplayer.host import HostScene
+from .multiplayer.join import JoinScene
 from .akst.akst import AccessKeySettingScene
 from .player_type import PlayerType
 
@@ -19,7 +20,7 @@ class MainView(View, Area):
             self.x, self.y, self.w, self.h,
             lambda : self.__show_game_setting(),
             lambda : self.__show_host_mode(),
-            lambda : None,
+            lambda : self.__show_join_mode(),
             lambda : self.__show_access_key_setting()
         )
     
@@ -37,6 +38,12 @@ class MainView(View, Area):
     
     def __show_host_mode(self):
         self.scene = HostScene(
+            self.x, self.y, self.w, self.h,
+            self.__show_title
+        )
+    
+    def __show_join_mode(self):
+        self.scene= JoinScene(
             self.x, self.y, self.w, self.h,
             self.__show_title
         )

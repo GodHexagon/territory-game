@@ -17,59 +17,19 @@ class Error(Enum):
 
 class GameAccessSequencer(View, ABC):
     def init_sequencer(self,
-        on_error_throwed: Callable[['Error'], None]
+        on_error_throwed: Callable[['Error'], None],
+        access_key: str
     ):
         self.error_event = SequencerEvent(on_error_throwed)
-
-    def draw(self):
-        raise ValueError("シーケンサーはdrawメソッドを実行できない。")
-
-    @abstractmethod
-    def message(self, json: str) -> None:
-        pass
-
-class HostAccessSequencer(GameAccessSequencer):
-    OnHostedToServerArg: TypeAlias = List[str]
-    OnPlayerJoinedArg: TypeAlias = str
-    OnAllPlayersHereArg: TypeAlias = bool
-    OnHostedToServerCallable: TypeAlias = Callable[[List[str]], None]
-    OnPlayerJoinedCallable: TypeAlias = Callable[[str], None]
-    OnAllPlayersHereCallable: TypeAlias = Callable[[bool], None]
-    
-    def __init__(self, access_key: str, on_error_throwed: Callable[[Error], None]):
-        super().init_sequencer(on_error_throwed)
-
-        self.hosted_to_server_event: SequencerEvent["HostAccessSequencer.OnHostedToServerArg"] | None = None
-        self.player_joined_event: SequencerEvent["HostAccessSequencer.OnPlayerJoinedArg"] | None = None
-        self.all_player_here_event: SequencerEvent["HostAccessSequencer.OnAllPlayersHereArg"] | None = None
-
-        self._commander = Commander(
+        
+        self.commander = Commander(
             access_key,
             self._handle_error,
             lambda: None,
             self._handle_response,
             self._handle_game_message
         )
-
-    def connect(self,
-            player_number: int,
-            handlers: Tuple["HostAccessSequencer.OnHostedToServerCallable",
-                "HostAccessSequencer.OnPlayerJoinedCallable",
-                "HostAccessSequencer.OnAllPlayersHereCallable"]
-        ) -> None:
-        """
-        handlers = tuple(on_hosted_to_server, on_player_joined, on_all_players_here)
-        """
-
-        self.hosted_to_server_event = SequencerEvent(handlers[0])
-        self.player_joined_event = SequencerEvent(handlers[1])
-        self.all_player_here_event = SequencerEvent(handlers[2])
-
-        self._commander.host(player_number)
-    
-    def message(self, json):
-        raise RuntimeError("Not impemented.")
-
+        
     def _handle_error(self, e: Exception) -> None:
         """エラーコールバック"""
         if isinstance(e, PusherError):
@@ -110,32 +70,83 @@ class HostAccessSequencer(GameAccessSequencer):
             print(message)
             self.error_event.pend(Error.IMPLEMENTATION_ERROR)
         else:
-            try:
-                players = response.json()["initialization_data"]["players"]
-                ps = [
-                    p["password"]
-                    for p in players
-                    if not p["assignment"]
-                ]                
-            except (KeyError, TypeError):
-                message = f"{Error.IMPLEMENTATION_ERROR}:\nResponse is incorrect. Response body:\n{response.text}"
-                print(message)
-                self.error_event.pend(Error.IMPLEMENTATION_ERROR)
-                return
-            
-            if any([not isinstance(p, str) for p in ps]):
-                message = f"{Error.IMPLEMENTATION_ERROR}:\nResponse is incorrect. Response body:\n{response.text}"
-                print(message)
-                self.error_event.pend(Error.IMPLEMENTATION_ERROR)
-                return
-                
-            if self.hosted_to_server_event is None:
-                raise ValueError("Commanderクラスによる不適切なコールバック呼び出し。")
-
-            self.hosted_to_server_event.pend(ps)
+            self.proccess_initialization_data(response)
 
     def _handle_game_message(self, message: str) -> None:
         """ゲームメッセージコールバック"""
+        self.proccess_message(message)
+
+    def draw(self):
+        raise ValueError("シーケンサーはdrawメソッドを実行できない。")
+    
+    def message(self, json: str) -> None:
+        raise RuntimeError("Not impemented.")
+    
+    @abstractmethod
+    def proccess_initialization_data(self, response: requests.Response):
+        pass
+
+    @abstractmethod
+    def proccess_message(self, json: str):
+        pass
+
+class HostAccessSequencer(GameAccessSequencer):
+    OnHostedToServerArg: TypeAlias = List[str]
+    OnPlayerJoinedArg: TypeAlias = str
+    OnAllPlayersHereArg: TypeAlias = bool
+    OnHostedToServerCallable: TypeAlias = Callable[[List[str]], None]
+    OnPlayerJoinedCallable: TypeAlias = Callable[[str], None]
+    OnAllPlayersHereCallable: TypeAlias = Callable[[bool], None]
+    
+    def __init__(self, access_key: str, on_error_throwed: Callable[[Error], None]):
+        super().init_sequencer(on_error_throwed, access_key)
+
+        self.hosted_to_server_event: SequencerEvent["HostAccessSequencer.OnHostedToServerArg"] | None = None
+        self.player_joined_event: SequencerEvent["HostAccessSequencer.OnPlayerJoinedArg"] | None = None
+        self.all_player_here_event: SequencerEvent["HostAccessSequencer.OnAllPlayersHereArg"] | None = None
+
+    def connect(self,
+            player_number: int,
+            handlers: Tuple["HostAccessSequencer.OnHostedToServerCallable",
+                "HostAccessSequencer.OnPlayerJoinedCallable",
+                "HostAccessSequencer.OnAllPlayersHereCallable"]
+        ) -> None:
+        """
+        handlers = tuple(on_hosted_to_server, on_player_joined, on_all_players_here)
+        """
+
+        self.hosted_to_server_event = SequencerEvent(handlers[0])
+        self.player_joined_event = SequencerEvent(handlers[1])
+        self.all_player_here_event = SequencerEvent(handlers[2])
+
+        self.commander.host(player_number)
+    
+    def proccess_initialization_data(self, response):
+        try:
+            players = response.json()["initialization_data"]["players"]
+            ps = [
+                p["password"]
+                for p in players
+                if not p["assignment"]
+            ]                
+        except (KeyError, TypeError):
+            message = f"{Error.IMPLEMENTATION_ERROR}:\nResponse is incorrect. Response body:\n{response.text}"
+            print(message)
+            self.error_event.pend(Error.IMPLEMENTATION_ERROR)
+            return
+        
+        if any([not isinstance(p, str) for p in ps]):
+            message = f"{Error.IMPLEMENTATION_ERROR}:\nResponse is incorrect. Response body:\n{response.text}"
+            print(message)
+            self.error_event.pend(Error.IMPLEMENTATION_ERROR)
+            return
+            
+        if self.hosted_to_server_event is None:
+            raise ValueError("Commanderクラスによる不適切なコールバック呼び出し。")
+
+        self.hosted_to_server_event.pend(ps)
+    
+    def proccess_message(self, json):
         raise RuntimeError("Not impemented.")
 
     def update(self):
@@ -150,3 +161,7 @@ class HostAccessSequencer(GameAccessSequencer):
             self.player_joined_event.update()
         if self.all_player_here_event is not None:
             self.all_player_here_event.update()
+
+class JoinAccessSequencer(GameAccessSequencer):
+    # TODO
+    pass

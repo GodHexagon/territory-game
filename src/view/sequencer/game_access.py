@@ -162,13 +162,33 @@ class HostAccessSequencer(GameAccessSequencer):
         if self.all_player_here_event is not None:
             self.all_player_here_event.update()
 
+from src.data import players_data
+
 class JoinAccessSequencer(GameAccessSequencer):
-    OnJoinedArg: TypeAlias = 
+    OnJoinedArg: TypeAlias = Tuple[int, List[players_data.PlayerData]]
     OnPlayerJoinedArg: TypeAlias = str
     OnAllPlayersHereArg: TypeAlias = bool
-    OnJoinedCallable: TypeAlias = Callable[[List[str]], None]
+    OnJoinedCallable: TypeAlias = Callable[[Tuple[int, List[players_data.PlayerData]]], None]
     OnPlayerJoinedCallable: TypeAlias = Callable[[str], None]
     OnAllPlayersHereCallable: TypeAlias = Callable[[bool], None]
 
     def __init__(self, access_key: str, on_error_throwed: Callable[[Error], None]):
         super().create_commander(on_error_throwed, access_key)
+    
+    def connect(self,
+            password: str,
+            handlers: Tuple["JoinAccessSequencer.OnJoinedArg",
+                "JoinAccessSequencer.OnPlayerJoinedCallable",
+                "JoinAccessSequencer.OnAllPlayersHereCallable"]
+        ) -> None:
+        self.joined_event = SequencerEvent(handlers[0])
+        self.player_joined_event = SequencerEvent(handlers[1])
+        self.all_player_here_event = SequencerEvent(handlers[2])
+
+        self.commander.join(password)
+        
+    def proccess_initialization_data(self, _):            
+        if self.joined_event is None:
+            raise ValueError("Commanderクラスによる不適切なコールバック呼び出し。")
+
+        self.joined_event.pend(ps)

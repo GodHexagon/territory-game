@@ -50,6 +50,9 @@ class JoiningSettingScene(View, Area):
     def allowed_to_access(self):
         self.try_b.set_enabled(True)
     
+    def get_password(self):
+        return self.console.get_text()
+    
     def update(self):
         if isinstance(self.console, TextField):
             self.console.update()

@@ -70,11 +70,11 @@ class GameAccessSequencer(View, ABC):
             print(message)
             self.error_event.pend(Error.IMPLEMENTATION_ERROR)
         else:
-            self.proccess_initialization_data(response)
+            self.process_initialization_data(response)
 
     def _handle_game_message(self, message: str) -> None:
         """ゲームメッセージコールバック"""
-        self.proccess_message(message)
+        self.process_message(message)
 
     def draw(self):
         raise ValueError("シーケンサーはdrawメソッドを実行できない。")
@@ -83,11 +83,11 @@ class GameAccessSequencer(View, ABC):
         raise RuntimeError("Not impemented.")
     
     @abstractmethod
-    def proccess_initialization_data(self, response: requests.Response):
+    def process_initialization_data(self, response: requests.Response):
         pass
 
     @abstractmethod
-    def proccess_message(self, json: str):
+    def process_message(self, json: str):
         pass
 
 class HostAccessSequencer(GameAccessSequencer):
@@ -121,21 +121,21 @@ class HostAccessSequencer(GameAccessSequencer):
 
         self.commander.host(player_number)
     
-    def proccess_initialization_data(self, response):
+    def process_initialization_data(self, response: requests.Response):
         try:
-            players = response.json()["initialization_data"]["players"]
+            data = response.json()
+            players = data["initialization_data"]["players"]
             ps = [
                 p["password"]
                 for p in players
                 if not p["assignment"]
-            ]                
-        except (KeyError, TypeError):
-            message = f"{Error.IMPLEMENTATION_ERROR}:\nResponse is incorrect. Response body:\n{response.text}"
-            print(message)
-            self.error_event.pend(Error.IMPLEMENTATION_ERROR)
-            return
-        
-        if any([not isinstance(p, str) for p in ps]):
+            ]
+            
+            if not all(isinstance(p, str) for p in ps):
+                # パスワードが文字列でない場合は型エラーとみなす
+                raise TypeError("Invalid type for password in response.")
+
+        except (KeyError, TypeError, requests.exceptions.JSONDecodeError) as e:
             message = f"{Error.IMPLEMENTATION_ERROR}:\nResponse is incorrect. Response body:\n{response.text}"
             print(message)
             self.error_event.pend(Error.IMPLEMENTATION_ERROR)
@@ -146,9 +146,6 @@ class HostAccessSequencer(GameAccessSequencer):
 
         self.hosted_to_server_event.pend(ps)
     
-    def proccess_message(self, json):
-        raise RuntimeError("Not impemented.")
-
     def update(self):
         """
         フレームごとの更新処理
@@ -161,6 +158,9 @@ class HostAccessSequencer(GameAccessSequencer):
             self.player_joined_event.update()
         if self.all_player_here_event is not None:
             self.all_player_here_event.update()
+
+    def process_message(self, json: str):
+        raise RuntimeError("Not impemented.")
 
 from src.data import players_data
 
@@ -177,18 +177,23 @@ class JoinAccessSequencer(GameAccessSequencer):
     
     def connect(self,
             password: str,
-            handlers: Tuple["JoinAccessSequencer.OnJoinedArg",
-                "JoinAccessSequencer.OnPlayerJoinedCallable",
-                "JoinAccessSequencer.OnAllPlayersHereCallable"]
+            on_joined_callback: "JoinAccessSequencer.OnJoinedCallable",
+            on_player_joined_callback: "JoinAccessSequencer.OnPlayerJoinedCallable",
+            on_all_players_here_callback: "JoinAccessSequencer.OnAllPlayersHereCallable"
         ) -> None:
-        self.joined_event = SequencerEvent(handlers[0])
-        self.player_joined_event = SequencerEvent(handlers[1])
-        self.all_player_here_event = SequencerEvent(handlers[2])
+        self.joined_event = SequencerEvent(on_joined_callback)
+        self.player_joined_event = SequencerEvent(on_player_joined_callback)
+        self.all_player_here_event = SequencerEvent(on_all_players_here_callback)
 
         self.commander.join(password)
         
-    def proccess_initialization_data(self, _):            
+    def process_initialization_data(self, response: requests.Response):
         if self.joined_event is None:
             raise ValueError("Commanderクラスによる不適切なコールバック呼び出し。")
 
+        # TODO: レスポンスからデータを抽出し、pendに渡す実装が必要
+        ps: "JoinAccessSequencer.OnJoinedArg" = (0, []) # 仮のデータ
         self.joined_event.pend(ps)
+
+    def process_message(self, json: str):
+        raise RuntimeError("Not impemented.")

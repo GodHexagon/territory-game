@@ -146,8 +146,42 @@ class HostAccessSequencer(GameAccessSequencer):
 
         self.hosted_to_server_event.pend(ps)
     
-    def proccess_message(self, json):
-        raise RuntimeError("Not impemented.")
+    def proccess_message(self, json_str):
+        try:
+            import json
+            message = json.loads(json_str)
+            msg_type = message.get("type")
+            
+            if msg_type == "player_joined":
+                player_id = message.get("player_id")
+                if isinstance(player_id, int) and self.player_joined_event is not None:
+                    self.player_joined_event.pend(str(player_id))
+            elif msg_type == "all_players_here":
+                is_ready = message.get("ready", False)
+                if self.all_player_here_event is not None:
+                    self.all_player_here_event.pend(is_ready)
+            elif msg_type == "player_data_response":
+                player_data_list = message.get("players", [])
+                if self.joined_event is not None:
+                    try:
+                        players = []
+                        for p in player_data_list:
+                            name = p.get("name", "")
+                            player_type = players_data.PlayerType(p.get("type", 0))
+                            color = players_data.Color(p.get("color", 0))
+                            players.append(players_data.PlayerData(name, player_type, color))
+                        
+                        # 既存の参加イベントを更新（プレイヤーデータ付き）
+                        current_player_id = message.get("player_id", 0)
+                        self.joined_event.pend((current_player_id, players))
+                    except (ValueError, KeyError, TypeError):
+                        message = f"{Error.IMPLEMENTATION_ERROR}:\nInvalid player data in message: {json_str}"
+                        print(message)
+                        self.error_event.pend(Error.IMPLEMENTATION_ERROR)
+        except json.JSONDecodeError:
+            message = f"{Error.IMPLEMENTATION_ERROR}:\nInvalid JSON message: {json_str}"
+            print(message)
+            self.error_event.pend(Error.IMPLEMENTATION_ERROR)
 
     def update(self):
         """
@@ -187,8 +221,75 @@ class JoinAccessSequencer(GameAccessSequencer):
 
         self.commander.join(password)
         
-    def proccess_initialization_data(self, _):            
+    def proccess_initialization_data(self, response):
+        try:
+            player_id = response.json()["player_id"]
+        except (KeyError, TypeError):
+            message = f"{Error.IMPLEMENTATION_ERROR}:\nResponse is incorrect. Response body:\n{response.text}"
+            print(message)
+            self.error_event.pend(Error.IMPLEMENTATION_ERROR)
+            return
+        
+        if not isinstance(player_id, int):
+            message = f"{Error.IMPLEMENTATION_ERROR}:\nResponse is incorrect. Response body:\n{response.text}"
+            print(message)
+            self.error_event.pend(Error.IMPLEMENTATION_ERROR)
+            return
+            
         if self.joined_event is None:
             raise ValueError("Commanderクラスによる不適切なコールバック呼び出し。")
 
-        self.joined_event.pend(ps)
+        self.joined_event.pend((player_id, []))
+        
+        # 自身の参加をブロードキャストで通知
+        self.commander.broadcast('{"type": "player_joined", "player_id": ' + str(player_id) + '}')
+        
+    def proccess_message(self, json_str):
+        try:
+            import json
+            message = json.loads(json_str)
+            msg_type = message.get("type")
+            
+            if msg_type == "player_joined":
+                player_id = message.get("player_id")
+                if isinstance(player_id, int) and self.player_joined_event is not None:
+                    self.player_joined_event.pend(str(player_id))
+            elif msg_type == "all_players_here":
+                is_ready = message.get("ready", False)
+                if self.all_player_here_event is not None:
+                    self.all_player_here_event.pend(is_ready)
+            elif msg_type == "player_data_response":
+                player_data_list = message.get("players", [])
+                if self.joined_event is not None:
+                    try:
+                        players = []
+                        for p in player_data_list:
+                            name = p.get("name", "")
+                            player_type = players_data.PlayerType(p.get("type", 0))
+                            color = players_data.Color(p.get("color", 0))
+                            players.append(players_data.PlayerData(name, player_type, color))
+                        
+                        # 既存の参加イベントを更新（プレイヤーデータ付き）
+                        current_player_id = message.get("player_id", 0)
+                        self.joined_event.pend((current_player_id, players))
+                    except (ValueError, KeyError, TypeError):
+                        error_message = f"{Error.IMPLEMENTATION_ERROR}:\nInvalid player data in message: {json_str}"
+                        print(error_message)
+                        self.error_event.pend(Error.IMPLEMENTATION_ERROR)
+        except json.JSONDecodeError:
+            error_message = f"{Error.IMPLEMENTATION_ERROR}:\nInvalid JSON message: {json_str}"
+            print(error_message)
+            self.error_event.pend(Error.IMPLEMENTATION_ERROR)
+    
+    def update(self):
+        """
+        フレームごとの更新処理
+        """
+        self.error_event.update()
+        
+        if self.joined_event is not None:
+            self.joined_event.update()
+        if self.player_joined_event is not None:
+            self.player_joined_event.update()
+        if self.all_player_here_event is not None:
+            self.all_player_here_event.update()

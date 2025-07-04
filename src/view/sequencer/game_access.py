@@ -2,6 +2,7 @@ from enum import Enum
 from typing import *
 from abc import ABC, abstractmethod
 import traceback
+import json
 
 import requests
 
@@ -79,7 +80,7 @@ class GameAccessSequencer(View, ABC):
     def draw(self):
         raise ValueError("シーケンサーはdrawメソッドを実行できない。")
     
-    def message(self, json: str) -> None:
+    def message(self, json_str: str) -> None:
         raise RuntimeError("Not impemented.")
     
     @abstractmethod
@@ -87,7 +88,7 @@ class GameAccessSequencer(View, ABC):
         pass
 
     @abstractmethod
-    def process_message(self, json: str):
+    def process_message(self, json_str: str):
         pass
 
 class HostAccessSequencer(GameAccessSequencer):
@@ -159,8 +160,30 @@ class HostAccessSequencer(GameAccessSequencer):
         if self.all_player_here_event is not None:
             self.all_player_here_event.update()
 
-    def process_message(self, json: str):
-        raise RuntimeError("Not impemented.")
+    def process_message(self, json_str: str):
+        try:
+            message = json.loads(json_str)
+            event_type = message.get("event")
+            data = message.get("data")
+
+            if event_type == "player_joined":
+                if self.player_joined_event is None:
+                    raise ValueError("player_joined_event is not initialized.")
+                if not isinstance(data, str):
+                    raise TypeError("Invalid data type for player_joined event.")
+                self.player_joined_event.pend(data)
+
+            elif event_type == "all_players_here":
+                if self.all_player_here_event is None:
+                    raise ValueError("all_player_here_event is not initialized.")
+                if not isinstance(data, bool):
+                    raise TypeError("Invalid data type for all_players_here event.")
+                self.all_player_here_event.pend(data)
+
+        except (json.JSONDecodeError, KeyError, TypeError, ValueError) as e:
+            log = f"{Error.IMPLEMENTATION_ERROR}:\nFailed to process game message: {json_str}\n" + ''.join(traceback.format_exception(type(e), e, e.__traceback__))
+            print(log)
+            self.error_event.pend(Error.IMPLEMENTATION_ERROR)
 
 from src.data import players_data
 
@@ -191,9 +214,46 @@ class JoinAccessSequencer(GameAccessSequencer):
         if self.joined_event is None:
             raise ValueError("Commanderクラスによる不適切なコールバック呼び出し。")
 
-        # TODO: レスポンスからデータを抽出し、pendに渡す実装が必要
-        ps: "JoinAccessSequencer.OnJoinedArg" = (0, []) # 仮のデータ
-        self.joined_event.pend(ps)
+        try:
+            data = response.json()
+            init_data = data["initialization_data"]
+            player_id = init_data["player_id"]
+            players = init_data["players"]
 
-    def process_message(self, json: str):
-        raise RuntimeError("Not impemented.")
+            if not isinstance(player_id, int):
+                raise TypeError("Invalid type for player_id in response.")
+            if not isinstance(players, list):
+                raise TypeError("Invalid type for players in response.")
+
+            arg: "JoinAccessSequencer.OnJoinedArg" = (player_id, players)
+            self.joined_event.pend(arg)
+
+        except (KeyError, TypeError, requests.exceptions.JSONDecodeError):
+            message = f"{Error.IMPLEMENTATION_ERROR}:\nResponse is incorrect. Response body:\n{response.text}"
+            print(message)
+            self.error_event.pend(Error.IMPLEMENTATION_ERROR)
+
+    def process_message(self, json_str: str):
+        try:
+            message = json.loads(json_str)
+            event_type = message.get("event")
+            data = message.get("data")
+
+            if event_type == "player_joined":
+                if self.player_joined_event is None:
+                    raise ValueError("player_joined_event is not initialized.")
+                if not isinstance(data, str):
+                    raise TypeError("Invalid data type for player_joined event.")
+                self.player_joined_event.pend(data)
+
+            elif event_type == "all_players_here":
+                if self.all_player_here_event is None:
+                    raise ValueError("all_player_here_event is not initialized.")
+                if not isinstance(data, bool):
+                    raise TypeError("Invalid data type for all_players_here event.")
+                self.all_player_here_event.pend(data)
+
+        except (json.JSONDecodeError, KeyError, TypeError, ValueError) as e:
+            log = f"{Error.IMPLEMENTATION_ERROR}:\nFailed to process game message: {json_str}\n" + ''.join(traceback.format_exception(type(e), e, e.__traceback__))
+            print(log)
+            self.error_event.pend(Error.IMPLEMENTATION_ERROR)
